@@ -21,30 +21,38 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"fmt"
-	"github.com/spf13/viper"
+
+	"github.com/spf13/cobra"
 )
 
-var host string
-var token string
+// groupCmd represents the group command
+var groupCmd = &cobra.Command{
+	Use:   "group",
+	Short: "Manage Gitlab Groups",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
 
-// loginCmd represents the login command
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to a Gitlab server",
-	Long: `Log in to a Gitlab server with the URL given in <host> and <token>.`,
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		fmt.Println(fmt.Sprintf("Logging in to Gitlab server with host: %s and token: %s", host, token))
+		// TODO: Work your own magic here
+		fmt.Println("group called")
 	},
 }
 
 func init() {
-	loginCmd.PersistentFlags().StringVarP(&host, "host", "u", "", "URL to Gitlab server eg. http://gitlab.org")
-	loginCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Access token for the Gitlab server account")
-	viper.BindPFlag("host", loginCmd.PersistentFlags().Lookup("host"))
-	viper.BindPFlag("token", loginCmd.PersistentFlags().Lookup("token"))
+	RootCmd.AddCommand(groupCmd)
 
-	RootCmd.AddCommand(loginCmd)
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// groupCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// groupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }

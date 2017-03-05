@@ -21,30 +21,55 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"fmt"
-	"github.com/spf13/viper"
+
+	"github.com/spf13/cobra"
 )
 
-var host string
-var token string
-
-// loginCmd represents the login command
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to a Gitlab server",
-	Long: `Log in to a Gitlab server with the URL given in <host> and <token>.`,
+// userCmd represents the user command
+var userCmd = &cobra.Command{
+	Use:   "user",
+	Short: "Manage Gitlab users",
+	Long: `Allows create, update and deletion of a user`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: Work your own magic here
+		fmt.Println("user called")
+	},
+}
 
-		fmt.Println(fmt.Sprintf("Logging in to Gitlab server with host: %s and token: %s", host, token))
+var createCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Create a new user",
+	Long: `Allows creation of a new user`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: Work your own magic here
+		fmt.Println("create called")
+	},
+}
+
+var deleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete a user",
+	Long: `Delete a user`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: Work your own magic here
+		fmt.Println("delete called")
+	},
+}
+
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update a user",
+	Long: `Allows updating a user`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: Work your own magic here
+		fmt.Println("update called")
 	},
 }
 
 func init() {
-	loginCmd.PersistentFlags().StringVarP(&host, "host", "u", "", "URL to Gitlab server eg. http://gitlab.org")
-	loginCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Access token for the Gitlab server account")
-	viper.BindPFlag("host", loginCmd.PersistentFlags().Lookup("host"))
-	viper.BindPFlag("token", loginCmd.PersistentFlags().Lookup("token"))
-
-	RootCmd.AddCommand(loginCmd)
+	userCmd.AddCommand(updateCmd)
+	userCmd.AddCommand(createCmd)
+	userCmd.AddCommand(deleteCmd)
+	RootCmd.AddCommand(userCmd)
 }

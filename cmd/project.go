@@ -22,29 +22,26 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/michaellihs/golab/client"
+	"net/http"
 	"fmt"
 	"github.com/spf13/viper"
 )
 
-var host string
-var token string
-
-// loginCmd represents the login command
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to a Gitlab server",
-	Long: `Log in to a Gitlab server with the URL given in <host> and <token>.`,
+var projectCmd = &cobra.Command{
+	Use:   "project",
+	Short: "Manage Gitlab Projects",
+	Long: `List, create, edit and delete projects`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		fmt.Println(fmt.Sprintf("Logging in to Gitlab server with host: %s and token: %s", host, token))
+		url := viper.GetString("url")
+		token := viper.GetString("token")
+		fmt.Println("url from config: " + url)
+		gitlabClient := client.NewClient(url, token, http.DefaultClient)
+		projects := gitlabClient.ListProjects()
+		fmt.Println(projects)
 	},
 }
 
 func init() {
-	loginCmd.PersistentFlags().StringVarP(&host, "host", "u", "", "URL to Gitlab server eg. http://gitlab.org")
-	loginCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Access token for the Gitlab server account")
-	viper.BindPFlag("host", loginCmd.PersistentFlags().Lookup("host"))
-	viper.BindPFlag("token", loginCmd.PersistentFlags().Lookup("token"))
-
-	RootCmd.AddCommand(loginCmd)
+	RootCmd.AddCommand(projectCmd)
 }
