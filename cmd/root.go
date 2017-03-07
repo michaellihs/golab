@@ -27,9 +27,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
+	"github.com/michaellihs/golab/client"
+	"net/http"
 )
 
 var cfgFile string
+
+var gitlabClient *client.GitlabClient
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -52,6 +56,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initGitlabClient)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports Persistent Flags, which, if defined here,
@@ -79,4 +84,8 @@ func initConfig() {
 	} else {
 		fmt.Println(err)
 	}
+}
+
+func initGitlabClient() {
+	gitlabClient = client.NewClient(viper.GetString("url"), viper.GetString("token"), http.DefaultClient)
 }

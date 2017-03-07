@@ -22,10 +22,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/michaellihs/golab/client"
-	"net/http"
 	"fmt"
-	"github.com/spf13/viper"
 )
 
 var projectCmd = &cobra.Command{
@@ -33,10 +30,6 @@ var projectCmd = &cobra.Command{
 	Short: "Manage Gitlab Projects",
 	Long: `List, create, edit and delete projects`,
 	Run: func(cmd *cobra.Command, args []string) {
-		url := viper.GetString("url")
-		token := viper.GetString("token")
-		fmt.Println("url from config: " + url)
-		gitlabClient := client.NewClient(url, token, http.DefaultClient)
 		projects := gitlabClient.ListProjects()
 		fmt.Println(projects)
 	},
