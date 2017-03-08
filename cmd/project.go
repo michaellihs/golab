@@ -30,7 +30,7 @@ var projectCmd = &cobra.Command{
 	Short: "Manage Gitlab Projects",
 	Long: `List, create, edit and delete projects`,
 	Run: func(cmd *cobra.Command, args []string) {
-		projects := gitlabClient.ListProjects()
+		projects := gitlabClient.Projects.List()
 		fmt.Println(projects)
 	},
 }

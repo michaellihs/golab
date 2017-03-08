@@ -3,26 +3,30 @@ package client
 import (
 	"github.com/dghubble/sling"
 	"net/http"
-	"github.com/michaellihs/golab/model"
 	"net/url"
-	"github.com/michaellihs/golab/client/services"
 )
 
 type GitlabClient struct {
-	sling   *sling.Sling
-	token   string
-	client  *http.Client
-	baseUrl *url.URL
+	sling    *sling.Sling
+	token    string
+	client   *http.Client
+	baseUrl  *url.URL
 
-	ProjectService services.ProjectsService
+	Projects *ProjectsService
 }
 
 func NewClient(gitlabUrl string, token string, httpClient *http.Client) *GitlabClient {
+	// TODO check gitlabUrl for being a proper URL
+	// TODO use URL type for URL instead of string
 	base := sling.New().Client(httpClient).Base(gitlabUrl)
-	return &GitlabClient{
+	gitlabClient := &GitlabClient{
 		sling: base,
 		token: token,
 		client: httpClient}
+
+	gitlabClient.Projects = &ProjectsService{Client:gitlabClient}
+
+	return gitlabClient
 }
 
 func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
@@ -34,11 +38,8 @@ func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
 	return req, nil
 }
 
-func (client GitlabClient) ListProjects() *[]model.Project {
-	projects := new([]model.Project)
+func (client *GitlabClient) Do(req *http.Request, value interface{}) {
 	error := new(string)
-	req, _ := client.NewGetRequest("/api/v3/projects")
-	client.sling.Do(req, projects, error)
-	return projects
+	client.sling.Do(req, value, error)
 }
 
