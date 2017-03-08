@@ -23,18 +23,40 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"fmt"
+	"github.com/michaellihs/golab/client"
+	"github.com/spf13/viper"
+	"encoding/json"
 )
+
+var name string
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
-	Short: "Manage Gitlab Projects",
+	Short: "Manage projects",
 	Long: `List, create, edit and delete projects`,
 	Run: func(cmd *cobra.Command, args []string) {
 		projects := gitlabClient.Projects.List()
-		fmt.Println(projects)
+		json, _ := json.MarshalIndent(projects, "", "  ")
+		fmt.Println(string(json))
+	},
+}
+
+var createProjectCmd = &cobra.Command{
+	Use: "create",
+	Short: "Create a new project",
+	Long: `Create a new project for the given parameters`,
+	Run: func(cmd *cobra.Command, args []string) {
+		params := &client.ProjectParams{
+			Name: name}
+		project := gitlabClient.Projects.Create(params)
+		json, _ := json.MarshalIndent(project, "", "  ")
+		fmt.Println(string(json))
 	},
 }
 
 func init() {
+	createProjectCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Name of the project")
+	viper.BindPFlag("name", createProjectCmd.PersistentFlags().Lookup("name"))
+	projectCmd.AddCommand(createProjectCmd)
 	RootCmd.AddCommand(projectCmd)
 }

@@ -35,6 +35,17 @@ func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
 		return nil, err
 	}
 	req.Header.Set("PRIVATE-TOKEN", client.token)
+	req.Header.Set("Accept", "application/json")
+	return req, nil
+}
+
+func (client *GitlabClient) NewPostRequest(url string, body interface{}) (*http.Request, error) {
+	req, err := client.sling.New().Post(url).BodyJSON(body).Request()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("PRIVATE-TOKEN", client.token)
+	req.Header.Set("Accept", "application/json")
 	return req, nil
 }
 
