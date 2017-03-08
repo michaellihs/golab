@@ -26,7 +26,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 	"github.com/michaellihs/golab/client"
 	"net/http"
 )
@@ -70,8 +69,6 @@ func initConfig() {
 	if cfgFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(cfgFile)
 	}
-
-	log.Print("here we go")
 
 	viper.SetConfigName(".golab") // name of config file (without extension)
 	viper.AddConfigPath("$HOME")  // adding home directory as first search path
