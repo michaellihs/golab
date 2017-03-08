@@ -3,15 +3,18 @@ package client
 import (
 	"github.com/dghubble/sling"
 	"net/http"
-	"fmt"
-	"io/ioutil"
 	"github.com/michaellihs/golab/model"
+	"net/url"
+	"github.com/michaellihs/golab/client/services"
 )
 
 type GitlabClient struct {
-	sling  *sling.Sling
-	token  string
-	client *http.Client
+	sling   *sling.Sling
+	token   string
+	client  *http.Client
+	baseUrl *url.URL
+
+	ProjectService services.ProjectsService
 }
 
 func NewClient(gitlabUrl string, token string, httpClient *http.Client) *GitlabClient {
@@ -22,18 +25,20 @@ func NewClient(gitlabUrl string, token string, httpClient *http.Client) *GitlabC
 		client: httpClient}
 }
 
+func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
+	req, err := client.sling.New().Get(url).Request()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("PRIVATE-TOKEN", client.token)
+	return req, nil
+}
+
 func (client GitlabClient) ListProjects() *[]model.Project {
-	req, _ := client.sling.New().Get("/api/v3/projects?private_token=" + client.token).Request()
-	fmt.Println(req.URL)
-	resp, _ := client.client.Do(req)
-
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	bodyString := string(bodyBytes)
-
-	fmt.Println(bodyString)
-
 	projects := new([]model.Project)
-	client.sling.New().Get("/api/v3/projects?private_token=" + client.token).ReceiveSuccess(projects)
+	error := new(string)
+	req, _ := client.NewGetRequest("/api/v3/projects")
+	client.sling.Do(req, projects, error)
 	return projects
 }
 
