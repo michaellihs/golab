@@ -4,10 +4,25 @@ Gitlab CLI written in Go
 This project is intended to provide a Gitlab Command Line Interface (CLI) written in Go.
 
 
-Run the application
--------------------
+Build and run the application
+-----------------------------
 
-    go run main.go
+    go install github.com/michaellihs/golab
+    golab
+
+
+Run the Tests
+-------------
+
+Install Ginkgo
+
+    go get github.com/onsi/ginkgo/ginkgo
+    go get github.com/onsi/gomega
+
+Run the tests (e.g. in `model`) with
+
+    cd model
+    ginkgo
 
 
 Install the application
@@ -29,3 +44,4 @@ Further Resources
 * [Cobra Library (Go CLI Library)](https://github.com/spf13/cobra)
 * [Viper Library (Go Flags Library)](https://github.com/spf13/viper)
 * [Sling (Go HTTP Library)](https://github.com/dghubble/sling)
+* [Ginkgo (Go Testing Library)](https://onsi.github.io/ginkgo/)
