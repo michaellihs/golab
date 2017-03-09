@@ -45,3 +45,5 @@ Further Resources
 * [Viper Library (Go Flags Library)](https://github.com/spf13/viper)
 * [Sling (Go HTTP Library)](https://github.com/dghubble/sling)
 * [Ginkgo (Go Testing Library)](https://onsi.github.io/ginkgo/)
+* [GoMock (Go Mocking Library)](https://github.com/golang/mock)
+* [go-gitlab (Go Gitlab Library)](https://github.com/xanzy/go-gitlab)
