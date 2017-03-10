@@ -4,6 +4,20 @@ Gitlab CLI written in Go <a href="https://travis-ci.org/michaellihs/golab"><img 
 This project is intended to provide a Gitlab Command Line Interface (CLI) written in Go.
 
 
+Usage
+-----
+
+Create a file `.golab.yml` in either `~/` or the directory you want to use golab with the following content:
+
+    ---
+    url: "https://gitlab.com"
+    token: "YOUR PRIVATE TOKEN"
+
+Replace `gitlab.com` with the URL of your Gitlab server.
+
+Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
+
+
 Build and run the application
 -----------------------------
 
