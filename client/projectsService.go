@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/michaellihs/golab/model"
+	"fmt"
 )
 
 type ProjectsService struct {
@@ -39,9 +40,13 @@ func (service *ProjectsService) List() *[]model.Project {
 	return projects
 }
 
-func (service *ProjectsService) Create(projectParams *ProjectParams) *model.Project {
+func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Project, error) {
 	req, _ := service.Client.NewPostRequest("/api/v3/projects", projectParams)
 	project := new(model.Project)
-	service.Client.Do(req, project)
-	return project
+	_, err := service.Client.Do(req, project)
+	if err != nil {
+		fmt.Println("An error occurred: " + err.Error())
+		return nil, err
+	}
+	return project, nil
 }

@@ -48,9 +48,13 @@ var createProjectCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		params := &client.ProjectParams{
 			Name: name}
-		project := gitlabClient.Projects.Create(params)
-		json, _ := json.MarshalIndent(project, "", "  ")
-		fmt.Println(string(json))
+		project, err := gitlabClient.Projects.Create(params)
+		if err != nil {
+			fmt.Println("An error occurred: " + err.Error())
+		} else {
+			json, _ := json.MarshalIndent(project, "", "  ")
+			fmt.Println(string(json))
+		}
 	},
 }
 

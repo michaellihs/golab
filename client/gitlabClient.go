@@ -41,11 +41,12 @@ func (client *GitlabClient) NewPostRequest(url string, body interface{}) (*http.
 	}
 	req.Header.Set("PRIVATE-TOKEN", client.token)
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 	return req, nil
 }
 
-func (client *GitlabClient) Do(req *http.Request, value interface{}) {
-	error := new(string)
-	client.sling.Do(req, value, error)
+func (client *GitlabClient) Do(req *http.Request, value interface{}) (*http.Response, error){
+	resp, err := client.sling.Do(req, value, "")
+	return resp, err
 }
 
