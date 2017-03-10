@@ -28,6 +28,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/michaellihs/golab/client"
 	"net/http"
+	"net/url"
 )
 
 var cfgFile string
@@ -84,5 +85,9 @@ func initConfig() {
 }
 
 func initGitlabClient() {
-	gitlabClient = client.NewClient(viper.GetString("url"), viper.GetString("token"), http.DefaultClient)
+	baseUrl, err := url.Parse(viper.GetString("url"))
+	if err != nil {
+		fmt.Printf("Could not parse given URL '%s': %s", baseUrl, err)
+	}
+	gitlabClient = client.NewClient(baseUrl, viper.GetString("token"), http.DefaultClient)
 }

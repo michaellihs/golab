@@ -15,10 +15,8 @@ type GitlabClient struct {
 	Projects *ProjectsService
 }
 
-func NewClient(gitlabUrl string, token string, httpClient *http.Client) *GitlabClient {
-	// TODO check gitlabUrl for being a proper URL
-	// TODO use URL type for URL instead of string
-	base := sling.New().Client(httpClient).Base(gitlabUrl)
+func NewClient(baseUrl *url.URL, token string, httpClient *http.Client) *GitlabClient {
+	base := sling.New().Client(httpClient).Base(baseUrl.String())
 	gitlabClient := &GitlabClient{
 		sling: base,
 		token: token,
