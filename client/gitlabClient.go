@@ -17,10 +17,7 @@ type GitlabClient struct {
 
 func NewClient(baseUrl *url.URL, token string, httpClient *http.Client) *GitlabClient {
 	base := sling.New().Client(httpClient).Base(baseUrl.String())
-	gitlabClient := &GitlabClient{
-		sling: base,
-		token: token,
-		client: httpClient}
+	gitlabClient := &GitlabClient{sling: base, token: token, client: httpClient}
 
 	gitlabClient.Projects = &ProjectsService{Client:gitlabClient}
 
