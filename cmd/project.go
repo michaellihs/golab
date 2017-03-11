@@ -31,6 +31,7 @@ import (
 
 var name string
 var id string
+var group string
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -67,15 +68,20 @@ var projectCreateCmd = &cobra.Command{
 	Short: "Create a new project",
 	Long: `Create a new project for the given parameters`,
 	Run: func(cmd *cobra.Command, args []string) {
-		params := &client.ProjectParams{
-			Name: name}
+		namespace_id, err := gitlabClient.Groups.Namespacify(group)
+		if err != nil {
+			// TODO make sure we stop here when namespace_id cannot be properly resolved
+			fmt.Println("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
+			os.Exit(1)
+		}
+		params := &client.ProjectParams{ Name: name, NamespaceId: namespace_id}
 		project, err := gitlabClient.Projects.Create(params)
 		if err != nil {
 			fmt.Println("An error occurred: " + err.Error())
-		} else {
-			result, _ := json.MarshalIndent(project, "", "  ")
-			fmt.Println(string(result))
+			os.Exit(1)
 		}
+		result, _ := json.MarshalIndent(project, "", "  ")
+		fmt.Println(string(result))
 	},
 }
 
@@ -106,6 +112,7 @@ func initProjectGetCommand() {
 
 func initProjectCreateCommand() {
 	projectCreateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) Name of the project")
+	projectCreateCmd.PersistentFlags().StringVarP(&group, "group", "g", "", "Group to add project to (either ID or namespace)")
 	viper.BindPFlag("name", projectCreateCmd.PersistentFlags().Lookup("name"))
 	projectCmd.AddCommand(projectCreateCmd)
 }

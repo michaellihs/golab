@@ -2,6 +2,7 @@ package client
 
 import (
 	. "github.com/michaellihs/golab/model"
+	"strconv"
 )
 
 type GroupListParams struct {
@@ -26,7 +27,26 @@ func (groupService *GroupsService) GetGroup(id string) (*Group, error) {
 	}
 	_, err2 := groupService.Client.Do(req, group)
 	if err2 != nil {
-		return nil, err
+		return nil, err2
 	}
 	return group, nil
+}
+
+func (groupsService *GroupsService) Namespacify(group string) (int, error) {
+	if group == "" {
+		return 0, nil
+	}
+
+	// if group is an int, it's already a namespace id
+	if namespace_id, err := strconv.Atoi(group); err == nil {
+		return namespace_id, nil
+	}
+
+	// if group is a string, we have to resolve group id
+	groupInfo, err := groupsService.GetGroup(group)
+	if err != nil {
+		return 0, err
+	}
+
+	return groupInfo.ID, nil
 }

@@ -13,27 +13,27 @@ type ProjectsService struct {
 }
 
 type ProjectParams struct {
-	Name                                             string `json:"name"`
-	path                                             string
-	namespace_id                                     int
-	default_branch                                   string
-	description                                      string
-	issues_enabled                                   bool
-	merge_requests_enabled                           bool
-	builds_enabled                                   bool
-	wiki_enabled                                     bool
-	snippets_enabled                                 bool
-	container_registry_enabled                       bool
-	shared_runners_enabled                           bool
-	visibility                                       string
-	import_url                                       string
-	public_builds                                    bool
-	only_allow_merge_if_pipeline_succeeds            bool
-	only_allow_merge_if_all_discussions_are_resolved bool
-	lfs_enabled                                      bool
-	request_access_enabled                           bool
-	repository_storage                               string
-	approvals_before_merge                           int
+	Name                                      string `json:"name,omitempty"`
+	Path                                      string `json:"path,omitempty"`
+	NamespaceId                               int    `json:"namespace_id,omitempty"`
+	DefaultBranch                             string `json:"default_branch,omitempty"`
+	Description                               string `json:"description,omitempty"`
+	IssuesEnabled                             bool   `json:"issues_enabled,omitempty"`
+	MergeRequestsEnabled                      bool   `json:"merge_requests_enabled,omitempty"`
+	BuildsEnabled                             bool   `json:"builds_enabled,omitempty"`
+	WikiEnabled                               bool   `json:"wiki_enabled,omitempty"`
+	SnippetsEnabled                           bool   `json:"snippets_enabled,omitempty"`
+	ContainerRegistryEnabled                  bool   `json:"container_registry_enabled,omitempty"`
+	SharedRunnersEnabled                      bool   `json:"shared_runners_enabled,omitempty"`
+	Visibility                                string `json:"visibility,omitempty"`
+	ImportUrl                                 string `json:"import_url,omitempty"`
+	PublicBuilds                              bool   `json:"public_builds,omitempty"`
+	OnlyAllowMergeIfPipelineSucceeds          bool   `json:"only_allow_merge_if_pipeline_succeeds,omitempty"`
+	OnlyAllowMergeIfAllDiscussionsAreResolved bool   `json:"only_allow_merge_if_all_discussions_are_resolved,omitempty"`
+	LfsEnabled                                bool   `json:"lfs_enabled,omitempty"`
+	RequestAccessEnabled                      bool   `json:"request_access_enabled,omitempty"`
+	RepositoryStorage                         string `json:"repository_storage,omitempty"`
+	ApprovalsBeforeMerge                      int    `json:"approvals_before_merge,omitempty"`
 }
 
 func (service *ProjectsService) Get(projectId string) (*model.Project, error) {
@@ -59,7 +59,6 @@ func (service *ProjectsService) List() *[]model.Project {
 }
 
 func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Project, error) {
-	// TODO enable creation of project by given namespace, not just namespace ID
 	req, _ := service.Client.NewPostRequest("/projects", projectParams)
 	project := new(model.Project)
 	_, err := service.Client.Do(req, project)
