@@ -22,37 +22,52 @@ package cmd
 
 import (
 	"fmt"
-
+	"os"
+	"encoding/json"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+// TODO how can we namespace parameters to commands (this results in an error, that id is already declared in `cmd/project`
+//var id string
 
 // groupCmd represents the group command
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Gitlab Groups",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: `Show, create, update and delete Gitlab groups.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
 		fmt.Println("group called")
 	},
 }
 
+var groupGetCmd = &cobra.Command{
+	Use: "get",
+	Short: "Get detailed information for a group",
+	Long: `Get detailed information for a group identified by either ID or the namespace / path of the group`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if id == "" {
+			fmt.Println("Required parameter `-i` or `--id` not given. Exiting.")
+			os.Exit(1)
+		}
+		group, err := gitlabClient.Groups.GetGroup(id)
+		if err != nil {
+			fmt.Println("An error occurred (exiting): " + err.Error())
+			os.Exit(1)
+		}
+		result, _ := json.MarshalIndent(group, "", "  ")
+		fmt.Println(string(result))
+	},
+}
+
 func init() {
+	initGroupGetCommand()
 	RootCmd.AddCommand(groupCmd)
+}
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// groupCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// groupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+func initGroupGetCommand() {
+	groupGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID or namespace of group")
+	viper.BindPFlag("id", groupGetCmd.PersistentFlags().Lookup("id"))
+	groupCmd.AddCommand(groupGetCmd)
 }
