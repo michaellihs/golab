@@ -38,15 +38,15 @@ var projectCmd = &cobra.Command{
 	Long: `List, create, edit and delete projects`,
 	Run: func(cmd *cobra.Command, args []string) {
 		projects := gitlabClient.Projects.List()
-		json, _ := json.MarshalIndent(projects, "", "  ")
-		fmt.Println(string(json))
+		result, _ := json.MarshalIndent(projects, "", "  ")
+		fmt.Println(string(result))
 	},
 }
 
 var projectGetCmd = &cobra.Command{
 	Use: "get",
-	Short: "Get detail information for a project",
-	Long: `Get detail information for a project identified by either project ID or 'namespace/project-name'`,
+	Short: "Get detailed information for a project",
+	Long: `Get detailed information for a project identified by either project ID or 'namespace/project-name'`,
 	Run: func(cmd *cobra.Command, args []string) {
 		project, err := gitlabClient.Projects.Get(id)
 		// TODO introduce generic check method for required params
@@ -57,8 +57,8 @@ var projectGetCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println("An error occurred: " + err.Error())
 		}
-		json, _ := json.MarshalIndent(project, "", "  ")
-		fmt.Println(string(json))
+		result, _ := json.MarshalIndent(project, "", "  ")
+		fmt.Println(string(result))
 	},
 }
 
@@ -73,8 +73,8 @@ var projectCreateCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println("An error occurred: " + err.Error())
 		} else {
-			json, _ := json.MarshalIndent(project, "", "  ")
-			fmt.Println(string(json))
+			result, _ := json.MarshalIndent(project, "", "  ")
+			fmt.Println(string(result))
 		}
 	},
 }
@@ -99,19 +99,19 @@ func init() {
 }
 
 func initProjectGetCommand() {
-	projectGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "Either ID of project or 'namespace/project-name'")
+	projectGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID of project or 'namespace/project-name'")
 	viper.BindPFlag("id", projectGetCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectGetCmd)
 }
 
 func initProjectCreateCommand() {
-	projectCreateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Name of the project")
+	projectCreateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) Name of the project")
 	viper.BindPFlag("name", projectCreateCmd.PersistentFlags().Lookup("name"))
 	projectCmd.AddCommand(projectCreateCmd)
 }
 
 func initProjectDeleteCommand() {
-	projectDeleteCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "Either ID of project or 'namespace/project-name'")
+	projectDeleteCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID of project or 'namespace/project-name'")
 	viper.BindPFlag("id", projectDeleteCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectDeleteCmd)
 }
