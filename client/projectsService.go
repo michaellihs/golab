@@ -3,6 +3,9 @@ package client
 import (
 	"github.com/michaellihs/golab/model"
 	"fmt"
+	"strings"
+	"net/http"
+	"errors"
 )
 
 type ProjectsService struct {
@@ -49,4 +52,19 @@ func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Pro
 		return nil, err
 	}
 	return project, nil
+}
+
+func (service *ProjectsService) Delete(projectId string) (bool, error) {
+	encodedProjectId := strings.Replace(projectId, "/", "%2F", -1)
+	req, _ := service.Client.NewDeleteRequest("/api/v3/projects/" + encodedProjectId)
+	resp, err := service.Client.Do(req, nil)
+	if err != nil {
+		fmt.Println("An error occured: " + err.Error())
+		return false, err
+	}
+	if resp.StatusCode == http.StatusOK {
+		return true, nil
+	} else {
+		return false, errors.New(resp.Status)
+	}
 }

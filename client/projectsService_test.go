@@ -53,4 +53,28 @@ var _ = Describe("ProjectsService", func() {
 		Expect(project.ID).To(Equal(4))
 	})
 
+	It("sends the expected DELETE request for deleting a project by its ID", func() {
+		serveMux, httpTestServer, gitlabClient := setup()
+		defer teardown(httpTestServer)
+
+		serveMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			testMethod(r, "DELETE")
+			testURL(r, "/api/v3/projects/1234")
+			testHeaderContainsExpectedToken(r, "test-token")
+			fmt.Fprint(w, "true")
+
+			// TODO: test case of error:
+			// {
+			//     "message": "404 Project Not Found"
+		        // }
+		})
+
+		projectsService := &ProjectsService{Client: gitlabClient}
+
+		result, err := projectsService.Delete("1234")
+
+		Expect(err).To(BeNil())
+		Expect(result).To(Equal(true))
+	})
+
 })

@@ -45,8 +45,18 @@ func (client *GitlabClient) NewPostRequest(url string, body interface{}) (*http.
 	return req, nil
 }
 
+func (client *GitlabClient) NewDeleteRequest(url string) (*http.Request, error) {
+	req, err := client.sling.New().Delete(url).Request()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("PRIVATE-TOKEN", client.token)
+	req.Header.Set("Accept", "application/json")
+	return req, nil
+}
+
 func (client *GitlabClient) Do(req *http.Request, value interface{}) (*http.Response, error){
-	resp, err := client.sling.Do(req, value, "")
+	resp, err := client.sling.Do(req, value, nil)
 	return resp, err
 }
 

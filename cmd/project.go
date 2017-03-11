@@ -29,6 +29,7 @@ import (
 )
 
 var name string
+var id string
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -41,7 +42,7 @@ var projectCmd = &cobra.Command{
 	},
 }
 
-var createProjectCmd = &cobra.Command{
+var projectCreateCmd = &cobra.Command{
 	Use: "create",
 	Short: "Create a new project",
 	Long: `Create a new project for the given parameters`,
@@ -58,9 +59,32 @@ var createProjectCmd = &cobra.Command{
 	},
 }
 
+var projectDeleteCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Delete an existing project",
+	Long: `Delete an existing project by either its project ID or namespace/project-name`,
+	Run: func(cmd *cobra.Command, args []string) {
+		success, err := gitlabClient.Projects.Delete(id)
+		if !success {
+			fmt.Println("Something went wrong: " + err.Error())
+		}
+	},
+}
+
 func init() {
-	createProjectCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Name of the project")
-	viper.BindPFlag("name", createProjectCmd.PersistentFlags().Lookup("name"))
-	projectCmd.AddCommand(createProjectCmd)
+	initProjectCreateCommand()
+	initProjectDeleteCommand()
 	RootCmd.AddCommand(projectCmd)
+}
+
+func initProjectCreateCommand() {
+	projectCreateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "Name of the project")
+	viper.BindPFlag("name", projectCreateCmd.PersistentFlags().Lookup("name"))
+	projectCmd.AddCommand(projectCreateCmd)
+}
+
+func initProjectDeleteCommand() {
+	projectDeleteCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "Either ID of project or 'namespace/project-name'")
+	viper.BindPFlag("id", projectDeleteCmd.PersistentFlags().Lookup("id"))
+	projectCmd.AddCommand(projectDeleteCmd)
 }
