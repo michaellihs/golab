@@ -36,7 +36,22 @@ type ProjectParams struct {
 	approvals_before_merge                           int
 }
 
+func (service *ProjectsService) Get(projectId string) (*model.Project, error) {
+	encodedProjectId := strings.Replace(projectId, "/", "%2F", -1)
+	project := new(model.Project)
+	req, err1 := service.Client.NewGetRequest("/api/v3/projects/" + encodedProjectId)
+	if err1 != nil {
+		return nil, err1
+	}
+	_, err2 := service.Client.Do(req, project)
+	if err2 != nil {
+		return nil, err2
+	}
+	return project, nil
+}
+
 func (service *ProjectsService) List() *[]model.Project {
+	// TODO introduce proper error handling here
 	projects := new([]model.Project)
 	req, _ := service.Client.NewGetRequest("/api/v3/projects")
 	service.Client.Do(req, projects)
@@ -44,6 +59,7 @@ func (service *ProjectsService) List() *[]model.Project {
 }
 
 func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Project, error) {
+	// TODO enable creation of project by given namespace, not just namespace ID
 	req, _ := service.Client.NewPostRequest("/api/v3/projects", projectParams)
 	project := new(model.Project)
 	_, err := service.Client.Do(req, project)

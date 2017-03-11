@@ -33,10 +33,13 @@ type Project struct {
 	PathWithNamespace                         string `json:"path_with_namespace"`
 	Permissions                               struct {
 							  GroupAccess   struct {
-										AccessLevel       int `json:"access_level"`
-										NotificationLevel int `json:"notification_level"`
-									} `json:"group_access"`
-							  ProjectAccess string `json:"project_access"`
+										AccessLevel       int `json:"access_level,omitempty"`
+										NotificationLevel int `json:"notification_level,omitempty"`
+									} `json:"group_access,omitempty"`
+							  ProjectAccess struct {
+								  		AccessLevel       int `json:"access_level,omitempty"`
+								  		NotificationLevel int `json:"notification_level,omitempty"`
+									} `json:"project_access,omitempty"`
 						  } `json:"permissions"`
 	Public                                    bool          `json:"public"`
 	PublicBuilds                              bool          `json:"public_builds"`

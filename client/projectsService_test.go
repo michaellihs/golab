@@ -12,6 +12,25 @@ import (
 
 var _ = Describe("ProjectsService", func() {
 
+	It("sends expected GET request for getting a project and maps it as expected", func() {
+		serveMux, httpTestServer, gitlabClient := setup()
+		defer teardown(httpTestServer)
+
+		serveMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			testMethod(r, "GET")
+			testURL(r, "/api/v3/projects/1234")
+			testHeaderContainsExpectedToken(r, "test-token")
+			fmt.Fprint(w, `{"id":1234, "name":"testproject"}`)
+		})
+
+		projectsService := &ProjectsService{Client: gitlabClient}
+		project, err := projectsService.Get("1234")
+
+		Expect(err).To(BeNil())
+		Expect(project.ID).To(Equal(1234))
+		Expect(project.Name).To(Equal("testproject"))
+	})
+
 	It("sends expected GET request for listing projects and maps them as expected", func() {
 		serveMux, httpTestServer, gitlabClient := setup()
 		defer teardown(httpTestServer)
@@ -28,7 +47,6 @@ var _ = Describe("ProjectsService", func() {
 		// TODO introduce errors here
 		projects := projectsService.List()
 
-		//Expect(err).To(Equal(nil))
 		Expect(projects).To(Equal(&[]Project{{ID: 1}, {ID: 2}}))
 	})
 
@@ -66,7 +84,7 @@ var _ = Describe("ProjectsService", func() {
 			// TODO: test case of error:
 			// {
 			//     "message": "404 Project Not Found"
-		        // }
+			// }
 		})
 
 		projectsService := &ProjectsService{Client: gitlabClient}

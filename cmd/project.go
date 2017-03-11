@@ -26,6 +26,7 @@ import (
 	"github.com/michaellihs/golab/client"
 	"github.com/spf13/viper"
 	"encoding/json"
+	"os"
 )
 
 var name string
@@ -38,6 +39,25 @@ var projectCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		projects := gitlabClient.Projects.List()
 		json, _ := json.MarshalIndent(projects, "", "  ")
+		fmt.Println(string(json))
+	},
+}
+
+var projectGetCmd = &cobra.Command{
+	Use: "get",
+	Short: "Get detail information for a project",
+	Long: `Get detail information for a project identified by either project ID or 'namespace/project-name'`,
+	Run: func(cmd *cobra.Command, args []string) {
+		project, err := gitlabClient.Projects.Get(id)
+		// TODO introduce generic check method for required params
+		if id == "" {
+			fmt.Println("You have to provide the a project ID or 'namespace/project-name' with the -i --id flag")
+			os.Exit(1)
+		}
+		if err != nil {
+			fmt.Println("An error occurred: " + err.Error())
+		}
+		json, _ := json.MarshalIndent(project, "", "  ")
 		fmt.Println(string(json))
 	},
 }
@@ -72,9 +92,16 @@ var projectDeleteCmd = &cobra.Command{
 }
 
 func init() {
+	initProjectGetCommand()
 	initProjectCreateCommand()
 	initProjectDeleteCommand()
 	RootCmd.AddCommand(projectCmd)
+}
+
+func initProjectGetCommand() {
+	projectGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "Either ID of project or 'namespace/project-name'")
+	viper.BindPFlag("id", projectGetCmd.PersistentFlags().Lookup("id"))
+	projectCmd.AddCommand(projectGetCmd)
 }
 
 func initProjectCreateCommand() {
