@@ -13,6 +13,7 @@ type GitlabClient struct {
 	baseUrl  *url.URL
 
 	Projects *ProjectsService
+	Groups   *GroupsService
 }
 
 const (
@@ -24,6 +25,7 @@ func NewClient(baseUrl *url.URL, token string, httpClient *http.Client) *GitlabC
 	gitlabClient := &GitlabClient{sling: base, token: token, client: httpClient}
 
 	gitlabClient.Projects = &ProjectsService{Client:gitlabClient}
+	gitlabClient.Groups = &GroupsService{Client:gitlabClient}
 
 	return gitlabClient
 }
@@ -59,7 +61,7 @@ func (client *GitlabClient) NewDeleteRequest(url string) (*http.Request, error) 
 	return req, nil
 }
 
-func (client *GitlabClient) Do(req *http.Request, value interface{}) (*http.Response, error){
+func (client *GitlabClient) Do(req *http.Request, value interface{}) (*http.Response, error) {
 	resp, err := client.sling.Do(req, value, nil)
 	return resp, err
 }
