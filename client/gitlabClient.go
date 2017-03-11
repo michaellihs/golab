@@ -15,6 +15,10 @@ type GitlabClient struct {
 	Projects *ProjectsService
 }
 
+const (
+	apiPath string = "/api/v3"
+)
+
 func NewClient(baseUrl *url.URL, token string, httpClient *http.Client) *GitlabClient {
 	base := sling.New().Client(httpClient).Base(baseUrl.String())
 	gitlabClient := &GitlabClient{sling: base, token: token, client: httpClient}
@@ -25,7 +29,7 @@ func NewClient(baseUrl *url.URL, token string, httpClient *http.Client) *GitlabC
 }
 
 func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
-	req, err := client.sling.New().Get(url).Request()
+	req, err := client.sling.New().Get(apiPath + url).Request()
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +39,7 @@ func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
 }
 
 func (client *GitlabClient) NewPostRequest(url string, body interface{}) (*http.Request, error) {
-	req, err := client.sling.New().Post(url).BodyJSON(body).Request()
+	req, err := client.sling.New().Post(apiPath + url).BodyJSON(body).Request()
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +50,7 @@ func (client *GitlabClient) NewPostRequest(url string, body interface{}) (*http.
 }
 
 func (client *GitlabClient) NewDeleteRequest(url string) (*http.Request, error) {
-	req, err := client.sling.New().Delete(url).Request()
+	req, err := client.sling.New().Delete(apiPath + url).Request()
 	if err != nil {
 		return nil, err
 	}

@@ -39,7 +39,7 @@ type ProjectParams struct {
 func (service *ProjectsService) Get(projectId string) (*model.Project, error) {
 	encodedProjectId := strings.Replace(projectId, "/", "%2F", -1)
 	project := new(model.Project)
-	req, err1 := service.Client.NewGetRequest("/api/v3/projects/" + encodedProjectId)
+	req, err1 := service.Client.NewGetRequest("/projects/" + encodedProjectId)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -53,14 +53,14 @@ func (service *ProjectsService) Get(projectId string) (*model.Project, error) {
 func (service *ProjectsService) List() *[]model.Project {
 	// TODO introduce proper error handling here
 	projects := new([]model.Project)
-	req, _ := service.Client.NewGetRequest("/api/v3/projects")
+	req, _ := service.Client.NewGetRequest("/projects")
 	service.Client.Do(req, projects)
 	return projects
 }
 
 func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Project, error) {
 	// TODO enable creation of project by given namespace, not just namespace ID
-	req, _ := service.Client.NewPostRequest("/api/v3/projects", projectParams)
+	req, _ := service.Client.NewPostRequest("/projects", projectParams)
 	project := new(model.Project)
 	_, err := service.Client.Do(req, project)
 	if err != nil {
@@ -72,7 +72,7 @@ func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Pro
 
 func (service *ProjectsService) Delete(projectId string) (bool, error) {
 	encodedProjectId := strings.Replace(projectId, "/", "%2F", -1)
-	req, _ := service.Client.NewDeleteRequest("/api/v3/projects/" + encodedProjectId)
+	req, _ := service.Client.NewDeleteRequest("/projects/" + encodedProjectId)
 	resp, err := service.Client.Do(req, nil)
 	if err != nil {
 		fmt.Println("An error occured: " + err.Error())
