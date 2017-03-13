@@ -22,10 +22,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"encoding/json"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"errors"
 )
 
 // TODO how can we namespace parameters to commands (this results in an error, that id is already declared in `cmd/project`
@@ -37,8 +37,8 @@ var groupCmd = &cobra.Command{
 	Short: "Manage Gitlab Groups",
 	Long: `Show, create, update and delete Gitlab groups.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("group called")
+		// TODO how can we make Cobra do this
+		fmt.Println("use one of the subcommands: get")
 	},
 }
 
@@ -46,18 +46,17 @@ var groupGetCmd = &cobra.Command{
 	Use: "get",
 	Short: "Get detailed information for a group",
 	Long: `Get detailed information for a group identified by either ID or the namespace / path of the group`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == "" {
-			fmt.Println("Required parameter `-i` or `--id` not given. Exiting.")
-			os.Exit(1)
+			return errors.New("Required parameter `-i` or `--id` not given. Exiting.")
 		}
 		group, err := gitlabClient.Groups.GetGroup(id)
 		if err != nil {
-			fmt.Println("An error occurred (exiting): " + err.Error())
-			os.Exit(1)
+			return err
 		}
 		result, _ := json.MarshalIndent(group, "", "  ")
 		fmt.Println(string(result))
+		return nil
 	},
 }
 
