@@ -35,8 +35,7 @@ func (client *GitlabClient) NewGetRequest(url string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("PRIVATE-TOKEN", client.token)
-	req.Header.Set("Accept", "application/json")
+	client.setHeaders(req)
 	return req, nil
 }
 
@@ -45,8 +44,7 @@ func (client *GitlabClient) NewPostRequest(url string, body interface{}) (*http.
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("PRIVATE-TOKEN", client.token)
-	req.Header.Set("Accept", "application/json")
+	client.setHeaders(req)
 	req.Header.Set("Content-Type", "application/json")
 	return req, nil
 }
@@ -56,13 +54,18 @@ func (client *GitlabClient) NewDeleteRequest(url string) (*http.Request, error) 
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("PRIVATE-TOKEN", client.token)
-	req.Header.Set("Accept", "application/json")
+	client.setHeaders(req)
 	return req, nil
 }
 
 func (client *GitlabClient) Do(req *http.Request, value interface{}) (*http.Response, error) {
 	resp, err := client.sling.Do(req, value, nil)
 	return resp, err
+}
+
+func (client *GitlabClient) setHeaders(req *http.Request) (*http.Request) {
+	req.Header.Set("PRIVATE-TOKEN", client.token)
+	req.Header.Set("Accept", "application/json")
+	return req
 }
 
