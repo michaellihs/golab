@@ -44,9 +44,9 @@ var _ = Describe("ProjectsService", func() {
 
 		projectsService := &ProjectsService{Client: gitlabClient}
 
-		// TODO introduce errors here
-		projects := projectsService.List()
+		projects, err := projectsService.List()
 
+		Expect(err).To(BeNil())
 		Expect(projects).To(Equal(&[]Project{{ID: 1}, {ID: 2}}))
 	})
 

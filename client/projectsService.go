@@ -50,12 +50,17 @@ func (service *ProjectsService) Get(projectId string) (*model.Project, error) {
 	return project, nil
 }
 
-func (service *ProjectsService) List() *[]model.Project {
-	// TODO introduce proper error handling here
+func (service *ProjectsService) List() (*[]model.Project, error) {
 	projects := new([]model.Project)
-	req, _ := service.Client.NewGetRequest("/projects")
-	service.Client.Do(req, projects)
-	return projects
+	req, err := service.Client.NewGetRequest("/projects")
+	if err != nil {
+		return nil, err
+	}
+	_, err = service.Client.Do(req, projects)
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
 }
 
 func (service *ProjectsService) Create(projectParams *ProjectParams) (*model.Project, error) {

@@ -26,7 +26,7 @@ import (
 	"github.com/michaellihs/golab/client"
 	"github.com/spf13/viper"
 	"encoding/json"
-	"os"
+	"errors"
 )
 
 var name string
@@ -37,10 +37,18 @@ var projectCmd = &cobra.Command{
 	Use:   "project",
 	Short: "Manage projects",
 	Long: `List, create, edit and delete projects`,
-	Run: func(cmd *cobra.Command, args []string) {
-		projects := gitlabClient.Projects.List()
-		result, _ := json.MarshalIndent(projects, "", "  ")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO move this logic into a `list` command
+		projects, err := gitlabClient.Projects.List()
+		if err != nil {
+			return err
+		}
+		result, err := json.MarshalIndent(projects, "", "  ")
+		if err != nil {
+			return err
+		}
 		fmt.Println(string(result))
+		return nil
 	},
 }
 
@@ -48,18 +56,20 @@ var projectGetCmd = &cobra.Command{
 	Use: "get",
 	Short: "Get detailed information for a project",
 	Long: `Get detailed information for a project identified by either project ID or 'namespace/project-name'`,
-	Run: func(cmd *cobra.Command, args []string) {
-		project, err := gitlabClient.Projects.Get(id)
-		// TODO introduce generic check method for required params
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == "" {
-			fmt.Println("You have to provide the a project ID or 'namespace/project-name' with the -i --id flag")
-			os.Exit(1)
+			return errors.New("You have to provide a project ID or 'namespace/project-name' with the -i --id flag")
 		}
+		project, err := gitlabClient.Projects.Get(id)
 		if err != nil {
-			fmt.Println("An error occurred: " + err.Error())
+			return err
 		}
-		result, _ := json.MarshalIndent(project, "", "  ")
+		result, err := json.MarshalIndent(project, "", "  ")
+		if err != nil {
+			return err
+		}
 		fmt.Println(string(result))
+		return nil
 	},
 }
 
@@ -67,21 +77,20 @@ var projectCreateCmd = &cobra.Command{
 	Use: "create",
 	Short: "Create a new project",
 	Long: `Create a new project for the given parameters`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		namespace_id, err := gitlabClient.Groups.Namespacify(group)
 		if err != nil {
 			// TODO make sure we stop here when namespace_id cannot be properly resolved
-			fmt.Println("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
-			os.Exit(1)
+			return errors.New("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
 		}
 		params := &client.ProjectParams{ Name: name, NamespaceId: namespace_id}
 		project, err := gitlabClient.Projects.Create(params)
 		if err != nil {
-			fmt.Println("An error occurred: " + err.Error())
-			os.Exit(1)
+			return err
 		}
 		result, _ := json.MarshalIndent(project, "", "  ")
 		fmt.Println(string(result))
+		return nil
 	},
 }
 
@@ -89,11 +98,10 @@ var projectDeleteCmd = &cobra.Command{
 	Use: "delete",
 	Short: "Delete an existing project",
 	Long: `Delete an existing project by either its project ID or namespace/project-name`,
-	Run: func(cmd *cobra.Command, args []string) {
-		success, err := gitlabClient.Projects.Delete(id)
-		if !success {
-			fmt.Println("Something went wrong: " + err.Error())
-		}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO maybe we want to return something upon success
+		_, err := gitlabClient.Projects.Delete(id)
+		return err
 	},
 }
 
