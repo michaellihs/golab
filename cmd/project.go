@@ -22,10 +22,8 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"fmt"
 	"github.com/michaellihs/golab/client"
 	"github.com/spf13/viper"
-	"encoding/json"
 	"errors"
 )
 
@@ -38,17 +36,12 @@ var projectCmd = &cobra.Command{
 	Short: "Manage projects",
 	Long: `List, create, edit and delete projects`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO move this logic into a `list` command
 		projects, err := gitlabClient.Projects.List()
 		if err != nil {
 			return err
 		}
-		result, err := json.MarshalIndent(projects, "", "  ")
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(result))
-		return nil
+		err = OutputJson(projects)
+		return err
 	},
 }
 
@@ -64,12 +57,8 @@ var projectGetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		result, err := json.MarshalIndent(project, "", "  ")
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(result))
-		return nil
+		err = OutputJson(project)
+		return err
 	},
 }
 
@@ -88,9 +77,8 @@ var projectCreateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		result, _ := json.MarshalIndent(project, "", "  ")
-		fmt.Println(string(result))
-		return nil
+		err = OutputJson(project)
+		return err
 	},
 }
 

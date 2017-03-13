@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"fmt"
-	"encoding/json"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"errors"
@@ -54,9 +53,8 @@ var groupGetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		result, _ := json.MarshalIndent(group, "", "  ")
-		fmt.Println(string(result))
-		return nil
+		err = OutputJson(group)
+		return err
 	},
 }
 

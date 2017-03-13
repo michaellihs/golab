@@ -35,7 +35,7 @@ var loginCmd = &cobra.Command{
 	Short: "Login to a Gitlab server",
 	Long: `Log in to a Gitlab server with the URL given in <host> and <token>.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		// TODO implement me
 		fmt.Println(fmt.Sprintf("Logging in to Gitlab server with host: %s and token: %s", host, token))
 	},
 }

@@ -29,6 +29,7 @@ import (
 	"github.com/michaellihs/golab/client"
 	"net/http"
 	"net/url"
+	"encoding/json"
 )
 
 var cfgFile string
@@ -52,6 +53,15 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+}
+
+func OutputJson(object interface{}) error {
+	result, err := json.MarshalIndent(object, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(result))
+	return nil
 }
 
 func init() {
