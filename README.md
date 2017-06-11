@@ -1,7 +1,7 @@
 Gitlab CLI written in Go [![Build Status](https://travis-ci.org/michaellihs/golab.svg?branch=master "Travis CI status")](https://travis-ci.org/michaellihs/golab)
 ======================== 
 
-This project provides a Gitlab Command Line Interface (CLI) written in Go.
+This project provides a Command Line Interface (CLI) for Gitlab written in Go.
 
 
 Usage
@@ -49,6 +49,29 @@ First run
 You can then use the application by simply typing
 
     golab
+    
+
+Gitlab Docker Image
+===================
+
+For local development, you can use a [Gitlab Docker image](https://docs.gitlab.com/omnibus/docker/README.html). There are some pitfalls, when using Gitlab Docker image on a Mac:
+
+* You cannot properly mount the `/var/opt/gitlab` directory due to issues with NFS mounts on Mac
+* The ssh port `22` is already in use on the Mac, if a ssh server is running
+
+Therefore adapt the provided run command to the following:
+
+    sudo docker run --detach \
+        --hostname gitlab.example.com \
+        --publish 443:443 --publish 80:80 --publish 8022:22 \
+        --name gitlab \
+        --volume /tmp/gitlab/config:/etc/gitlab \
+        --volume /tmp/gitlab/logs:/var/log/gitlab \
+        gitlab/gitlab-ce:latest
+
+Afterwards you can start the (existing) container with:
+
+    sudo docker start gitlab
 
 
 Further Resources
