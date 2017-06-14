@@ -51,6 +51,16 @@ You can then use the application by simply typing
     golab
     
 
+Generate Markdown Documentation
+-------------------------------
+
+Using the command
+
+    golab gendoc -p PATH
+
+let's you render a set of markdown documentation for the application.
+    
+
 Gitlab Docker Image
 ===================
 

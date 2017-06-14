@@ -27,9 +27,6 @@ import (
 	"errors"
 )
 
-// TODO how can we namespace parameters to commands (this results in an error, that id is already declared in `cmd/project`
-//var id string
-
 // groupCmd represents the group command
 var groupCmd = &cobra.Command{
 	Use:   "group",

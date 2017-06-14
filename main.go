@@ -20,7 +20,9 @@
 
 package main
 
-import "github.com/michaellihs/golab/cmd"
+import(
+	"github.com/michaellihs/golab/cmd"
+)
 
 func main() {
 	cmd.Execute()
