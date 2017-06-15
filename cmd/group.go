@@ -22,9 +22,10 @@ package cmd
 
 import (
 	"fmt"
+	"errors"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"errors"
 )
 
 // groupCmd represents the group command
@@ -46,7 +47,8 @@ var groupGetCmd = &cobra.Command{
 		if id == "" {
 			return errors.New("Required parameter `-i` or `--id` not given. Exiting.")
 		}
-		group, err := gitlabClient.Groups.GetGroup(id)
+		// TODO do something useful with the repsonse
+		group, _, err := gitlabClient.Groups.GetGroup(id)
 		if err != nil {
 			return err
 		}

@@ -22,9 +22,10 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/michaellihs/golab/client"
 	"github.com/spf13/viper"
 	"errors"
+	"github.com/xanzy/go-gitlab"
+	"fmt"
 )
 
 var name string
@@ -36,8 +37,10 @@ var projectCmd = &cobra.Command{
 	Short: "Manage projects",
 	Long: `List, create, edit and delete projects`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		projects, err := gitlabClient.Projects.List()
+		// TODO do something useful with the resonse
+		projects, _, err := gitlabClient.Projects.ListAllProjects(&gitlab.ListProjectsOptions{})
 		if err != nil {
+			fmt.Println("kaputt")
 			return err
 		}
 		err = OutputJson(projects)
@@ -53,7 +56,8 @@ var projectGetCmd = &cobra.Command{
 		if id == "" {
 			return errors.New("You have to provide a project ID or 'namespace/project-name' with the -i --id flag")
 		}
-		project, err := gitlabClient.Projects.Get(id)
+		// TODO do something useful with the response
+		project, _, err := gitlabClient.Projects.GetProject(id)
 		if err != nil {
 			return err
 		}
@@ -67,13 +71,22 @@ var projectCreateCmd = &cobra.Command{
 	Short: "Create a new project",
 	Long: `Create a new project for the given parameters`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		namespace_id, err := gitlabClient.Groups.Namespacify(group)
+		groups, _, err := gitlabClient.Groups.SearchGroup(group)
 		if err != nil {
 			// TODO make sure we stop here when namespace_id cannot be properly resolved
 			return errors.New("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
 		}
-		params := &client.ProjectParams{ Name: name, NamespaceId: namespace_id}
-		project, err := gitlabClient.Projects.Create(params)
+		if len(groups) > 0 {
+			return errors.New("More than one group was found for given group" + group)
+		}
+
+		p := &gitlab.CreateProjectOptions{
+			Name: &name,
+			NamespaceID: &groups[0].ID,
+		}
+
+		// TODO do something useful with the response
+		project, _, err := gitlabClient.Projects.CreateProject(p)
 		if err != nil {
 			return err
 		}
@@ -88,7 +101,8 @@ var projectDeleteCmd = &cobra.Command{
 	Long: `Delete an existing project by either its project ID or namespace/project-name`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO maybe we want to return something upon success
-		_, err := gitlabClient.Projects.Delete(id)
+		// TODO do something useful with the response
+		_, err := gitlabClient.Projects.DeleteProject(id)
 		return err
 	},
 }

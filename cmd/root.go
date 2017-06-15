@@ -26,15 +26,14 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/michaellihs/golab/client"
-	"net/http"
+	"github.com/xanzy/go-gitlab"
 	"net/url"
 	"encoding/json"
 )
 
 var cfgFile string
 
-var gitlabClient *client.GitlabClient
+var gitlabClient *gitlab.Client
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -99,5 +98,6 @@ func initGitlabClient() {
 	if err != nil {
 		fmt.Printf("Could not parse given URL '%s': %s", baseUrl, err)
 	}
-	gitlabClient = client.NewClient(baseUrl, viper.GetString("token"), http.DefaultClient)
+	gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
+	gitlabClient.SetBaseURL(baseUrl.String() + "/api/v3")
 }

@@ -84,6 +84,28 @@ Afterwards you can start the (existing) container with:
     sudo docker start gitlab
 
 
+TODOs
+=====
+
+Support multiple Targets
+------------------------
+
+`golab login` should take a parameter `-e` that sets an environment which we can later on select with `-e` in each command or read from `$golab_env`.
+
+Therefore we also need to change the structure of the `.golab.yml` like this:
+
+    ---
+    gitlab.com:
+      url: "https://gitlab.com"
+      token: "gitlab_com_token"
+
+    localhost:
+      url: "http://localhost:12345"
+      token: "localhost_token"
+
+This allows working with multiple Gitlab servers at the same time.
+
+
 Further Resources
 =================
 
