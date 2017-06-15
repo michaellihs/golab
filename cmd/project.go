@@ -76,7 +76,7 @@ var projectCreateCmd = &cobra.Command{
 			// TODO make sure we stop here when namespace_id cannot be properly resolved
 			return errors.New("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
 		}
-		if len(groups) > 0 {
+		if len(groups) > 1 {
 			return errors.New("More than one group was found for given group" + group)
 		}
 
