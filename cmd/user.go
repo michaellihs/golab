@@ -24,6 +24,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 // userCmd represents the user command
@@ -31,9 +32,13 @@ var userCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Manage Gitlab users",
 	Long: `Allows create, update and deletion of a user`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("user called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{})
+		if err != nil {
+			return err
+		}
+		err = OutputJson(users)
+		return err
 	},
 }
 
