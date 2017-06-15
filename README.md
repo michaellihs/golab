@@ -1,7 +1,7 @@
 Gitlab CLI written in Go [![Build Status](https://travis-ci.org/michaellihs/golab.svg?branch=master "Travis CI status")](https://travis-ci.org/michaellihs/golab)
 ======================== 
 
-This project provides a Command Line Interface (CLI) for Gitlab written in Go.
+This project provides a Command Line Interface (CLI) for Gitlab written in Go. The project uses the [go-gitlab client](https://github.com/xanzy/go-gitlab) for the communication with Gitlab.
 
 
 Usage
