@@ -26,6 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/xanzy/go-gitlab"
 )
 
 // groupCmd represents the group command
@@ -47,8 +48,25 @@ var groupGetCmd = &cobra.Command{
 		if id == "" {
 			return errors.New("Required parameter `-i` or `--id` not given. Exiting.")
 		}
-		// TODO do something useful with the repsonse
+		// TODO do something useful with the response
 		group, _, err := gitlabClient.Groups.GetGroup(id)
+		if err != nil {
+			return err
+		}
+		err = OutputJson(group)
+		return err
+	},
+}
+
+var groupCreateCommand = &cobra.Command{
+	Use: "create",
+	Short: "Create a new group",
+	Long: `Create a new group for the given parameters`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if name == "" {
+			return errors.New("Required parameter `-n` or `--name` not given. Exiting.")
+		}
+		group, _, err := gitlabClient.Groups.CreateGroup(&gitlab.CreateGroupOptions{Name: &name, Path: &name})
 		if err != nil {
 			return err
 		}
@@ -59,6 +77,7 @@ var groupGetCmd = &cobra.Command{
 
 func init() {
 	initGroupGetCommand()
+	initGroupCreateCommand()
 	RootCmd.AddCommand(groupCmd)
 }
 
@@ -66,4 +85,10 @@ func initGroupGetCommand() {
 	groupGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID or namespace of group")
 	viper.BindPFlag("id", groupGetCmd.PersistentFlags().Lookup("id"))
 	groupCmd.AddCommand(groupGetCmd)
+}
+
+func initGroupCreateCommand() {
+	groupCreateCommand.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) name of the new group")
+	viper.BindPFlag("name", groupCreateCommand.PersistentFlags().Lookup("name"))
+	groupCmd.AddCommand(groupCreateCommand)
 }
