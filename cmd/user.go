@@ -30,9 +30,9 @@ import (
 	"strconv"
 )
 
-var user, email, password, skype, linkedin, twitter, website_url, organization, username, extern_uid, provider, bio, location string
-var projects_limit int
-var admin, can_create_group, confirm, external bool
+var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location string
+var projectsLimit int
+var admin, canCreateGroup, confirm, external bool
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
@@ -100,21 +100,21 @@ var createCmd = &cobra.Command{
 		createUserOptions := &gitlab.CreateUserOptions{
 			Admin: &admin,
 			Bio: &bio,
-			CanCreateGroup: &can_create_group,
+			CanCreateGroup: &canCreateGroup,
 			Confirm: &confirm,
 			Email: &email,
 			Linkedin: &linkedin,
 			Name: &name,
 			Password: &password,
-			ProjectsLimit: &projects_limit,
+			ProjectsLimit: &projectsLimit,
 			Skype: &skype,
 			Twitter: &twitter,
 			Username: &username,
-			WebsiteURL: &website_url,
+			WebsiteURL: &websiteUrl,
 		}
 		if provider != "" {
 			createUserOptions.Provider = &provider
-			createUserOptions.ExternUID = &extern_uid
+			createUserOptions.ExternUID = &externUid
 		}
 		user, _, err := gitlabClient.Users.CreateUser(createUserOptions)
 		if err != nil {
@@ -171,15 +171,15 @@ func initUserCreateCommand() {
 	createCmd.PersistentFlags().StringVarP(&skype, "skype", "", "", "(optional) Skype ID")
 	createCmd.PersistentFlags().StringVarP(&linkedin, "linkedin", "", "", "(optional) LinkedIn")
 	createCmd.PersistentFlags().StringVarP(&twitter, "twitter", "", "", "(optional) Twitter account")
-	createCmd.PersistentFlags().StringVarP(&website_url, "website_url", "", "", "(optional) Website URL")
+	createCmd.PersistentFlags().StringVarP(&websiteUrl, "website_url", "", "", "(optional) Website URL")
 	createCmd.PersistentFlags().StringVarP(&organization, "organization", "", "", "(optional) Organization name")
-	createCmd.PersistentFlags().IntVarP(&projects_limit, "projects_limit", "", 10, "(optional) Number of projects user can create (10 is default)")
-	createCmd.PersistentFlags().StringVarP(&extern_uid, "extern_uid", "", "", "(optional) External UID")
+	createCmd.PersistentFlags().IntVarP(&projectsLimit, "projects_limit", "", 10, "(optional) Number of projects user can create (10 is default)")
+	createCmd.PersistentFlags().StringVarP(&externUid, "extern_uid", "", "", "(optional) External UID")
 	createCmd.PersistentFlags().StringVarP(&provider, "provider", "", "", "(optional) External provider name")
 	createCmd.PersistentFlags().StringVarP(&bio, "bio", "", "", "(optional) User's biography")
 	createCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) User's location")
 	createCmd.PersistentFlags().BoolVarP(&admin, "admin", "a", false, "(optional) User is admin - true or false (default)")
-	createCmd.PersistentFlags().BoolVarP(&can_create_group, "can_create_group", "", false, "(optional) User can create groups - true or false (default)")
+	createCmd.PersistentFlags().BoolVarP(&canCreateGroup, "can_create_group", "", false, "(optional) User can create groups - true or false (default)")
 	createCmd.PersistentFlags().BoolVarP(&confirm, "confirm", "", true, "(optional) Require confirmation - true (default) or false")
 	createCmd.PersistentFlags().BoolVarP(&external, "external", "", false, "(optional) Flags the user as external - true or false(default)")
 	viper.BindPFlag("email", createCmd.PersistentFlags().Lookup("email"))
