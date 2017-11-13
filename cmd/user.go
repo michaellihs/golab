@@ -49,19 +49,7 @@ var getCmd = &cobra.Command{
 	Short: "Get user details",
 	Long: `Get detailed information for given user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if (id == 0 && user == "") || (id != 0 && user != "") {
-			return errors.New("you either have to provide an id or a username")
-		}
-		if user != "" {
-			users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{Username: &user})
-			if err != nil {
-				return err
-			}
-			if len(users) != 1 {
-				return errors.New("Number of users found for username: " + strconv.Itoa(len(users)))
-			}
-			id = users[0].ID
-		}
+		id, err := getUserId(id, username)
 		user, _, err := gitlabClient.Users.GetUser(id)
 		if err != nil {
 			return err
@@ -69,6 +57,23 @@ var getCmd = &cobra.Command{
 		err = OutputJson(user)
 		return err
 	},
+}
+
+func getUserId(id int, username string) (int, error) {
+	if (id == 0 && username == "") || (id != 0 && username != "") {
+		return 0, errors.New("you either have to provide an id or a username")
+	}
+	if username != "" {
+		users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{Username: &username})
+		if err != nil {
+			return 0, err
+		}
+		if len(users) != 1 {
+			return 0, errors.New("Number of users found for username: " + strconv.Itoa(len(users)))
+		}
+		id = users[0].ID
+	}
+	return id, nil
 }
 
 var lsCmd = &cobra.Command{
@@ -123,9 +128,15 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete a user",
 	Long: `Delete a user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: Work your own magic here
-		fmt.Println("delete called")
-		return nil
+		id, err := getUserId(id, user)
+		if err != nil {
+			return err
+		}
+		resp , err := gitlabClient.Users.DeleteUser(id)
+		// TODO following the documentation, the user's data should be returned, but {} is returned...
+		// TODO see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#user-deletion
+		err = OutputJson(resp.Body)
+		return err
 	},
 }
 
@@ -145,7 +156,7 @@ func init() {
 	userCmd.AddCommand(lsCmd)
 	initUserCreateCommand()
 	userCmd.AddCommand(updateCmd)
-	userCmd.AddCommand(deleteCmd)
+	initUserDeleteCommand()
 	RootCmd.AddCommand(userCmd)
 }
 
@@ -198,5 +209,9 @@ func initUserCreateCommand() {
 }
 
 func initUserDeleteCommand() {
-	deleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory) id of the user to be deleted")
+	deleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory if no username is set) id of the user to be deleted")
+	deleteCmd.PersistentFlags().StringVarP(&user, "user", "u", "", "(mandatory if no id is set) username of the user to be deleted")
+	viper.BindPFlag("id", deleteCmd.PersistentFlags().Lookup("id"))
+	viper.BindPFlag("user", deleteCmd.PersistentFlags().Lookup("user"))
+	userCmd.AddCommand(deleteCmd)
 }
