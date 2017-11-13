@@ -32,7 +32,7 @@ import (
 
 var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location string
 var projectsLimit int
-var admin, canCreateGroup, confirm, external bool
+var admin, canCreateGroup, confirm, external, active, blocked bool
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
@@ -59,29 +59,22 @@ var getCmd = &cobra.Command{
 	},
 }
 
-func getUserId(id int, username string) (int, error) {
-	if (id == 0 && username == "") || (id != 0 && username != "") {
-		return 0, errors.New("you either have to provide an id or a username")
-	}
-	if username != "" {
-		users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{Username: &username})
-		if err != nil {
-			return 0, err
-		}
-		if len(users) != 1 {
-			return 0, errors.New("Number of users found for username: " + strconv.Itoa(len(users)))
-		}
-		id = users[0].ID
-	}
-	return id, nil
-}
-
 var lsCmd = &cobra.Command{
 	Use: "ls",
 	Short: "Get list of all users",
 	Long: `Get a list of all users on the Gitlab server`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{})
+		listUserOptions := &gitlab.ListUsersOptions{}
+		if active {
+			listUserOptions.Active = &active
+		}
+		// TODO this is currently a missing feature in the go-gitlab API
+		// TODO blocked=true is not supported as described in
+		// TODO https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#list-users
+		//if blocked {
+		//	listUserOptions.Blocked = &blocked
+		//}
+		users, _, err := gitlabClient.Users.ListUsers(listUserOptions)
 		if err != nil {
 			return err
 		}
@@ -150,10 +143,26 @@ var updateCmd = &cobra.Command{
 	},
 }
 
+func getUserId(id int, username string) (int, error) {
+	if (id == 0 && username == "") || (id != 0 && username != "") {
+		return 0, errors.New("you either have to provide an id or a username")
+	}
+	if username != "" {
+		users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{Username: &username})
+		if err != nil {
+			return 0, err
+		}
+		if len(users) != 1 {
+			return 0, errors.New("Number of users found for username: " + strconv.Itoa(len(users)))
+		}
+		id = users[0].ID
+	}
+	return id, nil
+}
 
 func init() {
 	initUserGetCommand()
-	userCmd.AddCommand(lsCmd)
+	initUserLsCommand()
 	initUserCreateCommand()
 	userCmd.AddCommand(updateCmd)
 	initUserDeleteCommand()
@@ -166,6 +175,12 @@ func initUserGetCommand() {
 	viper.BindPFlag("user", getCmd.PersistentFlags().Lookup("user"))
 	viper.BindPFlag("id", getCmd.PersistentFlags().Lookup("id"))
 	userCmd.AddCommand(getCmd)
+}
+
+func initUserLsCommand() {
+	lsCmd.PersistentFlags().BoolVarP(&active, "active", "a", false, "(optional) show only active users")
+	lsCmd.PersistentFlags().BoolVarP(&blocked,"blocked", "b", false, "(optional) show only blocked users")
+	userCmd.AddCommand(lsCmd)
 }
 
 func initUserCreateCommand() {
