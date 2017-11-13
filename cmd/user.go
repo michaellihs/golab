@@ -49,10 +49,9 @@ var getCmd = &cobra.Command{
 	Short: "Get user details",
 	Long: `Get detailed information for given user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if (id == "" && user == "") || (id != "" && user != "") {
+		if (id == 0 && user == "") || (id != 0 && user != "") {
 			return errors.New("you either have to provide an id or a username")
 		}
-		var userId int
 		if user != "" {
 			users, _, err := gitlabClient.Users.ListUsers(&gitlab.ListUsersOptions{Username: &user})
 			if err != nil {
@@ -61,15 +60,9 @@ var getCmd = &cobra.Command{
 			if len(users) != 1 {
 				return errors.New("Number of users found for username: " + strconv.Itoa(len(users)))
 			}
-			userId = users[0].ID
-		} else {
-			var err error = nil
-			userId, err = strconv.Atoi(id)
-			if err != nil {
-				return err
-			}
+			id = users[0].ID
 		}
-		user, _, err := gitlabClient.Users.GetUser(userId)
+		user, _, err := gitlabClient.Users.GetUser(id)
 		if err != nil {
 			return err
 		}
@@ -129,9 +122,10 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a user",
 	Long: `Delete a user`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO: Work your own magic here
 		fmt.Println("delete called")
+		return nil
 	},
 }
 
@@ -157,7 +151,7 @@ func init() {
 
 func initUserGetCommand() {
 	getCmd.PersistentFlags().StringVarP(&user, "user", "u", "", "(mandatory if id is unset) name of the user to look up")
-	getCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(mandatory if user is unset) id of the user to look up")
+	getCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory if user is unset) id of the user to look up")
 	viper.BindPFlag("user", getCmd.PersistentFlags().Lookup("user"))
 	viper.BindPFlag("id", getCmd.PersistentFlags().Lookup("id"))
 	userCmd.AddCommand(getCmd)
@@ -201,4 +195,8 @@ func initUserCreateCommand() {
 	viper.BindPFlag("confirm", createCmd.PersistentFlags().Lookup("confirm"))
 	viper.BindPFlag("external", createCmd.PersistentFlags().Lookup("external"))
 	userCmd.AddCommand(createCmd)
+}
+
+func initUserDeleteCommand() {
+	deleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory) id of the user to be deleted")
 }

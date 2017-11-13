@@ -45,7 +45,7 @@ var groupGetCmd = &cobra.Command{
 	Short: "Get detailed information for a group",
 	Long: `Get detailed information for a group identified by either ID or the namespace / path of the group`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == "" {
+		if id == 0 {
 			return errors.New("Required parameter `-i` or `--id` not given. Exiting.")
 		}
 		// TODO do something useful with the response
@@ -82,7 +82,7 @@ func init() {
 }
 
 func initGroupGetCommand() {
-	groupGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID or namespace of group")
+	groupGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID or namespace of group")
 	viper.BindPFlag("id", groupGetCmd.PersistentFlags().Lookup("id"))
 	groupCmd.AddCommand(groupGetCmd)
 }

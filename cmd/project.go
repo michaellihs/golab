@@ -29,7 +29,7 @@ import (
 )
 
 var name string
-var id string
+var id int
 var group string
 
 var projectCmd = &cobra.Command{
@@ -53,7 +53,7 @@ var projectGetCmd = &cobra.Command{
 	Short: "Get detailed information for a project",
 	Long: `Get detailed information for a project identified by either project ID or 'namespace/project-name'`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == "" {
+		if id == 0 {
 			return errors.New("You have to provide a project ID or 'namespace/project-name' with the -i --id flag")
 		}
 		// TODO do something useful with the response
@@ -115,7 +115,7 @@ func init() {
 }
 
 func initProjectGetCommand() {
-	projectGetCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID of project or 'namespace/project-name'")
+	projectGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
 	viper.BindPFlag("id", projectGetCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectGetCmd)
 }
@@ -128,7 +128,7 @@ func initProjectCreateCommand() {
 }
 
 func initProjectDeleteCommand() {
-	projectDeleteCmd.PersistentFlags().StringVarP(&id, "id", "i", "", "(required) Either ID of project or 'namespace/project-name'")
+	projectDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
 	viper.BindPFlag("id", projectDeleteCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectDeleteCmd)
 }
