@@ -1,5 +1,7 @@
-compile: cmd/*.go
+targets := $(wildcard *.go)
+
+compile: $(targets)
 	go install github.com/michaellihs/golab
 
-renderdoc: cmd/*.go
+gendoc: $(targets)
 	golab gendoc -p doc
