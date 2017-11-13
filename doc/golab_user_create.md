@@ -14,7 +14,7 @@ golab user create
 ### Options
 
 ```
-      --admin                 (optional) User is admin - true or false (default)
+  -a, --admin                 (optional) User is admin - true or false (default)
       --bio string            (optional) User's biography
       --can_create_group      (optional) User can create groups - true or false (default)
       --confirm               (optional) Require confirmation - true (default) or false (default true)
