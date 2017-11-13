@@ -17,6 +17,8 @@ Replace `gitlab.com` with the URL of your Gitlab server.
 
 Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
 
+For further usage, see the [generated documentation](doc/golab.md)
+
 
 Build and run the application
 -----------------------------
