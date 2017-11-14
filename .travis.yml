@@ -1,6 +1,9 @@
 # for Docker configuration, see https://docs.travis-ci.com/user/docker/
 sudo: required
 
+env:
+  - GITLAB_ROOT_USER="root" GITLAB_ROOT_PASSWORD="12341234"
+
 language: go
 
 services:
@@ -12,9 +15,13 @@ go:
 before_install:
 - docker pull gitlab/gitlab-ce
 # see https://docs.gitlab.com/omnibus/docker/README.html for details
-- docker run --detach --hostname gitlab.example.com --env GITLAB_ROOT_PASSWORD="password" --publish 8443:443 --publish 8080:80 --publish 8022:22 --name gitlab --restart always      gitlab/gitlab-ce:latest
+- docker run --detach --hostname gitlab.example.com --env GITLAB_ROOT_PASSWORD=${GITLAB_ROOT_PASSWORD} --publish 8443:443 --publish 8080:80 --publish 8022:22 --name gitlab --restart always      gitlab/gitlab-ce:latest
 - docker ps -a
+# since the Gitlab container takes some time to start, we wait until the health state of the container is "healthy"
 # see https://github.com/moby/moby/issues/7228 for checking container health state in Docker
 - until [[ "`docker inspect -f {{.State.Health.Status}} gitlab`" = "healthy" ]]; do echo 'waiting for container to be healthy...'; sleep 5; done
 
-script: curl localhost:8080
+script:
+# get private token for root user (see https://stackoverflow.com/questions/23640961/gitlab-api-how-to-generate-the-private-token)
+- export GITLAB_ROOT_PRIVATE_TOKEN=`curl http://localhost:8080/api/v3/session --data "login=${GITLAB_ROOT_USER}&password=${GITLAB_ROOT_PASSWORD}" | jq -r '.private_token'`
+- echo $GITLAB_ROOT_PRIVATE_TOKEN
