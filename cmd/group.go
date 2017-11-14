@@ -35,8 +35,7 @@ var groupCmd = &cobra.Command{
 	Short: "Manage Gitlab Groups",
 	Long: `Show, create, update and delete Gitlab groups.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO how can we make Cobra do this
-		fmt.Println("use one of the subcommands: get")
+		fmt.Println("check usage of group with `golab group -h`")
 	},
 }
 
@@ -46,9 +45,8 @@ var groupGetCmd = &cobra.Command{
 	Long: `Get detailed information for a group identified by either ID or the namespace / path of the group`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
-			return errors.New("Required parameter `-i` or `--id` not given. Exiting.")
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
 		}
-		// TODO do something useful with the response
 		group, _, err := gitlabClient.Groups.GetGroup(id)
 		if err != nil {
 			return err
@@ -64,7 +62,7 @@ var groupCreateCommand = &cobra.Command{
 	Long: `Create a new group for the given parameters`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if name == "" {
-			return errors.New("Required parameter `-n` or `--name` not given. Exiting.")
+			return errors.New("required parameter `-n` or `--name` not given - exiting")
 		}
 		group, _, err := gitlabClient.Groups.CreateGroup(&gitlab.CreateGroupOptions{Name: &name, Path: &name})
 		if err != nil {
@@ -82,7 +80,7 @@ func init() {
 }
 
 func initGroupGetCommand() {
-	groupGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID or namespace of group")
+	groupGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) either ID or namespace of group")
 	viper.BindPFlag("id", groupGetCmd.PersistentFlags().Lookup("id"))
 	groupCmd.AddCommand(groupGetCmd)
 }

@@ -99,5 +99,5 @@ func initGitlabClient() {
 		fmt.Printf("Could not parse given URL '%s': %s", baseUrl, err)
 	}
 	gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
-	gitlabClient.SetBaseURL(baseUrl.String() + "/api/v3")
+	gitlabClient.SetBaseURL(baseUrl.String() + "/api/v4")
 }

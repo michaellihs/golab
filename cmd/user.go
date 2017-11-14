@@ -91,7 +91,6 @@ var createCmd = &cobra.Command{
 			Admin: &admin,
 			Bio: &bio,
 			CanCreateGroup: &canCreateGroup,
-			// TODO this has no effect on the created user (always unconfirmed...)
 			SkipConfirmation: &skipConfirmation,
 			Email: &email,
 			Linkedin: &linkedin,
@@ -200,7 +199,7 @@ func initUserCreateCommand() {
 	createCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) User's location")
 	createCmd.PersistentFlags().BoolVarP(&admin, "admin", "a", false, "(optional) User is admin - true or false (default)")
 	createCmd.PersistentFlags().BoolVarP(&canCreateGroup, "can_create_group", "", false, "(optional) User can create groups - true or false (default)")
-	createCmd.PersistentFlags().BoolVarP(&skipConfirmation, "skipConfirmation", "", true, "(optional) Skip confirmation")
+	createCmd.PersistentFlags().BoolVarP(&skipConfirmation, "skipConfirmation", "", false, "(optional) Skip confirmation")
 	createCmd.PersistentFlags().BoolVarP(&external, "external", "", false, "(optional) Flags the user as external - true or false(default)")
 	viper.BindPFlag("email", createCmd.PersistentFlags().Lookup("email"))
 	viper.BindPFlag("password", createCmd.PersistentFlags().Lookup("password"))
