@@ -32,7 +32,7 @@ import (
 
 var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location string
 var projectsLimit int
-var admin, canCreateGroup, confirm, external, active, blocked bool
+var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
@@ -92,7 +92,8 @@ var createCmd = &cobra.Command{
 			Admin: &admin,
 			Bio: &bio,
 			CanCreateGroup: &canCreateGroup,
-			Confirm: &confirm,
+			// TODO this has no effect on the created user (always unconfirmed...)
+			SkipConfirmation: &skipConfirmation,
 			Email: &email,
 			Linkedin: &linkedin,
 			Name: &name,
@@ -200,7 +201,7 @@ func initUserCreateCommand() {
 	createCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) User's location")
 	createCmd.PersistentFlags().BoolVarP(&admin, "admin", "a", false, "(optional) User is admin - true or false (default)")
 	createCmd.PersistentFlags().BoolVarP(&canCreateGroup, "can_create_group", "", false, "(optional) User can create groups - true or false (default)")
-	createCmd.PersistentFlags().BoolVarP(&confirm, "confirm", "", true, "(optional) Require confirmation - true (default) or false")
+	createCmd.PersistentFlags().BoolVarP(&skipConfirmation, "skipConfirmation", "", true, "(optional) Skip confirmation")
 	createCmd.PersistentFlags().BoolVarP(&external, "external", "", false, "(optional) Flags the user as external - true or false(default)")
 	viper.BindPFlag("email", createCmd.PersistentFlags().Lookup("email"))
 	viper.BindPFlag("password", createCmd.PersistentFlags().Lookup("password"))
@@ -218,7 +219,7 @@ func initUserCreateCommand() {
 	viper.BindPFlag("location", createCmd.PersistentFlags().Lookup("location"))
 	viper.BindPFlag("admin", createCmd.PersistentFlags().Lookup("admin"))
 	viper.BindPFlag("can_create_group", createCmd.PersistentFlags().Lookup("can_create_group"))
-	viper.BindPFlag("confirm", createCmd.PersistentFlags().Lookup("confirm"))
+	viper.BindPFlag("skipConfirmation", createCmd.PersistentFlags().Lookup("skipConfirmation"))
 	viper.BindPFlag("external", createCmd.PersistentFlags().Lookup("external"))
 	userCmd.AddCommand(createCmd)
 }

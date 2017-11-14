@@ -25,7 +25,6 @@ import (
 	"github.com/spf13/viper"
 	"errors"
 	"github.com/xanzy/go-gitlab"
-	"fmt"
 )
 
 var name string
@@ -37,10 +36,8 @@ var projectCmd = &cobra.Command{
 	Short: "Manage projects",
 	Long: `List, create, edit and delete projects`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO do something useful with the resonse
-		projects, _, err := gitlabClient.Projects.ListAllProjects(&gitlab.ListProjectsOptions{})
+		projects, _, err := gitlabClient.Projects.ListProjects(&gitlab.ListProjectsOptions{})
 		if err != nil {
-			fmt.Println("kaputt")
 			return err
 		}
 		err = OutputJson(projects)
