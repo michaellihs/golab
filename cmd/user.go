@@ -68,12 +68,11 @@ var lsCmd = &cobra.Command{
 		if active {
 			listUserOptions.Active = &active
 		}
-		// TODO this is currently a missing feature in the go-gitlab API
-		// TODO blocked=true is not supported as described in
+		// TODO patched go-gitlab API to support 'blocked', see https://github.com/xanzy/go-gitlab/pull/242
 		// TODO https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#list-users
-		//if blocked {
-		//	listUserOptions.Blocked = &blocked
-		//}
+		if blocked {
+			listUserOptions.Blocked = &blocked
+		}
 		users, _, err := gitlabClient.Users.ListUsers(listUserOptions)
 		if err != nil {
 			return err
