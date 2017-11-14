@@ -1,4 +1,18 @@
+# for Docker configuration, see https://docs.travis-ci.com/user/docker/
+sudo: required
+
 language: go
+
+services:
+  - docker
 
 go:
   - 1.8
+
+before_install:
+- docker pull gitlab/gitlab-ce
+# see https://docs.gitlab.com/omnibus/docker/README.html for details
+- docker run --detach --hostname gitlab.example.com --env GITLAB_ROOT_PASSWORD="password" --publish 8443:443 --publish 8080:80 --publish 8022:22 --name gitlab --restart always      gitlab/gitlab-ce:latest
+- docker ps -a
+
+script: curl localhost:8080
