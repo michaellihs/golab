@@ -27,5 +27,11 @@ script:
 - echo $GITLAB_ROOT_PRIVATE_TOKEN
 - sh .travis/write_golab_yml.sh
 - cat .golab.yml
+
+# at this point we have a valid .golab.yml configuration (with a valid access token!)
+
+# build our application
 - make
-- golab user ls
+
+# run end-to-end tests
+- go test ./tests
