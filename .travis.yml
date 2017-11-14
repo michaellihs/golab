@@ -25,8 +25,7 @@ script:
 # get private token for root user (see https://stackoverflow.com/questions/23640961/gitlab-api-how-to-generate-the-private-token)
 - export GITLAB_ROOT_PRIVATE_TOKEN=`curl http://localhost:8080/api/v3/session --data "login=${GITLAB_ROOT_USER}&password=${GITLAB_ROOT_PASSWORD}" | jq -r '.private_token'`
 - echo $GITLAB_ROOT_PRIVATE_TOKEN
-- |-
-  echo "---\nurl: \"http://localhost:8080\"\ntoken: \"${GITLAB_ROOT_PRIVATE_TOKEN}\"" > .golab.yml
+- sh .travis/write_golab_yml.sh
 - cat .golab.yml
 - make
 - golab user ls
