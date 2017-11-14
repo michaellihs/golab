@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"errors"
-	"github.com/xanzy/go-gitlab"
+	"github.com/michaellihs/go-gitlab"
 )
 
 var name string

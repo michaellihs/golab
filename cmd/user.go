@@ -25,7 +25,7 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	"github.com/michaellihs/go-gitlab"
 	"github.com/spf13/viper"
 	"strconv"
 )

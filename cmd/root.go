@@ -26,7 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/xanzy/go-gitlab"
+	"github.com/michaellihs/go-gitlab"
 	"net/url"
 	"encoding/json"
 )
