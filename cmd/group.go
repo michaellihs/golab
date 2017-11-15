@@ -26,7 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/michaellihs/go-gitlab"
+	"github.com/xanzy/go-gitlab"
 )
 
 // groupCmd represents the group command

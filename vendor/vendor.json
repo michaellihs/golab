@@ -81,10 +81,10 @@
 			"revisionTime": "2017-01-13T09:48:12Z"
 		},
 		{
-			"checksumSHA1": "Xte+cdNrqzPaPj2Kh0oRBmS4MtU=",
-			"path": "github.com/michaellihs/go-gitlab",
-			"revision": "aae321bc0c31c478953628ef421b7f8c90235ecd",
-			"revisionTime": "2017-11-14T09:31:06Z"
+			"checksumSHA1": "gFZ4cmlSq/BE+wCUvKD8ZAGsA8k=",
+			"path": "github.com/magiconair/properties/assert",
+			"revision": "b3b15ef068fd0b17ddf408a23669f20811d194d2",
+			"revisionTime": "2017-01-13T09:48:12Z"
 		},
 		{
 			"checksumSHA1": "wTMmmuol+KHkz9EwVKaOjd2O4cs=",
@@ -165,6 +165,12 @@
 			"path": "github.com/spf13/viper",
 			"revision": "7538d73b4eb9511d85a9f1dfef202eeb8ac260f4",
 			"revisionTime": "2017-02-17T16:38:17Z"
+		},
+		{
+			"checksumSHA1": "8r3NOPLGmYZYJmzFlYbXG3vv0FA=",
+			"path": "github.com/xanzy/go-gitlab",
+			"revision": "ca54c89a231b68c1fb522394a7e2fb4edc9ec87a",
+			"revisionTime": "2017-11-14T11:48:37Z"
 		},
 		{
 			"checksumSHA1": "oVd5OHIvNHR5bhUvnBMPLVjaL6E=",

@@ -25,7 +25,7 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/michaellihs/go-gitlab"
+	"github.com/xanzy/go-gitlab"
 	"github.com/spf13/viper"
 	"strconv"
 )
@@ -169,9 +169,9 @@ func init() {
 }
 
 func initUserGetCommand() {
-	getCmd.PersistentFlags().StringVarP(&user, "user", "u", "", "(mandatory if id is unset) name of the user to look up")
-	getCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory if user is unset) id of the user to look up")
-	viper.BindPFlag("user", getCmd.PersistentFlags().Lookup("user"))
+	getCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "(mandatory if id is unset) username of the user to look up")
+	getCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory if username is unset) id of the user to look up")
+	viper.BindPFlag("username", getCmd.PersistentFlags().Lookup("username"))
 	viper.BindPFlag("id", getCmd.PersistentFlags().Lookup("id"))
 	userCmd.AddCommand(getCmd)
 }

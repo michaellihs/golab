@@ -26,7 +26,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/michaellihs/go-gitlab"
+	"github.com/xanzy/go-gitlab"
 	"net/url"
 	"encoding/json"
 )
@@ -71,7 +71,7 @@ func init() {
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./golab.yml and $HOME/.golab.yml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "(optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
