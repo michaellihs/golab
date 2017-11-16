@@ -30,7 +30,7 @@ import (
 	"strconv"
 )
 
-var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location string
+var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString string
 var projectsLimit int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
@@ -68,8 +68,6 @@ var lsCmd = &cobra.Command{
 		if active {
 			listUserOptions.Active = &active
 		}
-		// TODO patched go-gitlab API to support 'blocked', see https://github.com/xanzy/go-gitlab/pull/242
-		// TODO https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#list-users
 		if blocked {
 			listUserOptions.Blocked = &blocked
 		}
@@ -87,6 +85,8 @@ var createCmd = &cobra.Command{
 	Short: "Create a new user",
 	Long: `Allows creation of a new user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO fix binding of parameters
+		if projectsLimit == -1 { projectsLimit = 10 }
 		createUserOptions := &gitlab.CreateUserOptions{
 			Admin: &admin,
 			Bio: &bio,
@@ -132,14 +132,72 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
-var updateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Update a user",
-	Long: `Allows updating a user`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("update called")
+var modifyCmd = &cobra.Command{
+	Use:   "modify",
+	Short: "Modify a user",
+	Long: `Allows modification of a user's properties
+
+Currently there are some restrictions:
+* the email address cannot be modified
+* the organization cannot be modified
+* projects limit cannot be modified
+* location cannot be modified
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		id, err := getUserId(id, user)
+		if err != nil {
+			return err
+		}
+		currUser, _, err := gitlabClient.Users.GetUser(id)
+		if err != nil {
+			return err
+		}
+		modifyUserOptions := &gitlab.ModifyUserOptions{}
+		modifyUserOptions.Admin = boolFromParamAndCurrSetting(adminString, currUser.IsAdmin)
+		// TODO changing email has no effect at the moment...
+		if email != "" { modifyUserOptions.Email = &email }
+		if username != "" { modifyUserOptions.Username = &username }
+		if provider != "" {
+			modifyUserOptions.Provider = &provider
+			modifyUserOptions.ExternUID = &externUid
+		}
+		if name != "" { modifyUserOptions.Name = &name}
+		if password != "" { modifyUserOptions.Password = &password }
+		if skype != "" { modifyUserOptions.Skype = &skype }
+		if linkedin != "" { modifyUserOptions.Linkedin = &linkedin }
+		if websiteUrl != "" { modifyUserOptions.WebsiteURL = &websiteUrl }
+		// TODO currently not supported by go-gitlab API
+		//if organization != "" { modifyUserOptions.Organization = &organization }
+		// TODO currently not supported by go-gitlab API
+		//if projectsLimit != -1 { modifyUserOptions.projectsLimit = &projectsLimit }
+		if externUid != "" { modifyUserOptions.ExternUID = &externUid }
+		if provider != "" { modifyUserOptions.Provider = &provider }
+		if bio != "" { modifyUserOptions.Bio = &bio }
+		// TODO currently not supported by go-gitlab API
+		//if location != "" { modifyUserOptions.Location = location }
+		modifyUserOptions.CanCreateGroup = boolFromParamAndCurrSetting(canCreateGroupString, currUser.CanCreateGroup)
+		// TODO currently not supported by go-gitlab API
+		//if external != "" { modifyUserOptions.External = &external }
+
+		user, _, err := gitlabClient.Users.ModifyUser(id, modifyUserOptions)
+		if err != nil {
+			return err
+		}
+		err = OutputJson(user)
+		return err
 	},
+}
+
+func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
+	var result bool
+	if paramString == "true" || paramString == "1" {
+		result = true
+	} else if paramString == "false" || paramString == "0" {
+		result = false
+	} else {
+		result = currentSetting
+	}
+	return &result
 }
 
 func getUserId(id int, username string) (int, error) {
@@ -163,7 +221,7 @@ func init() {
 	initUserGetCommand()
 	initUserLsCommand()
 	initUserCreateCommand()
-	userCmd.AddCommand(updateCmd)
+	initUserModifyCommand()
 	initUserDeleteCommand()
 	RootCmd.AddCommand(userCmd)
 }
@@ -220,6 +278,50 @@ func initUserCreateCommand() {
 	viper.BindPFlag("skipConfirmation", createCmd.PersistentFlags().Lookup("skipConfirmation"))
 	viper.BindPFlag("external", createCmd.PersistentFlags().Lookup("external"))
 	userCmd.AddCommand(createCmd)
+}
+
+func initUserModifyCommand() {
+	modifyCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory) id of the user to be modified")
+	modifyCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "(optional) user's new email address")
+	modifyCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "(optional) user's new password")
+	modifyCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "(optional) user's new username")
+	modifyCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(optional) user's new name")
+	modifyCmd.PersistentFlags().StringVarP(&skype, "skype", "", "", "(optional) user's new Skype ID")
+	modifyCmd.PersistentFlags().StringVarP(&linkedin, "linkedin", "", "", "(optional) user's new LinkedIn account")
+	modifyCmd.PersistentFlags().StringVarP(&twitter, "twitter", "", "", "(optional) user's new Twitter account")
+	modifyCmd.PersistentFlags().StringVarP(&websiteUrl, "website_url", "", "", "(optional) user's new website URL")
+	// TODO currently not supported by go-gitlab API
+	// modifyCmd.PersistentFlags().StringVarP(&organization, "organization", "", "", "(optional) user's new organization name")
+	modifyCmd.PersistentFlags().IntVarP(&projectsLimit, "projects_limit", "", -1, "(optional) user's new projects limit")
+	modifyCmd.PersistentFlags().StringVarP(&externUid, "extern_uid", "", "", "(optional) user's new external UID")
+	modifyCmd.PersistentFlags().StringVarP(&provider, "provider", "", "", "(optional) user's new external provider name")
+	modifyCmd.PersistentFlags().StringVarP(&bio, "bio", "", "", "(optional) user's new biography")
+	modifyCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) user's new location")
+	modifyCmd.PersistentFlags().StringVarP(&adminString, "admin", "a", "", "(optional) user is admin - true or false")
+	modifyCmd.PersistentFlags().StringVarP(&canCreateGroupString, "can_create_group", "", "", "(optional) user can create groups - true or false")
+	// TODO currently not supported by go-gitlab API
+	// modifyCmd.PersistentFlags().StringVarP(&externalString, "external", "", "", "(optional) flags the user as external - true or false")
+	viper.BindPFlag("id", modifyCmd.PersistentFlags().Lookup("id"))
+	viper.BindPFlag("email", modifyCmd.PersistentFlags().Lookup("email"))
+	viper.BindPFlag("password", modifyCmd.PersistentFlags().Lookup("password"))
+	viper.BindPFlag("username", modifyCmd.PersistentFlags().Lookup("username"))
+	viper.BindPFlag("name", modifyCmd.PersistentFlags().Lookup("name"))
+	viper.BindPFlag("skype", modifyCmd.PersistentFlags().Lookup("skype"))
+	viper.BindPFlag("linkedin", modifyCmd.PersistentFlags().Lookup("linkedin"))
+	viper.BindPFlag("twitter", modifyCmd.PersistentFlags().Lookup("twitter"))
+	viper.BindPFlag("website_url", modifyCmd.PersistentFlags().Lookup("website_url"))
+	viper.BindPFlag("organization", modifyCmd.PersistentFlags().Lookup("organization"))
+	// TODO currently not supported by go-gitlab API
+	// viper.BindPFlag("projects_limit", modifyCmd.PersistentFlags().Lookup("projects_limit"))
+	viper.BindPFlag("extern_uid", modifyCmd.PersistentFlags().Lookup("extern_uid"))
+	viper.BindPFlag("provider", modifyCmd.PersistentFlags().Lookup("provider"))
+	viper.BindPFlag("bio", modifyCmd.PersistentFlags().Lookup("bio"))
+	viper.BindPFlag("location", modifyCmd.PersistentFlags().Lookup("location"))
+	viper.BindPFlag("admin", modifyCmd.PersistentFlags().Lookup("admin"))
+	viper.BindPFlag("can_create_group", modifyCmd.PersistentFlags().Lookup("can_create_group"))
+	// TODO currently not supported by go-gitlab API
+	// viper.BindPFlag("external", modifyCmd.PersistentFlags().Lookup("external"))
+	userCmd.AddCommand(modifyCmd)
 }
 
 func initUserDeleteCommand() {
