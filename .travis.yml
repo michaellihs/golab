@@ -34,4 +34,4 @@ script:
 - make
 
 # run end-to-end tests
-- go test ./tests
+- go test ./tests -v
