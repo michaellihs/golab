@@ -31,7 +31,7 @@ import (
 )
 
 var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString string
-var projectsLimit int
+var keyId, projectsLimit int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
 // userCmd represents the user command
@@ -51,11 +51,8 @@ var getCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := getUserId(id, username)
 		user, _, err := gitlabClient.Users.GetUser(id)
-		if err != nil {
-			return err
-		}
-		err = OutputJson(user)
-		return err
+		if err != nil {	return err }
+		return OutputJson(user)
 	},
 }
 
@@ -72,11 +69,8 @@ var lsCmd = &cobra.Command{
 			listUserOptions.Blocked = &blocked
 		}
 		users, _, err := gitlabClient.Users.ListUsers(listUserOptions)
-		if err != nil {
-			return err
-		}
-		err = OutputJson(users)
-		return err
+		if err != nil {	return err }
+		return OutputJson(users)
 	},
 }
 
@@ -107,9 +101,7 @@ var createCmd = &cobra.Command{
 			createUserOptions.ExternUID = &externUid
 		}
 		user, _, err := gitlabClient.Users.CreateUser(createUserOptions)
-		if err != nil {
-			return err
-		}
+		if err != nil {	return err }
 		err = OutputJson(user)
 		return err
 	},
@@ -121,14 +113,11 @@ var deleteCmd = &cobra.Command{
 	Long: `Delete a user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := getUserId(id, user)
-		if err != nil {
-			return err
-		}
+		if err != nil {	return err }
 		resp , err := gitlabClient.Users.DeleteUser(id)
 		// TODO following the documentation, the user's data should be returned, but {} is returned...
 		// TODO see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#user-deletion
-		err = OutputJson(resp.Body)
-		return err
+		return OutputJson(resp.Body)
 	},
 }
 
@@ -145,13 +134,9 @@ Currently there are some restrictions:
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := getUserId(id, user)
-		if err != nil {
-			return err
-		}
+		if err != nil {	return err }
 		currUser, _, err := gitlabClient.Users.GetUser(id)
-		if err != nil {
-			return err
-		}
+		if err != nil {	return err }
 		modifyUserOptions := &gitlab.ModifyUserOptions{}
 		modifyUserOptions.Admin = boolFromParamAndCurrSetting(adminString, currUser.IsAdmin)
 		// TODO changing email has no effect at the moment...
@@ -181,11 +166,8 @@ Currently there are some restrictions:
 		//if external != "" { modifyUserOptions.External = &external }
 
 		user, _, err := gitlabClient.Users.ModifyUser(id, modifyUserOptions)
-		if err != nil {
-			return err
-		}
-		err = OutputJson(user)
-		return err
+		if err != nil {	return err }
+		return OutputJson(user)
 	},
 }
 
@@ -197,14 +179,26 @@ var listSshKeysCmd = &cobra.Command{
 		if id != 0 {
 			sshKeys, _, err := gitlabClient.Users.ListSSHKeysForUser(id)
 			if err != nil { return err }
-			err = OutputJson(sshKeys)
-			return err
+			return OutputJson(sshKeys)
 		} else {
 			sshKeys, _, err := gitlabClient.Users.ListSSHKeys()
 			if err != nil { return err }
-			err = OutputJson(sshKeys)
-			return err
+			return OutputJson(sshKeys)
 		}
+	},
+}
+
+var getSshKeyCmd = &cobra.Command{
+	Use: "get",
+	Short: "Single SSH key",
+	Long: `Get a single ssh key`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if keyId != 0 {
+			sshKey, _, err := gitlabClient.Users.GetSSHKey(keyId)
+			if err != nil { return err }
+			return OutputJson(sshKey)
+		}
+		return errors.New("you have to provide an id for a ssh key")
 	},
 }
 
@@ -356,5 +350,11 @@ func initUserDeleteCommand() {
 func initListSshKeysCmd() {
 	listSshKeysCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(optional) id of user to show ssh-keys for - if none is given, logged in user will be used")
 	viper.BindPFlag("id", listSshKeysCmd.PersistentFlags().Lookup("id"))
+
+	getSshKeyCmd.PersistentFlags().IntVarP(&keyId, "key_id", "k", 0, "(mandatory) key id of ssh key to be shown")
+	viper.BindPFlag("key_id", getSshKeyCmd.PersistentFlags().Lookup("key_id"))
+
+	listSshKeysCmd.AddCommand(getSshKeyCmd)
+
 	userCmd.AddCommand(listSshKeysCmd)
 }
