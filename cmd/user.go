@@ -30,8 +30,8 @@ import (
 	"strconv"
 )
 
-var user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString string
-var keyId, projectsLimit int
+var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString string
+var userId, keyId, projectsLimit int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
 // userCmd represents the user command
@@ -202,6 +202,30 @@ var getSshKeyCmd = &cobra.Command{
 	},
 }
 
+var addSshKeyCmd = &cobra.Command{
+	Use: "add",
+	Short: "Add SSH key",
+	Long: `Creates a new key (owned by the currently authenticated user, if no user id was given)`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if key == "" || title == "" {
+			return errors.New("you have to provide a key and a title")
+		}
+		sshKeyOps := &gitlab.AddSSHKeyOptions{
+			Key: &key,
+			Title: &title,
+		}
+		if userId != 0 {
+			sshKey, _, err := gitlabClient.Users.AddSSHKeyForUser(userId, sshKeyOps)
+			if err != nil { return err }
+			return OutputJson(sshKey)
+		} else {
+			sshKey, _, err := gitlabClient.Users.AddSSHKey(sshKeyOps)
+			if err != nil { return err }
+			return OutputJson(sshKey)
+		}
+	},
+}
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -354,7 +378,14 @@ func initListSshKeysCmd() {
 	getSshKeyCmd.PersistentFlags().IntVarP(&keyId, "key_id", "k", 0, "(mandatory) key id of ssh key to be shown")
 	viper.BindPFlag("key_id", getSshKeyCmd.PersistentFlags().Lookup("key_id"))
 
-	listSshKeysCmd.AddCommand(getSshKeyCmd)
+	addSshKeyCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(optional) id of user to add key for")
+	addSshKeyCmd.PersistentFlags().StringVarP(&key, "key", "k", "", "(mandatory) public ssh key")
+	addSshKeyCmd.PersistentFlags().StringVarP(&title, "title", "t", "", "(mandatory) title for ssh public key")
+	viper.BindPFlag("user", getSshKeyCmd.PersistentFlags().Lookup("user"))
+	viper.BindPFlag("key", getSshKeyCmd.PersistentFlags().Lookup("key"))
+	viper.BindPFlag("title", getSshKeyCmd.PersistentFlags().Lookup("title"))
+
+	listSshKeysCmd.AddCommand(getSshKeyCmd, addSshKeyCmd)
 
 	userCmd.AddCommand(listSshKeysCmd)
 }

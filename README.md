@@ -23,6 +23,12 @@ It allows you to run Gitlab administration tasks from your command line. Example
    golab project create -g my-group -n my-project
    ```
 
+* add an ssh key for a user
+
+   ``` bash
+   golab user ssh-keys add --key "`cat ~/.ssh/id_rsa.pub`" --title "my dsa key"
+   ```
+
 For a complete documentation of features, check the [generated documentation](doc/golab.md)
 
 Setup & Configuration
