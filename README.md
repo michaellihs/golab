@@ -3,21 +3,44 @@ Gitlab CLI written in Go [![Build Status](https://travis-ci.org/michaellihs/gola
 
 This project provides a Command Line Interface (CLI) for Gitlab written in Go. The project uses the [go-gitlab client](https://github.com/xanzy/go-gitlab) for the communication with Gitlab.
 
+It allows you to run Gitlab administration tasks from your command line. Examples:
 
-Usage
------
+* create a user
+
+   ``` bash
+   golab user create --email username@company.com --username username --password 12341234 --name "User McArthur" --skipConfirmation
+   ```
+
+* modify a user
+
+   ``` bash
+   golab user modify -i 41 --admin true
+   ```
+
+* create a new project / repository
+
+   ``` bash
+   golab project create -g my-group -n my-project
+   ```
+
+For a complete documentation of features, check the [generated documentation](doc/golab.md)
+
+Setup & Configuration
+---------------------
+
+Install the CLI tool with
+
+    go get github.com/michaellihs/golab
+
+First create a Gitlab [access token for your user](https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html) in Gitlab (most likely a admin user).
 
 Create a file `.golab.yml` in either `~/` or the directory you want to use golab with the following content:
 
     ---
-    url: "https://gitlab.com"
-    token: "YOUR PRIVATE TOKEN"
-
-Replace `gitlab.com` with the URL of your Gitlab server.
+    url: "http(s)://<YOUR GITLAB URL>"
+    token: "<YOUR PERSONAL ACCESS TOKEN>"
 
 Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
-
-For further usage, see the [generated documentation](doc/golab.md)
 
 
 Development
@@ -34,48 +57,17 @@ Run `curl` requests against the API:
 Build and run the application
 -----------------------------
 
-    go install github.com/michaellihs/golab
-    golab
+There is a `makefile` included that can build and test the application and render the automatically generated documentation:
 
+*  `make` - build the application
 
-Run the Tests
--------------
+*  `make test` - run the tests
 
-Install Ginkgo
-
-    go get github.com/onsi/ginkgo/ginkgo
-    go get github.com/onsi/gomega
-
-Run the tests (e.g. in `model`) with
-
-    cd model
-    ginkgo
-
-
-Install the application
------------------------
-
-First run
-
-    go install github.com/michaellihs/golab
-
-You can then use the application by simply typing
-
-    golab
-    
-
-Generate Markdown Documentation
--------------------------------
-
-Using the command
-
-    golab gendoc -p PATH
-
-let's you render a set of markdown documentation for the application.
+* `make gendoc` - render the documentation
     
 
 Gitlab Docker Image
-===================
+-------------------
 
 For local development, you can use a [Gitlab Docker image](https://docs.gitlab.com/omnibus/docker/README.html). There are some pitfalls, when using Gitlab Docker image on a Mac:
 
