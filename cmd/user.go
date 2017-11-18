@@ -189,6 +189,25 @@ Currently there are some restrictions:
 	},
 }
 
+var listSshKeysCmd = &cobra.Command{
+	Use:   "ssh-keys",
+	Short: "Manage a user's ssh keys",
+	Long:  `Allows management of a user's ssh keys (create, list, delete)'`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id != 0 {
+			sshKeys, _, err := gitlabClient.Users.ListSSHKeysForUser(id)
+			if err != nil { return err }
+			err = OutputJson(sshKeys)
+			return err
+		} else {
+			sshKeys, _, err := gitlabClient.Users.ListSSHKeys()
+			if err != nil { return err }
+			err = OutputJson(sshKeys)
+			return err
+		}
+	},
+}
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -224,6 +243,7 @@ func init() {
 	initUserCreateCommand()
 	initUserModifyCommand()
 	initUserDeleteCommand()
+	initListSshKeysCmd()
 	RootCmd.AddCommand(userCmd)
 }
 
@@ -331,4 +351,10 @@ func initUserDeleteCommand() {
 	viper.BindPFlag("id", deleteCmd.PersistentFlags().Lookup("id"))
 	viper.BindPFlag("user", deleteCmd.PersistentFlags().Lookup("user"))
 	userCmd.AddCommand(deleteCmd)
+}
+
+func initListSshKeysCmd() {
+	listSshKeysCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(optional) id of user to show ssh-keys for - if none is given, logged in user will be used")
+	viper.BindPFlag("id", listSshKeysCmd.PersistentFlags().Lookup("id"))
+	userCmd.AddCommand(listSshKeysCmd)
 }
