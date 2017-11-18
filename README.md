@@ -20,6 +20,17 @@ Test your configuration - e.g. by running `golab project` to get a list of proje
 For further usage, see the [generated documentation](doc/golab.md)
 
 
+Development
+===========
+
+API Debugging
+-------------
+
+Run `curl` requests against the API:
+
+    curl --header "PRIVATE-TOKEN: FqBiTTJ4oRPdskWDTktr" -H "Content-Type: application/json" -X PUT -d '{"admin": true}' http://localhost:8080/api/v4/users/41
+
+
 Build and run the application
 -----------------------------
 
