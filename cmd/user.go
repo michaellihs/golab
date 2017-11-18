@@ -164,6 +164,7 @@ Currently there are some restrictions:
 		if name != "" { modifyUserOptions.Name = &name}
 		if password != "" { modifyUserOptions.Password = &password }
 		if skype != "" { modifyUserOptions.Skype = &skype }
+		if twitter != "" { modifyUserOptions.Twitter = &twitter }
 		if linkedin != "" { modifyUserOptions.Linkedin = &linkedin }
 		if websiteUrl != "" { modifyUserOptions.WebsiteURL = &websiteUrl }
 		// TODO currently not supported by go-gitlab API
