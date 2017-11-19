@@ -315,6 +315,19 @@ var createImpersonationTokenCmd = &cobra.Command{
 	},
 }
 
+var revokeImpersonationTokenCmd = &cobra.Command{
+	Use: "revoke",
+	Short: "Revoke an impersonation token",
+	Long: `It revokes an impersonation token.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if userId == 0 || tokenId == 0 {
+			return errors.New("both, user_id and impersonation_token_id have to be given as parameters")
+		}
+		_, err := gitlabClient.Users.RevokeImpersonationToken(userId, tokenId)
+		return err
+	},
+}
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -351,7 +364,7 @@ func init() {
 	initUserModifyCommand()
 	initUserDeleteCommand()
 	initSshKeysCmd()
-	initImpersinationTokenCmd()
+	initImpersonationTokenCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
 }
@@ -486,12 +499,12 @@ func initSshKeysCmd() {
 	userCmd.AddCommand(listSshKeysCmd)
 }
 
-func initImpersinationTokenCmd() {
+func initImpersonationTokenCmd() {
 	getImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(required) id of user to get token(s) for")
-	getImpersonationTokenCmd.PersistentFlags().IntVarP(&tokenId, "token", "t", 0, "(optional) id of token")
-	getImpersonationTokenCmd.PersistentFlags().StringVarP(&state, "state", "s", "", "(optional) state of token (has no effect, if user is given)")
+	getImpersonationTokenCmd.PersistentFlags().IntVarP(&tokenId, "impersonation_token_id", "t", 0, "(optional) id of token")
+	getImpersonationTokenCmd.PersistentFlags().StringVarP(&state, "state", "s", "", "(optional) state of token to be used as a filter (has no effect, if user is given)")
 	viper.BindPFlag("user", getImpersonationTokenCmd.PersistentFlags().Lookup("user"))
-	viper.BindPFlag("token", getImpersonationTokenCmd.PersistentFlags().Lookup("token"))
+	viper.BindPFlag("impersonation_token_id", getImpersonationTokenCmd.PersistentFlags().Lookup("impersonation_token_id"))
 	viper.BindPFlag("state", getImpersonationTokenCmd.PersistentFlags().Lookup("state"))
 
 	createImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(required) the id of the user")
@@ -499,6 +512,9 @@ func initImpersinationTokenCmd() {
 	createImpersonationTokenCmd.PersistentFlags().StringVarP(&expires, "expires_at", "e", "", "(optional) the expiration date of the impersonation token in ISO format (YYYY-MM-DD)")
 	createImpersonationTokenCmd.PersistentFlags().StringVarP(&scopes, "scopes_array", "s", "", "(required) the comma-separated array of scopes of the impersonation token ( allowed values: `api`, `read_user`)")
 
-	impersinationTokenCmd.AddCommand(getImpersonationTokenCmd, createImpersonationTokenCmd)
+	revokeImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id of user to revoke token for")
+	revokeImpersonationTokenCmd.PersistentFlags().IntVarP(&tokenId, "impersonation_token_id", "t", 0, "(required) id of token to be revoked")
+
+	impersinationTokenCmd.AddCommand(getImpersonationTokenCmd, createImpersonationTokenCmd, revokeImpersonationTokenCmd)
 	userCmd.AddCommand(impersinationTokenCmd)
 }

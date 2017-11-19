@@ -14,9 +14,9 @@ golab user impersonation-token get
 ### Options
 
 ```
-  -s, --state string   (optional) state of token (has no effect, if user is given)
-  -t, --token int      (optional) id of token
-  -u, --user int       (required) id of user to get token(s) for
+  -t, --impersonation_token_id int   (optional) id of token
+  -s, --state string                 (optional) state of token to be used as a filter (has no effect, if user is given)
+  -u, --user int                     (required) id of user to get token(s) for
 ```
 
 ### Options inherited from parent commands
