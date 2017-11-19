@@ -116,6 +116,11 @@ Therefore we also need to change the structure of the `.golab.yml` like this:
 
 This allows working with multiple Gitlab servers at the same time.
 
+Support GPG keys in user command
+--------------------------------
+
+Currently the [go-gitlab library](https://github.com/xanzy/go-gitlab) provides no support for GPG keys, neither does this to.
+
 
 Further Resources
 =================
