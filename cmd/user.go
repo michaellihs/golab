@@ -35,7 +35,7 @@ import (
 )
 
 var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state , expires, scopes string
-var userId, keyId, projectsLimit, tokenId int
+var userId, keyId, projectsLimit, tokenId, emailId int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
 // userCmd represents the user command
@@ -330,6 +330,84 @@ var revokeImpersonationTokenCmd = &cobra.Command{
 	},
 }
 
+var emailsCmd = &cobra.Command{
+	Use: "emails",
+	Short: "Manage emails for users",
+	Long: `List, add and delete emails for users`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("use one of the sub-commands, see `golab user emails -h`")
+	},
+}
+
+var emailsListCmd = &cobra.Command{
+	Use: "ls",
+	Short: "List emails (for user)",
+	Long: `If no user_id is given: get a list of currently authenticated user's emails.
+If a user_id is given: Get a list of a specified user's emails. Available only for admin`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if userId == 0 {
+			emails, _, err := gitlabClient.Users.ListEmails()
+			if err != nil { return err }
+			return OutputJson(emails)
+		} else {
+			emails, _, err := gitlabClient.Users.ListEmailsForUser(userId)
+			if err != nil { return err }
+			return OutputJson(emails)
+		}
+	},
+}
+
+var emailsGetCmd = &cobra.Command{
+	Use: "get",
+	Short: "Get a single email",
+	Long: `Get a single email for given email_id`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		email, _, err := gitlabClient.Users.GetEmail(emailId)
+		if err != nil { return err }
+		return OutputJson(email)
+	},
+}
+
+var emailsAddCmd = &cobra.Command{
+	Use: "add",
+	Short: "Add email (for user)",
+	Long: `If no user_id is given: Creates a new email owned by the currently authenticated user.
+If a user_id is given: Create new email owned by specified user. Available only for admin
+
+Will return created email on success.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		opts := &gitlab.AddEmailOptions{
+			Email: &email,
+		}
+		if userId == 0 {
+			resp, _, err := gitlabClient.Users.AddEmail(opts)
+			if err != nil { return err }
+			return OutputJson(resp)
+		} else {
+			resp, _, err := gitlabClient.Users.AddEmailForUser(userId, opts)
+			if err != nil { return err }
+			return OutputJson(resp)
+		}
+	},
+}
+
+var emailsDeleteCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Delete email for current / given user",
+	Long: `If no user_id is given: Deletes email owned by currently authenticated user.
+If a user_id is given: Deletes email owned by a specified user. Available only for admin.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if userId == 0 {
+			_, err := gitlabClient.Users.DeleteEmail(emailId)
+			return err
+		} else {
+			_, err := gitlabClient.Users.DeleteEmailForUser(userId, emailId)
+			return err
+		}
+	},
+}
+
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -367,6 +445,7 @@ func init() {
 	initUserDeleteCommand()
 	initSshKeysCmd()
 	initImpersonationTokenCmd()
+	initEmailsCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
 }
@@ -519,4 +598,25 @@ func initImpersonationTokenCmd() {
 
 	impersinationTokenCmd.AddCommand(getImpersonationTokenCmd, createImpersonationTokenCmd, revokeImpersonationTokenCmd)
 	userCmd.AddCommand(impersinationTokenCmd)
+}
+
+func initEmailsCmd() {
+	emailsListCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(optional) id of user to list emails for")
+	viper.BindPFlag("user_id", emailsListCmd.PersistentFlags().Lookup("user_id"))
+
+	emailsGetCmd.PersistentFlags().IntVarP(&emailId, "email_id", "i", 0, "(required) id of email")
+	viper.BindPFlag("email_id", emailsGetCmd.PersistentFlags().Lookup("email_id"))
+
+	emailsAddCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(optional) id of user to create email for")
+	emailsAddCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "(required) email address to be created")
+	viper.BindPFlag("user_id", emailsAddCmd.PersistentFlags().Lookup("user_id"))
+	viper.BindPFlag("email", emailsAddCmd.PersistentFlags().Lookup("email"))
+
+	emailsDeleteCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(optional) id of user to delete email from")
+	emailsDeleteCmd.PersistentFlags().IntVarP(&emailId, "email_id", "i", 0, "(required) id of email to be deleted")
+	viper.BindPFlag("user_id", emailsDeleteCmd.PersistentFlags().Lookup("user_id"))
+	viper.BindPFlag("email_id", emailsDeleteCmd.PersistentFlags().Lookup("email_id"))
+
+	emailsCmd.AddCommand(emailsListCmd, emailsAddCmd, emailsDeleteCmd)
+	userCmd.AddCommand(emailsCmd)
 }
