@@ -226,6 +226,21 @@ var addSshKeyCmd = &cobra.Command{
 	},
 }
 
+var deleteSshKeyCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Delete SSH key",
+	Long: `If no user id is given, deletes key owned by currently authenticated user. If a user id is given, deletes key owned by specified user. Available only for admins.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if userId == 0 {
+			_, err := gitlabClient.Users.DeleteSSHKey(keyId)
+			return err
+		} else {
+			_, err := gitlabClient.Users.DeleteSSHKeyForUser(userId, keyId)
+			return err
+		}
+	},
+}
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -261,7 +276,7 @@ func init() {
 	initUserCreateCommand()
 	initUserModifyCommand()
 	initUserDeleteCommand()
-	initListSshKeysCmd()
+	initSshKeysCmd()
 	RootCmd.AddCommand(userCmd)
 }
 
@@ -371,7 +386,7 @@ func initUserDeleteCommand() {
 	userCmd.AddCommand(deleteCmd)
 }
 
-func initListSshKeysCmd() {
+func initSshKeysCmd() {
 	listSshKeysCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(optional) id of user to show ssh-keys for - if none is given, logged in user will be used")
 	viper.BindPFlag("id", listSshKeysCmd.PersistentFlags().Lookup("id"))
 
@@ -385,7 +400,12 @@ func initListSshKeysCmd() {
 	viper.BindPFlag("key", getSshKeyCmd.PersistentFlags().Lookup("key"))
 	viper.BindPFlag("title", getSshKeyCmd.PersistentFlags().Lookup("title"))
 
-	listSshKeysCmd.AddCommand(getSshKeyCmd, addSshKeyCmd)
+	deleteSshKeyCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(optional) id of user to delete key for")
+	deleteSshKeyCmd.PersistentFlags().IntVarP(&keyId, "key_id", "k", 0, "(optional) id of ssh key to be deleted")
+	viper.BindPFlag("user", deleteSshKeyCmd.PersistentFlags().Lookup("user"))
+	viper.BindPFlag("key_id", deleteSshKeyCmd.PersistentFlags().Lookup("key_id"))
+
+	listSshKeysCmd.AddCommand(getSshKeyCmd, addSshKeyCmd, deleteSshKeyCmd)
 
 	userCmd.AddCommand(listSshKeysCmd)
 }

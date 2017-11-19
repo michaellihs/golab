@@ -1,22 +1,21 @@
-## golab user ssh-keys add
+## golab user ssh-keys delete
 
-Add SSH key
+Delete SSH key
 
 ### Synopsis
 
 
-Creates a new key (owned by the currently authenticated user, if no user id was given)
+If no user id is given, deletes key owned by currently authenticated user. If a user id is given, deletes key owned by specified user. Available only for admins.
 
 ```
-golab user ssh-keys add
+golab user ssh-keys delete
 ```
 
 ### Options
 
 ```
-  -k, --key string     (mandatory) public ssh key
-  -t, --title string   (mandatory) title for ssh public key
-  -u, --user int       (optional) id of user to add key for
+  -k, --key_id int   (optional) id of ssh key to be deleted
+  -u, --user int     (optional) id of user to delete key for
 ```
 
 ### Options inherited from parent commands
