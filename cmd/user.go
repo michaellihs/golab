@@ -28,10 +28,12 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"github.com/spf13/viper"
 	"strconv"
+	"strings"
+	"time"
 )
 
-var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString string
-var userId, keyId, projectsLimit int
+var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state , expires, scopes string
+var userId, keyId, projectsLimit, tokenId int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
 // userCmd represents the user command
@@ -259,6 +261,60 @@ By default, it shows the activity for all users in the last 6 months, but this c
 	},
 }
 
+var impersinationTokenCmd = &cobra.Command{
+	Use: "impersonation-token",
+	Short: "Manage impersonation tokens",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("you cannot use this command without one of its sub-commands")
+	},
+}
+
+var getImpersonationTokenCmd = &cobra.Command{
+	Use: "get",
+	Short: "Get all impersonation tokens of a user",
+	Long: `It retrieves every impersonation token of the user. Use the pagination parameters page and per_page to restrict the list of impersonation tokens.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if userId == 0 {
+			return errors.New("required parameter `user` is missing")
+		}
+		if tokenId == 0 {
+			opts := &gitlab.GetAllImpersonationTokensOptions{}
+			if state != "" { opts.State = &state }
+			token, _, err := gitlabClient.Users.GetAllImpersonationTokens(userId, opts)
+			if err != nil { return err }
+			return OutputJson(token)
+		} else {
+			tokens, _, err := gitlabClient.Users.GetImpersonationToken(userId, tokenId)
+			if err != nil { return err }
+			return OutputJson(tokens)
+		}
+	},
+}
+
+var createImpersonationTokenCmd = &cobra.Command{
+	Use: "create",
+	Short: "Create an impersonation token",
+	Long: `It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if userId == 0 {
+			return errors.New("required parameter `user` is missing")
+		}
+		parsedScopes := strings.Split(scopes, ",")
+		opts := &gitlab.CreateImpersonationTokenOptions{
+			Name: &name,
+			Scopes: &parsedScopes,
+		}
+		if expires != "" {
+			parsedExpires, err := time.Parse("2006-01-02", expires)
+			if err != nil { return err }
+			opts.ExpiresAt = &parsedExpires
+		}
+		token, _, err := gitlabClient.Users.CreateImpersonationToken(userId, opts)
+		if err != nil { return err }
+		return OutputJson(token)
+	},
+}
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -295,6 +351,7 @@ func init() {
 	initUserModifyCommand()
 	initUserDeleteCommand()
 	initSshKeysCmd()
+	initImpersinationTokenCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
 }
@@ -427,4 +484,21 @@ func initSshKeysCmd() {
 	listSshKeysCmd.AddCommand(getSshKeyCmd, addSshKeyCmd, deleteSshKeyCmd)
 
 	userCmd.AddCommand(listSshKeysCmd)
+}
+
+func initImpersinationTokenCmd() {
+	getImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(required) id of user to get token(s) for")
+	getImpersonationTokenCmd.PersistentFlags().IntVarP(&tokenId, "token", "t", 0, "(optional) id of token")
+	getImpersonationTokenCmd.PersistentFlags().StringVarP(&state, "state", "s", "", "(optional) state of token (has no effect, if user is given)")
+	viper.BindPFlag("user", getImpersonationTokenCmd.PersistentFlags().Lookup("user"))
+	viper.BindPFlag("token", getImpersonationTokenCmd.PersistentFlags().Lookup("token"))
+	viper.BindPFlag("state", getImpersonationTokenCmd.PersistentFlags().Lookup("state"))
+
+	createImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(required) the id of the user")
+	createImpersonationTokenCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) the name of the impersonation token")
+	createImpersonationTokenCmd.PersistentFlags().StringVarP(&expires, "expires_at", "e", "", "(optional) the expiration date of the impersonation token in ISO format (YYYY-MM-DD)")
+	createImpersonationTokenCmd.PersistentFlags().StringVarP(&scopes, "scopes_array", "s", "", "(required) the comma-separated array of scopes of the impersonation token ( allowed values: `api`, `read_user`)")
+
+	impersinationTokenCmd.AddCommand(getImpersonationTokenCmd, createImpersonationTokenCmd)
+	userCmd.AddCommand(impersinationTokenCmd)
 }

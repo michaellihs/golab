@@ -23,6 +23,7 @@ golab user
 * [golab user create](golab_user_create.md)	 - Create a new user
 * [golab user delete](golab_user_delete.md)	 - Delete a user
 * [golab user get](golab_user_get.md)	 - Get user details
+* [golab user impersonation-token](golab_user_impersonation-token.md)	 - Manage impersonation tokens
 * [golab user ls](golab_user_ls.md)	 - Get list of all users
 * [golab user modify](golab_user_modify.md)	 - Modify a user
 * [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's ssh keys
