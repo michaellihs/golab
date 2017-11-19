@@ -5,7 +5,7 @@ Manage a user's ssh keys
 ### Synopsis
 
 
-Allows management of a user's ssh keys (create, list, delete)'
+Allows management of a user's ssh keys (create, list, delete). If no sub-command is given, it lists ssh keys of currently authenticated user / user specified by user id.
 
 ```
 golab user ssh-keys

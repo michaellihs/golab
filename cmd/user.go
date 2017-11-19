@@ -174,7 +174,7 @@ Currently there are some restrictions:
 var listSshKeysCmd = &cobra.Command{
 	Use:   "ssh-keys",
 	Short: "Manage a user's ssh keys",
-	Long:  `Allows management of a user's ssh keys (create, list, delete)'`,
+	Long:  `Allows management of a user's ssh keys (create, list, delete). If no sub-command is given, it lists ssh keys of currently authenticated user / user specified by user id.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id != 0 {
 			sshKeys, _, err := gitlabClient.Users.ListSSHKeysForUser(id)
@@ -241,6 +241,24 @@ var deleteSshKeyCmd = &cobra.Command{
 	},
 }
 
+var activitiesCmd = &cobra.Command{
+	Use: "activities",
+	Short: "Get the last activity date for all users, sorted from oldest to newest.",
+	Long: `The activities that update the timestamp are:
+
+* Git HTTP/SSH activities (such as clone, push)
+* User logging in into GitLab
+
+By default, it shows the activity for all users in the last 6 months, but this can be amended by using the from parameter.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		userActivities, _, err := gitlabClient.Users.GetUserActivities()
+		if err != nil {
+			return err
+		}
+		return OutputJson(userActivities)
+	},
+}
+
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
 	if paramString == "true" || paramString == "1" {
@@ -277,6 +295,7 @@ func init() {
 	initUserModifyCommand()
 	initUserDeleteCommand()
 	initSshKeysCmd()
+	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
 }
 

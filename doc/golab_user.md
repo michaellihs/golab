@@ -19,6 +19,7 @@ golab user
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
+* [golab user activities](golab_user_activities.md)	 - Get the last activity date for all users, sorted from oldest to newest.
 * [golab user create](golab_user_create.md)	 - Create a new user
 * [golab user delete](golab_user_delete.md)	 - Delete a user
 * [golab user get](golab_user_get.md)	 - Get user details
