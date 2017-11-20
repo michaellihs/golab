@@ -28,7 +28,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-var path, visibility, description string
+var newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString string
 
 var statistics, lfsEnabled, requestAccessEnabled bool
 
@@ -134,6 +134,42 @@ var transferProjectCmd = &cobra.Command{
 	},
 }
 
+var groupUpdateCmd = &cobra.Command{
+	Use: "update",
+	Short: "Update group",
+	Long: `Updates the project group. Only available to group owners and administrators.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
+		}
+
+		trueVal := true; falseVal := false
+
+		// we have to provide name and path, even if not set in command
+		// therefore we read those values from current group
+		currGroup, _, err := gitlabClient.Groups.GetGroup(id)
+		if err != nil { return err }
+
+		opts := &gitlab.UpdateGroupOptions{}
+		if newName != "NIL" { opts.Name = &newName } else { opts.Name = &currGroup.Name }
+		if path != "NIL" { opts.Path = &path } else { opts.Path = &currGroup.Path }
+		if description != "NIL" { opts.Description = &description }
+		if visibility != "NIL" { opts.Visibility = str2Visibility(visibility) }
+		if lfsEnabledString != "NIL" {
+			if lfsEnabledString == "true" || lfsEnabledString == "1" { opts.LFSEnabled = &trueVal }
+			if lfsEnabledString == "false" || lfsEnabledString == "0" { opts.LFSEnabled = &falseVal }
+		}
+		if requestAccessEnabledString != "NIL" {
+			if requestAccessEnabledString == "true" || requestAccessEnabledString == "1" { opts.RequestAccessEnabled = &trueVal }
+			if requestAccessEnabledString == "false" ||requestAccessEnabledString == "0" { opts.RequestAccessEnabled = &falseVal }
+		}
+
+		group, _, err := gitlabClient.Groups.UpdateGroup(id, opts)
+		if err != nil { return err }
+		return OutputJson(group)
+	},
+}
+
 func str2Visibility(s string) *gitlab.VisibilityValue {
 	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
 	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
@@ -147,6 +183,7 @@ func init() {
 	initGroupCreateCommand()
 	initGroupProjectsCommand()
 	initTransferProjectCmd()
+	initGroupUpdateCommand()
 	RootCmd.AddCommand(groupCmd)
 }
 
@@ -182,4 +219,15 @@ func initGroupCreateCommand() {
 	groupCreateCommand.PersistentFlags().BoolVarP(&lfsEnabled, "lfs_enabled", "l", false, "(optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group")
 	groupCreateCommand.PersistentFlags().BoolVarP(&requestAccessEnabled, "request_access_enabled", "r", false, "(optional) Allow users to request member access.")
 	groupCmd.AddCommand(groupCreateCommand)
+}
+
+func initGroupUpdateCommand() {
+	groupUpdateCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) the id of the group to be updated")
+	groupUpdateCmd.PersistentFlags().StringVarP(&newName, "name", "n", "NIL", "(optional) the name of the group")
+	groupUpdateCmd.PersistentFlags().StringVarP(&path, "path", "p", "NIL", "(optional) the path of the group")
+	groupUpdateCmd.PersistentFlags().StringVarP(&description, "description", "d", "NIL", "(optional) the description of the group")
+	groupUpdateCmd.PersistentFlags().StringVarP(&visibility, "visibility", "v", "NIL", "(optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'.")
+	groupUpdateCmd.PersistentFlags().StringVarP(&lfsEnabledString, "lfs_enabled", "l", "NIL", "(optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group")
+	groupUpdateCmd.PersistentFlags().StringVarP(&requestAccessEnabledString, "request_access_enabled", "r", "NIL", "(optional) Allow users to request member access.")
+	groupCmd.AddCommand(groupUpdateCmd)
 }
