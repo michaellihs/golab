@@ -157,18 +157,21 @@ Currently there are some restrictions:
 		if twitter != "" { modifyUserOptions.Twitter = &twitter }
 		if linkedin != "" { modifyUserOptions.Linkedin = &linkedin }
 		if websiteUrl != "" { modifyUserOptions.WebsiteURL = &websiteUrl }
-		// TODO currently not supported by go-gitlab API
-		//if organization != "" { modifyUserOptions.Organization = &organization }
-		// TODO currently not supported by go-gitlab API
+		if organization != "" { modifyUserOptions.Organization = &organization }
 		if projectsLimit != -1 { modifyUserOptions.ProjectsLimit = &projectsLimit }
 		if externUid != "" { modifyUserOptions.ExternUID = &externUid }
 		if provider != "" { modifyUserOptions.Provider = &provider }
 		if bio != "" { modifyUserOptions.Bio = &bio }
-		// TODO currently not supported by go-gitlab API
-		//if location != "" { modifyUserOptions.Location = location }
+		if location != "" { modifyUserOptions.Location = &location }
 		modifyUserOptions.CanCreateGroup = boolFromParamAndCurrSetting(canCreateGroupString, currUser.CanCreateGroup)
-		// TODO currently not supported by go-gitlab API
-		//if external != "" { modifyUserOptions.External = &external }
+		if externalString == "true" {
+			external = true
+			modifyUserOptions.External = &external
+		}
+		if externalString == "false" {
+			external = false
+			modifyUserOptions.External = &external
+		}
 
 		user, _, err := gitlabClient.Users.ModifyUser(id, modifyUserOptions)
 		if err != nil {	return err }
@@ -515,8 +518,7 @@ func initUserModifyCommand() {
 	modifyCmd.PersistentFlags().StringVarP(&linkedin, "linkedin", "", "", "(optional) user's new LinkedIn account")
 	modifyCmd.PersistentFlags().StringVarP(&twitter, "twitter", "", "", "(optional) user's new Twitter account")
 	modifyCmd.PersistentFlags().StringVarP(&websiteUrl, "website_url", "", "", "(optional) user's new website URL")
-	// TODO currently not supported by go-gitlab API
-	// modifyCmd.PersistentFlags().StringVarP(&organization, "organization", "", "", "(optional) user's new organization name")
+	modifyCmd.PersistentFlags().StringVarP(&organization, "organization", "", "", "(optional) user's new organization name")
 	modifyCmd.PersistentFlags().IntVarP(&projectsLimit, "projects_limit", "", -1, "(optional) user's new projects limit")
 	modifyCmd.PersistentFlags().StringVarP(&externUid, "extern_uid", "", "", "(optional) user's new external UID")
 	modifyCmd.PersistentFlags().StringVarP(&provider, "provider", "", "", "(optional) user's new external provider name")
@@ -524,8 +526,7 @@ func initUserModifyCommand() {
 	modifyCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) user's new location")
 	modifyCmd.PersistentFlags().StringVarP(&adminString, "admin", "a", "", "(optional) user is admin - true or false")
 	modifyCmd.PersistentFlags().StringVarP(&canCreateGroupString, "can_create_group", "", "", "(optional) user can create groups - true or false")
-	// TODO currently not supported by go-gitlab API
-	// modifyCmd.PersistentFlags().StringVarP(&externalString, "external", "", "", "(optional) flags the user as external - true or false")
+	modifyCmd.PersistentFlags().StringVarP(&externalString, "external", "", "", "(optional) flags the user as external - true or false")
 	viper.BindPFlag("id", modifyCmd.PersistentFlags().Lookup("id"))
 	viper.BindPFlag("email", modifyCmd.PersistentFlags().Lookup("email"))
 	viper.BindPFlag("password", modifyCmd.PersistentFlags().Lookup("password"))
@@ -536,16 +537,14 @@ func initUserModifyCommand() {
 	viper.BindPFlag("twitter", modifyCmd.PersistentFlags().Lookup("twitter"))
 	viper.BindPFlag("website_url", modifyCmd.PersistentFlags().Lookup("website_url"))
 	viper.BindPFlag("organization", modifyCmd.PersistentFlags().Lookup("organization"))
-	// TODO currently not supported by go-gitlab API
-	// viper.BindPFlag("projects_limit", modifyCmd.PersistentFlags().Lookup("projects_limit"))
+	viper.BindPFlag("projects_limit", modifyCmd.PersistentFlags().Lookup("projects_limit"))
 	viper.BindPFlag("extern_uid", modifyCmd.PersistentFlags().Lookup("extern_uid"))
 	viper.BindPFlag("provider", modifyCmd.PersistentFlags().Lookup("provider"))
 	viper.BindPFlag("bio", modifyCmd.PersistentFlags().Lookup("bio"))
 	viper.BindPFlag("location", modifyCmd.PersistentFlags().Lookup("location"))
 	viper.BindPFlag("admin", modifyCmd.PersistentFlags().Lookup("admin"))
 	viper.BindPFlag("can_create_group", modifyCmd.PersistentFlags().Lookup("can_create_group"))
-	// TODO currently not supported by go-gitlab API
-	// viper.BindPFlag("external", modifyCmd.PersistentFlags().Lookup("external"))
+	viper.BindPFlag("external", modifyCmd.PersistentFlags().Lookup("external"))
 	userCmd.AddCommand(modifyCmd)
 }
 
