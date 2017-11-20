@@ -121,6 +121,11 @@ Support GPG keys in user command
 
 Currently the [go-gitlab library](https://github.com/xanzy/go-gitlab) provides no support for GPG keys, neither does this to.
 
+Support for nested groups
+-------------------------
+
+Currently there is no support for [nested groups](https://docs.gitlab.com/ce/api/groups.html#list-a-groups-39-s-subgroups) since this feature is only available in Gitlab >= 10.3
+
 
 Further Resources
 =================
@@ -132,3 +137,4 @@ Further Resources
 * [Ginkgo (Go Testing Library)](https://onsi.github.io/ginkgo/)
 * [GoMock (Go Mocking Library)](https://github.com/golang/mock)
 * [go-gitlab (Go Gitlab Library)](https://github.com/xanzy/go-gitlab)
+* [govendor on Heroku](https://devcenter.heroku.com/articles/go-dependencies-via-govendor)
