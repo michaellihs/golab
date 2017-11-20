@@ -28,7 +28,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-var newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString string
+var newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString, search string
 
 var statistics, lfsEnabled, requestAccessEnabled bool
 
@@ -183,6 +183,20 @@ var groupDeleteCmd = &cobra.Command{
 	},
 }
 
+var groupSearchCmd = &cobra.Command{
+	Use: "search",
+	Short: "Search for group",
+	Long: `Get all groups that match your string in their name or path.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if search == "" {
+			return errors.New("required paramter `-s` or `--search` not given - exiting")
+		}
+		groups, _, err := gitlabClient.Groups.SearchGroup(search)
+		if err != nil { return err }
+		return OutputJson(groups)
+	},
+}
+
 func str2Visibility(s string) *gitlab.VisibilityValue {
 	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
 	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
@@ -198,6 +212,7 @@ func init() {
 	initTransferProjectCmd()
 	initGroupUpdateCommand()
 	initGroupDeleteCommand()
+	initGroupSearchCommand()
 	RootCmd.AddCommand(groupCmd)
 }
 func initGroupLsCommand() {
@@ -205,7 +220,6 @@ func initGroupLsCommand() {
 	viper.BindPFlag("statistics", groupLsCmd.PersistentFlags().Lookup("statistics"))
 	groupCmd.AddCommand(groupLsCmd)
 }
-
 func initGroupProjectsCommand() {
 	groupProjectsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to list projects for")
 	viper.BindPFlag("id", groupProjectsCmd.PersistentFlags().Lookup("id"))
@@ -248,4 +262,9 @@ func initGroupUpdateCommand() {
 func initGroupDeleteCommand() {
 	groupDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to be deleted")
 	groupCmd.AddCommand(groupDeleteCmd)
+}
+
+func initGroupSearchCommand() {
+	groupSearchCmd.PersistentFlags().StringVarP(&search, "search", "s", "", "(required) search phrase")
+	groupCmd.AddCommand(groupSearchCmd)
 }

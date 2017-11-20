@@ -1,20 +1,20 @@
-## golab group delete
+## golab group search
 
-Remove group
+Search for group
 
 ### Synopsis
 
 
-Removes group with all projects inside.
+Get all groups that match your string in their name or path.
 
 ```
-golab group delete
+golab group search
 ```
 
 ### Options
 
 ```
-  -i, --id int   (required) id of group to be deleted
+  -s, --search string   (required) search phrase
 ```
 
 ### Options inherited from parent commands
