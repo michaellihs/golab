@@ -54,6 +54,21 @@ var groupLsCmd = &cobra.Command{
 	},
 }
 
+var groupProjectsCmd = &cobra.Command{
+	Use: "projects",
+	Short: "List a group's projects",
+	Long: `Get a list of projects in this group. When accessed without authentication, only public projects are returned.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("missing parameter `id`")
+		}
+		opts := &gitlab.ListGroupProjectsOptions{}
+		projects, _, err := gitlabClient.Groups.ListGroupProjects(id, opts)
+		if err != nil { return err }
+		return OutputJson(projects)
+	},
+}
+
 var groupGetCmd = &cobra.Command{
 	Use: "get",
 	Short: "Get detailed information for a group",
@@ -92,6 +107,7 @@ func init() {
 	initGroupLsCommand()
 	initGroupGetCommand()
 	initGroupCreateCommand()
+	initGroupProjectsCommand()
 	RootCmd.AddCommand(groupCmd)
 }
 
@@ -99,6 +115,12 @@ func initGroupLsCommand() {
 	groupLsCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) if set to true, additional statistics are shown (admin only)")
 	viper.BindPFlag("statistics", groupLsCmd.PersistentFlags().Lookup("statistics"))
 	groupCmd.AddCommand(groupLsCmd)
+}
+
+func initGroupProjectsCommand() {
+	groupProjectsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to list projects for")
+	viper.BindPFlag("id", groupProjectsCmd.PersistentFlags().Lookup("id"))
+	groupCmd.AddCommand(groupProjectsCmd)
 }
 
 func initGroupGetCommand() {
