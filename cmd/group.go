@@ -28,7 +28,9 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-var statistics bool
+var path, visibility, description string
+
+var statistics, lfsEnabled, requestAccessEnabled bool
 
 var groupCmd = &cobra.Command{
 	Use:   "group",
@@ -60,7 +62,7 @@ var groupProjectsCmd = &cobra.Command{
 	Long: `Get a list of projects in this group. When accessed without authentication, only public projects are returned.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
-			return errors.New("missing parameter `id`")
+			return errors.New("required parameter `-i` or `--id`not given - exiting")
 		}
 		opts := &gitlab.ListGroupProjectsOptions{}
 		projects, _, err := gitlabClient.Groups.ListGroupProjects(id, opts)
@@ -71,8 +73,8 @@ var groupProjectsCmd = &cobra.Command{
 
 var groupGetCmd = &cobra.Command{
 	Use: "get",
-	Short: "Get detailed information for a group",
-	Long: `Get detailed information for a group identified by either ID or the namespace / path of the group`,
+	Short: "Details of a group",
+	Long: `Get all details of a group. This command can be accessed without authentication if the group is publicly accessible.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id` not given - exiting")
@@ -81,26 +83,43 @@ var groupGetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		err = OutputJson(group)
-		return err
+		return OutputJson(group)
 	},
 }
 
 var groupCreateCommand = &cobra.Command{
 	Use: "create",
-	Short: "Create a new group",
-	Long: `Create a new group for the given parameters`,
+	Short: "New group",
+	Long: `Creates a new project group. Available only for users who can create groups.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if name == "" {
 			return errors.New("required parameter `-n` or `--name` not given - exiting")
 		}
-		group, _, err := gitlabClient.Groups.CreateGroup(&gitlab.CreateGroupOptions{Name: &name, Path: &name})
+		if path == "" {
+			return errors.New("required parameter `-p` or `--path` not given - exiting")
+		}
+		opts := &gitlab.CreateGroupOptions{
+			Name: &name,
+			Path: &path,
+			Description: &description,
+			Visibility: str2Visibility(visibility),
+			LFSEnabled: &lfsEnabled,
+			RequestAccessEnabled: &requestAccessEnabled,
+		}
+		group, _, err := gitlabClient.Groups.CreateGroup(opts)
 		if err != nil {
 			return err
 		}
 		err = OutputJson(group)
 		return err
 	},
+}
+
+func str2Visibility(s string) *gitlab.VisibilityValue {
+	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
+	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
+	if s == "public" { return gitlab.Visibility(gitlab.PublicVisibility) }
+	return nil
 }
 
 func init() {
@@ -130,7 +149,11 @@ func initGroupGetCommand() {
 }
 
 func initGroupCreateCommand() {
-	groupCreateCommand.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) name of the new group")
-	viper.BindPFlag("name", groupCreateCommand.PersistentFlags().Lookup("name"))
+	groupCreateCommand.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) the name of the group")
+	groupCreateCommand.PersistentFlags().StringVarP(&path, "path", "p", "", "(required) the path of the group")
+	groupCreateCommand.PersistentFlags().StringVarP(&description, "description", "d", "", "(optional) the description of the group")
+	groupCreateCommand.PersistentFlags().StringVarP(&visibility, "visibility", "v", "private", "(optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'.")
+	groupCreateCommand.PersistentFlags().BoolVarP(&lfsEnabled, "lfs_enabled", "l", false, "(optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group")
+	groupCreateCommand.PersistentFlags().BoolVarP(&requestAccessEnabled, "request_access_enabled", "r", false, "(optional) Allow users to request member access.")
 	groupCmd.AddCommand(groupCreateCommand)
 }

@@ -1,11 +1,11 @@
 ## golab group get
 
-Get detailed information for a group
+Details of a group
 
 ### Synopsis
 
 
-Get detailed information for a group identified by either ID or the namespace / path of the group
+Get all details of a group. This command can be accessed without authentication if the group is publicly accessible.
 
 ```
 golab group get

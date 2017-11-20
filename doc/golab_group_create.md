@@ -1,11 +1,11 @@
 ## golab group create
 
-Create a new group
+New group
 
 ### Synopsis
 
 
-Create a new group for the given parameters
+Creates a new project group. Available only for users who can create groups.
 
 ```
 golab group create
@@ -14,7 +14,12 @@ golab group create
 ### Options
 
 ```
-  -n, --name string   (required) name of the new group
+  -d, --description string       (optional) the description of the group
+  -l, --lfs_enabled              (optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group
+  -n, --name string              (required) the name of the group
+  -p, --path string              (required) the path of the group
+  -r, --request_access_enabled   (optional) Allow users to request member access.
+  -v, --visibility string        (optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'. (default "private")
 ```
 
 ### Options inherited from parent commands

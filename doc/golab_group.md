@@ -19,8 +19,8 @@ golab group
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab group create](golab_group_create.md)	 - Create a new group
-* [golab group get](golab_group_get.md)	 - Get detailed information for a group
+* [golab group create](golab_group_create.md)	 - New group
+* [golab group get](golab_group_get.md)	 - Details of a group
 * [golab group ls](golab_group_ls.md)	 - List groups
 * [golab group projects](golab_group_projects.md)	 - List a group's projects
 
