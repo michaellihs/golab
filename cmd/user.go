@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+// For detailed API specification, see https://docs.gitlab.com/ce/api/users.html
 // TODO currently there is no support for GPG keys in the go-gitlab library
 
 package cmd
