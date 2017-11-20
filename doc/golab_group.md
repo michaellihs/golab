@@ -20,6 +20,7 @@ golab group
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab group create](golab_group_create.md)	 - New group
+* [golab group delete](golab_group_delete.md)	 - Remove group
 * [golab group get](golab_group_get.md)	 - Details of a group
 * [golab group ls](golab_group_ls.md)	 - List groups
 * [golab group projects](golab_group_projects.md)	 - List a group's projects

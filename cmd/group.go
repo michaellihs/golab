@@ -170,6 +170,19 @@ var groupUpdateCmd = &cobra.Command{
 	},
 }
 
+var groupDeleteCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Remove group",
+	Long: `Removes group with all projects inside.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
+		}
+		_, err := gitlabClient.Groups.DeleteGroup(id)
+		return err
+	},
+}
+
 func str2Visibility(s string) *gitlab.VisibilityValue {
 	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
 	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
@@ -184,9 +197,9 @@ func init() {
 	initGroupProjectsCommand()
 	initTransferProjectCmd()
 	initGroupUpdateCommand()
+	initGroupDeleteCommand()
 	RootCmd.AddCommand(groupCmd)
 }
-
 func initGroupLsCommand() {
 	groupLsCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) if set to true, additional statistics are shown (admin only)")
 	viper.BindPFlag("statistics", groupLsCmd.PersistentFlags().Lookup("statistics"))
@@ -230,4 +243,9 @@ func initGroupUpdateCommand() {
 	groupUpdateCmd.PersistentFlags().StringVarP(&lfsEnabledString, "lfs_enabled", "l", "NIL", "(optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group")
 	groupUpdateCmd.PersistentFlags().StringVarP(&requestAccessEnabledString, "request_access_enabled", "r", "NIL", "(optional) Allow users to request member access.")
 	groupCmd.AddCommand(groupUpdateCmd)
+}
+
+func initGroupDeleteCommand() {
+	groupDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to be deleted")
+	groupCmd.AddCommand(groupDeleteCmd)
 }
