@@ -160,7 +160,7 @@ Currently there are some restrictions:
 		// TODO currently not supported by go-gitlab API
 		//if organization != "" { modifyUserOptions.Organization = &organization }
 		// TODO currently not supported by go-gitlab API
-		//if projectsLimit != -1 { modifyUserOptions.projectsLimit = &projectsLimit }
+		if projectsLimit != -1 { modifyUserOptions.ProjectsLimit = &projectsLimit }
 		if externUid != "" { modifyUserOptions.ExternUID = &externUid }
 		if provider != "" { modifyUserOptions.Provider = &provider }
 		if bio != "" { modifyUserOptions.Bio = &bio }
