@@ -32,6 +32,8 @@ var path, visibility, description string
 
 var statistics, lfsEnabled, requestAccessEnabled bool
 
+var projectId int
+
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Gitlab Groups",
@@ -115,6 +117,23 @@ var groupCreateCommand = &cobra.Command{
 	},
 }
 
+var transferProjectCmd = &cobra.Command{
+	Use: "transfer-project",
+	Short: "Transfer project to group",
+	Long: `Transfer a project to the Group namespace. Available only for admin`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
+		}
+		if projectId == 0 {
+			return errors.New("required parameter `-p` or `--project_id` not given - exiting")
+		}
+		group, _, err := gitlabClient.Groups.TransferGroup(id, projectId)
+		if err != nil { return err }
+		return OutputJson(group)
+	},
+}
+
 func str2Visibility(s string) *gitlab.VisibilityValue {
 	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
 	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
@@ -127,6 +146,7 @@ func init() {
 	initGroupGetCommand()
 	initGroupCreateCommand()
 	initGroupProjectsCommand()
+	initTransferProjectCmd()
 	RootCmd.AddCommand(groupCmd)
 }
 
@@ -146,6 +166,12 @@ func initGroupGetCommand() {
 	groupGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) either ID or namespace of group")
 	viper.BindPFlag("id", groupGetCmd.PersistentFlags().Lookup("id"))
 	groupCmd.AddCommand(groupGetCmd)
+}
+
+func initTransferProjectCmd() {
+	transferProjectCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to transfer project to")
+	transferProjectCmd.PersistentFlags().IntVarP(&projectId, "project_id", "p", 0, "(required) id of project to be transferred")
+	groupCmd.AddCommand(transferProjectCmd)
 }
 
 func initGroupCreateCommand() {
