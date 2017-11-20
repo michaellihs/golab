@@ -26,10 +26,12 @@ golab user modify
       --can_create_group string   (optional) user can create groups - true or false
   -e, --email string              (optional) user's new email address
       --extern_uid string         (optional) user's new external UID
+      --external string           (optional) flags the user as external - true or false
   -i, --id int                    (mandatory) id of the user to be modified
       --linkedin string           (optional) user's new LinkedIn account
       --location string           (optional) user's new location
   -n, --name string               (optional) user's new name
+      --organization string       (optional) user's new organization name
   -p, --password string           (optional) user's new password
       --projects_limit int        (optional) user's new projects limit (default -1)
       --provider string           (optional) user's new external provider name

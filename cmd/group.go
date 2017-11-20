@@ -21,7 +21,6 @@
 package cmd
 
 import (
-	"fmt"
 	"errors"
 
 	"github.com/spf13/cobra"
@@ -29,13 +28,29 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-// groupCmd represents the group command
+var statistics bool
+
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Gitlab Groups",
 	Long: `Show, create, update and delete Gitlab groups.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("check usage of group with `golab group -h`")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("check usage of group with `golab group -h`")
+	},
+}
+
+var groupLsCmd = &cobra.Command{
+	Use: "ls",
+	Short: "List groups",
+	Long: `Get a list of visible groups for the authenticated user.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		opts := &gitlab.ListGroupsOptions{}
+		if statistics == true {
+			opts.Statistics = &statistics
+		}
+		groups, _, err := gitlabClient.Groups.ListGroups(opts)
+		if err != nil { return err }
+		return OutputJson(groups)
 	},
 }
 
@@ -74,9 +89,16 @@ var groupCreateCommand = &cobra.Command{
 }
 
 func init() {
+	initGroupLsCommand()
 	initGroupGetCommand()
 	initGroupCreateCommand()
 	RootCmd.AddCommand(groupCmd)
+}
+
+func initGroupLsCommand() {
+	groupLsCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) if set to true, additional statistics are shown (admin only)")
+	viper.BindPFlag("statistics", groupLsCmd.PersistentFlags().Lookup("statistics"))
+	groupCmd.AddCommand(groupLsCmd)
 }
 
 func initGroupGetCommand() {
