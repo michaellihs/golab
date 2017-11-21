@@ -41,6 +41,9 @@ var groupMembersLsCmd = &cobra.Command{
 	Short: "List all members of a group",
 	Long: `Gets a list of groupmembers viewable by the authenticated user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id`not given - exiting")
+		}
 		opts := &gitlab.ListGroupMembersOptions{
 			// TODO think about generic way of adding pagination...
 			// ListOptions:
@@ -51,12 +54,38 @@ var groupMembersLsCmd = &cobra.Command{
 	},
 }
 
+var groupMemberGetCmd = &cobra.Command{
+	Use: "get",
+	Short: "Get a member of a group",
+	Long: `Get a member of a group`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id`not given - exiting")
+		}
+		if userId == 0 {
+			return errors.New("required parameter `-u` or `--user_id`not given - exiting")
+		}
+		member, _, err := gitlabClient.GroupMembers.GetGroupMember(id, userId)
+		if err != nil {
+			return err
+		}
+		return OutputJson(member)
+	},
+}
+
 func init() {
 	initGroupMembersLsCmd()
+	initGroupMembersGetCmd()
 	RootCmd.AddCommand(groupMembersCmd)
 }
 
 func initGroupMembersLsCmd() {
 	groupMembersLsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to show members for")
 	groupMembersCmd.AddCommand(groupMembersLsCmd)
+}
+
+func initGroupMembersGetCmd() {
+	groupMemberGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to get member from")
+	groupMemberGetCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0,"(required) id of user to get group member infos")
+	groupMembersCmd.AddCommand(groupMemberGetCmd)
 }
