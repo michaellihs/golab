@@ -27,6 +27,10 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
+var accessLevel int
+
+var expiresAt string
+
 var groupMembersCmd = &cobra.Command{
 	Use: "group-members",
 	Short: "Access group members",
@@ -73,19 +77,113 @@ var groupMemberGetCmd = &cobra.Command{
 	},
 }
 
+var groupMemberAddCmd = &cobra.Command{
+	Use: "add",
+	Short: "Add a member to a group",
+	Long: `Add a member to a group
+
+Access Levels:
+
+	10 = Guest Permissions
+	20 = Reporter Permissions
+	30 = Developer Permissions
+	40 = Master Permissions
+	50 = Owner Permissions`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id`not given - exiting")
+		}
+		if userId == 0 {
+			return errors.New("required parameter `-u` or `--user_id`not given - exiting")
+		}
+		if accessLevel == 0 {
+			return errors.New("required parameter `-a` or `--access_level` not given - exiting")
+		}
+		opts := &gitlab.AddGroupMemberOptions{
+			UserID: &userId,
+			AccessLevel: int2AccessLevel(accessLevel),
+		}
+		if expiresAt != "" {
+			opts.ExpiresAt = &expiresAt
+		}
+		member, _, err := gitlabClient.GroupMembers.AddGroupMember(id, opts)
+		if err != nil { return err }
+		return OutputJson(member)
+	},
+}
+
+var groupMemberEditCmd = &cobra.Command{
+	Use: "edit",
+	Short: "Edit a member of a group or project",
+	Long: `Updates a member of a group or project.
+
+Access Levels:
+
+	10 = Guest Permissions
+	20 = Reporter Permissions
+	30 = Developer Permissions
+	40 = Master Permissions
+	50 = Owner Permissions`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
+		}
+		if userId == 0 {
+			return errors.New("required parameter `-u` or `-user_id` not given - exiting")
+		}
+		if accessLevel == 0 {
+			return errors.New("required parameter `-a` or `-access_level` not given - exiting")
+		}
+		opts := &gitlab.EditGroupMemberOptions{
+			AccessLevel: int2AccessLevel(accessLevel),
+		}
+		if expiresAt != "" {
+			opts.ExpiresAt = &expiresAt
+		}
+		member, _, err := gitlabClient.GroupMembers.EditGroupMember(id, userId, opts)
+		if err != nil { return err }
+		return OutputJson(member)
+	},
+}
+
+func int2AccessLevel(accessLevel int) *gitlab.AccessLevelValue {
+	if accessLevel == 10 { return gitlab.AccessLevel(gitlab.GuestPermissions)}
+	if accessLevel == 20 { return gitlab.AccessLevel(gitlab.ReporterPermissions)}
+	if accessLevel == 30 { return gitlab.AccessLevel(gitlab.DeveloperPermissions)}
+	if accessLevel == 40 { return gitlab.AccessLevel(gitlab.MasterPermissions)}
+	if accessLevel == 50 { return gitlab.AccessLevel(gitlab.OwnerPermission)}
+	return nil
+}
+
 func init() {
 	initGroupMembersLsCmd()
 	initGroupMembersGetCmd()
+	initGroupMemberAddCmd()
+	initGroupMemberUpdateCmd()
 	RootCmd.AddCommand(groupMembersCmd)
 }
-
 func initGroupMembersLsCmd() {
 	groupMembersLsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to show members for")
 	groupMembersCmd.AddCommand(groupMembersLsCmd)
 }
-
 func initGroupMembersGetCmd() {
 	groupMemberGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to get member from")
 	groupMemberGetCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0,"(required) id of user to get group member infos")
 	groupMembersCmd.AddCommand(groupMemberGetCmd)
+}
+
+func initGroupMemberAddCmd() {
+	groupMemberAddCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to add new member to")
+	groupMemberAddCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id of user to be added as new group member")
+	groupMemberAddCmd.PersistentFlags().IntVarP(&accessLevel, "access_level", "a", 0, "(required) access level of new group member")
+	groupMemberAddCmd.PersistentFlags().StringVarP(&expiresAt, "expires_at", "e", "", "(optional) expiry date of membership (yyyy-mm-dd)")
+	groupMembersCmd.AddCommand(groupMemberAddCmd)
+}
+
+func initGroupMemberUpdateCmd() {
+	groupMemberEditCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to change membership for")
+	groupMemberEditCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id the user to change membership for")
+	groupMemberEditCmd.PersistentFlags().IntVarP(&accessLevel, "access_level", "a", 0, "(required) a valid access level")
+	groupMemberEditCmd.PersistentFlags().StringVarP(&expiresAt, "expires_at", "e", "", "(optional) expiry date of membership (yyy-mm-dd)")
+	groupMembersCmd.AddCommand(groupMemberEditCmd)
 }
