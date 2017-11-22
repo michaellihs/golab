@@ -7,7 +7,7 @@ Add a member to a group
 
 Add a member to a group
 
-Access Levels:
+  Access Levels:
 
 	10 = Guest Permissions
 	20 = Reporter Permissions

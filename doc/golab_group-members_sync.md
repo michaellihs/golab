@@ -8,7 +8,7 @@ Synchronizes members of 2 groups
 Synchronizes the members of 2 groups, by either
 
 * merging them (default) - members that exist in target group but not in source group are kept
-* replacing them (--replace) - members that exist in target group but not in source group are deleted
+* removing them (--remove) - members that exist in target group but not in source group are deleted
 
 ```
 golab group-members sync
@@ -17,7 +17,7 @@ golab group-members sync
 ### Options
 
 ```
-  -r, --replace      (optional) remove members in target group that don't exist in source group
+  -r, --remove       (optional) remove members in target group that don't exist in source group
   -s, --source int   (required) id of group to copy members from
   -t, --target int   (required) id of group to copy members to
 ```

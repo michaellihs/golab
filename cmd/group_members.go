@@ -31,7 +31,7 @@ var accessLevel, source, target int
 
 var expiresAt string
 
-var replace bool
+var remove bool
 
 var groupMembersCmd = &cobra.Command{
 	Use: "group-members",
@@ -84,7 +84,7 @@ var groupMemberAddCmd = &cobra.Command{
 	Short: "Add a member to a group",
 	Long: `Add a member to a group
 
-Access Levels:
+  Access Levels:
 
 	10 = Guest Permissions
 	20 = Reporter Permissions
@@ -119,7 +119,7 @@ var groupMemberEditCmd = &cobra.Command{
 	Short: "Edit a member of a group or project",
 	Long: `Updates a member of a group or project.
 
-Access Levels:
+  Access Levels:
 
 	10 = Guest Permissions
 	20 = Reporter Permissions
@@ -170,7 +170,7 @@ var groupMemberSyncCmd = &cobra.Command{
 	Long: `Synchronizes the members of 2 groups, by either
 
 * merging them (default) - members that exist in target group but not in source group are kept
-* replacing them (--replace) - members that exist in target group but not in source group are deleted`,
+* removing them (--remove) - members that exist in target group but not in source group are deleted`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if source == 0 {
 			return errors.New("required parameter `--source` not given - exiting")
@@ -178,49 +178,59 @@ var groupMemberSyncCmd = &cobra.Command{
 		if target == 0 {
 			return errors.New("required parameter `--target` not given - exiting")
 		}
+
 		opts := &gitlab.ListGroupMembersOptions{}
 		opts.PerPage = 1000
-		sourceMembers, _, err := gitlabClient.Groups.ListGroupMembers(source, opts)
-		if err != nil { return err }
 
-		// create non-existing source users in target group
-		for _, sourceMember := range sourceMembers  {
-			_, resp, err := gitlabClient.GroupMembers.GetGroupMember(target, sourceMember.ID)
-			if resp.StatusCode == 404 {   // 404 means "Not Found" --> does not exist yet
-				newMemberOpts := &gitlab.AddGroupMemberOptions{
-					UserID: &sourceMember.ID,
-					AccessLevel: &sourceMember.AccessLevel,
-				}
-				if sourceMember.ExpiresAt != nil {
-					expires, err := isoTime2String(sourceMember.ExpiresAt)
-					if err != nil { return err }
-					newMemberOpts.ExpiresAt = &expires
-				}
-				gitlabClient.GroupMembers.AddGroupMember(target, newMemberOpts)
-			} else if err != nil {
-				return err
-			}
-		}
+		createNonExistingTargetUsers(source, target, opts)
 
-		// delete users in target group that don't exist in source group
-		if replace {
-			targetMembers, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
+		if remove {
+			err := removeTargetMembers(target, source, opts)
 			if err != nil { return err }
-			for _, targetMember := range targetMembers {
-				_, resp, err := gitlabClient.GroupMembers.GetGroupMember(source, targetMember.ID)
-				if resp.StatusCode == 404 {
-					_, err := gitlabClient.GroupMembers.RemoveGroupMember(target, targetMember.ID)
-					if err != nil { return err }
-				} else if err != nil {
-					return err
-				}
-			}
 		}
 
 		members, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
 		if err != nil { return err }
 		return OutputJson(members)
 	},
+}
+
+func createNonExistingTargetUsers(source int, target int, opts *gitlab.ListGroupMembersOptions) error {
+	sourceMembers, _, err := gitlabClient.Groups.ListGroupMembers(source, opts)
+	if err != nil { return err }
+	for _, sourceMember := range sourceMembers  {
+		_, resp, err := gitlabClient.GroupMembers.GetGroupMember(target, sourceMember.ID)
+		if resp.StatusCode == 404 {   // 404 means "Not Found" --> does not exist yet
+			newMemberOpts := &gitlab.AddGroupMemberOptions{
+				UserID: &sourceMember.ID,
+				AccessLevel: &sourceMember.AccessLevel,
+			}
+			if sourceMember.ExpiresAt != nil {
+				expires, err := isoTime2String(sourceMember.ExpiresAt)
+				if err != nil { return err }
+				newMemberOpts.ExpiresAt = &expires
+			}
+			gitlabClient.GroupMembers.AddGroupMember(target, newMemberOpts)
+		} else if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func removeTargetMembers(target int, source int, opts *gitlab.ListGroupMembersOptions) error {
+	targetMembers, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
+	if err != nil { return err }
+	for _, targetMember := range targetMembers {
+		_, resp, err := gitlabClient.GroupMembers.GetGroupMember(source, targetMember.ID)
+		if resp.StatusCode == 404 {
+			_, err := gitlabClient.GroupMembers.RemoveGroupMember(target, targetMember.ID)
+			if err != nil { return err }
+		} else if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func int2AccessLevel(accessLevel int) *gitlab.AccessLevelValue {
@@ -274,6 +284,6 @@ func initGroupMemberDeleteCmd() {
 func initGroupMemberSyncCmd() {
 	groupMemberSyncCmd.PersistentFlags().IntVarP(&source, "source", "s", 0, "(required) id of group to copy members from")
 	groupMemberSyncCmd.PersistentFlags().IntVarP(&target, "target", "t", 0, "(required) id of group to copy members to")
-	groupMemberSyncCmd.PersistentFlags().BoolVarP(&replace, "replace", "r", false, "(optional) remove members in target group that don't exist in source group")
+	groupMemberSyncCmd.PersistentFlags().BoolVarP(&remove, "remove", "r", false, "(optional) remove members in target group that don't exist in source group")
 	groupMembersCmd.AddCommand(groupMemberSyncCmd)
 }

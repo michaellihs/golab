@@ -7,7 +7,7 @@ Edit a member of a group or project
 
 Updates a member of a group or project.
 
-Access Levels:
+  Access Levels:
 
 	10 = Guest Permissions
 	20 = Reporter Permissions
