@@ -146,6 +146,22 @@ Access Levels:
 	},
 }
 
+var groupMemberDeleteCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Remove a member from a group or project",
+	Long: `Removes a user from a group or project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if id == 0 {
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
+		}
+		if userId == 0 {
+			return errors.New("required parameter `-u` or `--user_id` not given - exiting")
+		}
+		_, err := gitlabClient.GroupMembers.RemoveGroupMember(id, userId)
+		return err
+	},
+}
+
 func int2AccessLevel(accessLevel int) *gitlab.AccessLevelValue {
 	if accessLevel == 10 { return gitlab.AccessLevel(gitlab.GuestPermissions)}
 	if accessLevel == 20 { return gitlab.AccessLevel(gitlab.ReporterPermissions)}
@@ -160,6 +176,7 @@ func init() {
 	initGroupMembersGetCmd()
 	initGroupMemberAddCmd()
 	initGroupMemberUpdateCmd()
+	initGroupMemberDeleteCmd()
 	RootCmd.AddCommand(groupMembersCmd)
 }
 func initGroupMembersLsCmd() {
@@ -171,7 +188,6 @@ func initGroupMembersGetCmd() {
 	groupMemberGetCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0,"(required) id of user to get group member infos")
 	groupMembersCmd.AddCommand(groupMemberGetCmd)
 }
-
 func initGroupMemberAddCmd() {
 	groupMemberAddCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to add new member to")
 	groupMemberAddCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id of user to be added as new group member")
@@ -186,4 +202,10 @@ func initGroupMemberUpdateCmd() {
 	groupMemberEditCmd.PersistentFlags().IntVarP(&accessLevel, "access_level", "a", 0, "(required) a valid access level")
 	groupMemberEditCmd.PersistentFlags().StringVarP(&expiresAt, "expires_at", "e", "", "(optional) expiry date of membership (yyy-mm-dd)")
 	groupMembersCmd.AddCommand(groupMemberEditCmd)
+}
+
+func initGroupMemberDeleteCmd() {
+	groupMemberDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) the id of the group to delete user from")
+	groupMemberDeleteCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) the id of the user to be removed from group")
+	groupMembersCmd.AddCommand(groupMemberDeleteCmd)
 }

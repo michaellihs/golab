@@ -20,6 +20,7 @@ golab group-members
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab group-members add](golab_group-members_add.md)	 - Add a member to a group
+* [golab group-members delete](golab_group-members_delete.md)	 - Remove a member from a group or project
 * [golab group-members edit](golab_group-members_edit.md)	 - Edit a member of a group or project
 * [golab group-members get](golab_group-members_get.md)	 - Get a member of a group
 * [golab group-members ls](golab_group-members_ls.md)	 - List all members of a group
