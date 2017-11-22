@@ -27,9 +27,11 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-var accessLevel int
+var accessLevel, source, target int
 
 var expiresAt string
+
+var replace bool
 
 var groupMembersCmd = &cobra.Command{
 	Use: "group-members",
@@ -162,6 +164,65 @@ var groupMemberDeleteCmd = &cobra.Command{
 	},
 }
 
+var groupMemberSyncCmd = &cobra.Command{
+	Use: "sync",
+	Short: "Synchronizes members of 2 groups",
+	Long: `Synchronizes the members of 2 groups, by either
+
+* merging them (default) - members that exist in target group but not in source group are kept
+* replacing them (--replace) - members that exist in target group but not in source group are deleted`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if source == 0 {
+			return errors.New("required parameter `--source` not given - exiting")
+		}
+		if target == 0 {
+			return errors.New("required parameter `--target` not given - exiting")
+		}
+		opts := &gitlab.ListGroupMembersOptions{}
+		opts.PerPage = 1000
+		sourceMembers, _, err := gitlabClient.Groups.ListGroupMembers(source, opts)
+		if err != nil { return err }
+
+		// create non-existing source users in target group
+		for _, sourceMember := range sourceMembers  {
+			_, resp, err := gitlabClient.GroupMembers.GetGroupMember(target, sourceMember.ID)
+			if resp.StatusCode == 404 {   // 404 means "Not Found" --> does not exist yet
+				newMemberOpts := &gitlab.AddGroupMemberOptions{
+					UserID: &sourceMember.ID,
+					AccessLevel: &sourceMember.AccessLevel,
+				}
+				if sourceMember.ExpiresAt != nil {
+					expires, err := isoTime2String(sourceMember.ExpiresAt)
+					if err != nil { return err }
+					newMemberOpts.ExpiresAt = &expires
+				}
+				gitlabClient.GroupMembers.AddGroupMember(target, newMemberOpts)
+			} else if err != nil {
+				return err
+			}
+		}
+
+		// delete users in target group that don't exist in source group
+		if replace {
+			targetMembers, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
+			if err != nil { return err }
+			for _, targetMember := range targetMembers {
+				_, resp, err := gitlabClient.GroupMembers.GetGroupMember(source, targetMember.ID)
+				if resp.StatusCode == 404 {
+					_, err := gitlabClient.GroupMembers.RemoveGroupMember(target, targetMember.ID)
+					if err != nil { return err }
+				} else if err != nil {
+					return err
+				}
+			}
+		}
+
+		members, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
+		if err != nil { return err }
+		return OutputJson(members)
+	},
+}
+
 func int2AccessLevel(accessLevel int) *gitlab.AccessLevelValue {
 	if accessLevel == 10 { return gitlab.AccessLevel(gitlab.GuestPermissions)}
 	if accessLevel == 20 { return gitlab.AccessLevel(gitlab.ReporterPermissions)}
@@ -177,6 +238,7 @@ func init() {
 	initGroupMemberAddCmd()
 	initGroupMemberUpdateCmd()
 	initGroupMemberDeleteCmd()
+	initGroupMemberSyncCmd()
 	RootCmd.AddCommand(groupMembersCmd)
 }
 func initGroupMembersLsCmd() {
@@ -195,7 +257,6 @@ func initGroupMemberAddCmd() {
 	groupMemberAddCmd.PersistentFlags().StringVarP(&expiresAt, "expires_at", "e", "", "(optional) expiry date of membership (yyyy-mm-dd)")
 	groupMembersCmd.AddCommand(groupMemberAddCmd)
 }
-
 func initGroupMemberUpdateCmd() {
 	groupMemberEditCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to change membership for")
 	groupMemberEditCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id the user to change membership for")
@@ -208,4 +269,11 @@ func initGroupMemberDeleteCmd() {
 	groupMemberDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) the id of the group to delete user from")
 	groupMemberDeleteCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) the id of the user to be removed from group")
 	groupMembersCmd.AddCommand(groupMemberDeleteCmd)
+}
+
+func initGroupMemberSyncCmd() {
+	groupMemberSyncCmd.PersistentFlags().IntVarP(&source, "source", "s", 0, "(required) id of group to copy members from")
+	groupMemberSyncCmd.PersistentFlags().IntVarP(&target, "target", "t", 0, "(required) id of group to copy members to")
+	groupMemberSyncCmd.PersistentFlags().BoolVarP(&replace, "replace", "r", false, "(optional) remove members in target group that don't exist in source group")
+	groupMembersCmd.AddCommand(groupMemberSyncCmd)
 }

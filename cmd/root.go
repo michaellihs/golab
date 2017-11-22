@@ -31,6 +31,9 @@ import (
 	"encoding/json"
 )
 
+// TODO this should be part of go-gitlab
+const iso8601 = "2006-01-02"
+
 var cfgFile string
 
 var gitlabClient *gitlab.Client
@@ -99,4 +102,9 @@ func initGitlabClient() {
 	}
 	gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
 	gitlabClient.SetBaseURL(baseUrl.String() + "/api/v4")
+}
+
+func isoTime2String(time *gitlab.ISOTime) (string, error) {
+	bytes, err := time.MarshalJSON()
+	return string(bytes), err
 }
