@@ -21,30 +21,93 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"fmt"
+	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/pkg/errors"
+    "github.com/howeyc/gopass"
+	"github.com/xanzy/go-gitlab"
+	"net/url"
 	"github.com/spf13/viper"
+	"io/ioutil"
+	path2 "path"
+
 )
 
 var host string
-var token string
 
-// loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to a Gitlab server",
-	Long: `Log in to a Gitlab server with the URL given in <host> and <token>.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO implement me
-		fmt.Println(fmt.Sprintf("Logging in to Gitlab server with host: %s and token: %s", host, token))
+	Long: `Log in to a Gitlab server with your username and password.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if host == "" {
+			return errors.New("required parameter `--host` or `-s` not given - exiting")
+		}
+		if username == "" {
+			return errors.New("required parameter `--user` or `-u` not given - exiting")
+		}
+		if password == "" {
+			var err error
+			password, err = askForPassword()
+			if err != nil { return err }
+		}
+		token, err := getPrivateToken(host, username, password)
+		if err != nil { return err }
+		err = writeGolabConf(host, token)
+		if err != nil { return err}
+		fmt.Printf("** successfully logged in to %s\n", host)
+		return nil
 	},
 }
 
-func init() {
-	loginCmd.PersistentFlags().StringVarP(&host, "host", "u", "", "URL to Gitlab server eg. http://gitlab.org")
-	loginCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "Access token for the Gitlab server account")
-	viper.BindPFlag("host", loginCmd.PersistentFlags().Lookup("host"))
-	viper.BindPFlag("token", loginCmd.PersistentFlags().Lookup("token"))
+func writeGolabConf(host string, token string) error {
+	conf := []byte(fmt.Sprintf("---\nurl: \"%s\"\ntoken: \"%s\"", host, token))
+	pwd, err := os.Getwd()
+	filename := path2.Join(pwd, ".golab.yml")
+	err = ioutil.WriteFile(filename, conf, 0600)
+	if err == nil {
+		fmt.Printf("** golab config written to %s\n", filename)
+	}
+	return err
+}
 
+// see https://stackoverflow.com/questions/2137357/getpasswd-functionality-in-go
+func askForPassword() (string, error) {
+	fmt.Print("Enter Password: ")
+	pass, err := gopass.GetPasswd()
+	return strings.TrimSpace(string(pass)), err
+}
+
+func getPrivateToken(host string, username string, password string) (string, error) {
+	opts := &gitlab.GetSessionOptions{
+		Login: &username,
+		Password: &password,
+	}
+	loginClient, err := getLoginClient(host)
+	if err != nil { return "", err }
+	session, _, err := loginClient.Session.GetSession(opts)
+	if err != nil {
+		return "", err
+	}
+	return session.PrivateToken, nil
+}
+
+func getLoginClient(host string) (*gitlab.Client, error) {
+	baseUrl, err := url.Parse(host)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("could not parse given host '%s': %s", baseUrl, err))
+	}
+	loginClient := gitlab.NewClient(nil, viper.GetString("token"))
+	loginClient.SetBaseURL(baseUrl.String() + "/api/v4")
+	return loginClient, nil
+}
+
+func init() {
+	loginCmd.PersistentFlags().StringVarP(&host, "host", "s", "", "(required) URL to Gitlab server eg. http://gitlab.org")
+	loginCmd.PersistentFlags().StringVarP(&username, "user", "u", "", "(required) username")
+	loginCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "(optional) password, if not given, you'll be prompted interactively")
 	RootCmd.AddCommand(loginCmd)
 }

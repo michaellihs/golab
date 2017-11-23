@@ -31,22 +31,42 @@ It allows you to run Gitlab administration tasks from your command line. Example
 
 For a complete documentation of features, check the [generated documentation](doc/golab.md)
 
-Setup & Configuration
----------------------
+
+Installation
+------------
 
 Install the CLI tool with
 
     go get github.com/michaellihs/golab
+    go install github.com/michaellihs/golab
 
-First create a Gitlab [access token for your user](https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html) in Gitlab (most likely a admin user).
+or download a [binary release](https://github.com/michaellihs/golab/releases).
+
+
+Configuration
+-------------
+
+### Login with Username and Password
+
+Run the following command to login with your username and password
+
+    golab login --host <hostname> --user <username> [--password <password>]
+
+If `--password` is omitted, you'll be prompted to enter your password interactively.
+
+
+### Login with Access Token
+
+First create a Gitlab [access token for your user](https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html) in Gitlab (most likely an admin user).
 
 Create a file `.golab.yml` in either `~/` or the directory you want to use golab with the following content:
 
     ---
-    url: "http(s)://<YOUR GITLAB URL>"
-    token: "<YOUR PERSONAL ACCESS TOKEN>"
+    url: "http(s)://<gitlab url>"
+    token: "<access token>"
 
 Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
+
 
 ZSH auto-completion
 -------------------
@@ -62,6 +82,7 @@ Check where to add your auto-complete files with `echo $FPATH` and copy the gene
     cp zsh/_golab $FPATH/_golab
 
 Don't forget to reload / restart your ZSH shell after changing the auto-complete file.
+
 
 Development
 ===========
@@ -136,10 +157,12 @@ Therefore we also need to change the structure of the `.golab.yml` like this:
 
 This allows working with multiple Gitlab servers at the same time.
 
+
 Support GPG keys in user command
 --------------------------------
 
 Currently the [go-gitlab library](https://github.com/xanzy/go-gitlab) provides no support for GPG keys, neither does this to.
+
 
 Support for nested groups
 -------------------------
