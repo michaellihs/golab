@@ -5,6 +5,7 @@ compile: $(targets)
 
 gendoc: compile
 	golab gendoc -p doc
+	golab zsh-completion --path zsh/_golab
 
 test: compile
 	go test ./tests -v

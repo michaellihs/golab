@@ -48,6 +48,20 @@ Create a file `.golab.yml` in either `~/` or the directory you want to use golab
 
 Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
 
+ZSH auto-completion
+-------------------
+
+The auto-completion file for ZSH can be generated with
+
+     golab zsh-completion --path zsh/_golab
+
+TODO: After the `#compdef` header, add a `#autoload` - see http://zsh.sourceforge.net/Doc/Release/Completion-System.html
+
+Check where to add your auto-complete files with `echo $FPATH` and copy the generated file there with
+
+    cp zsh/_golab $FPATH/_golab
+
+Don't forget to reload / restart your ZSH shell after changing the auto-complete file.
 
 Development
 ===========
@@ -60,8 +74,8 @@ Run `curl` requests against the API:
     curl --header "PRIVATE-TOKEN: FqBiTTJ4oRPdskWDTktr" -H "Content-Type: application/json" -X PUT -d '{"admin": true}' http://localhost:8080/api/v4/users/41
 
 
-Build and run the application
------------------------------
+Build and test the application
+------------------------------
 
 There is a `makefile` included that can build and test the application and render the automatically generated documentation:
 
@@ -70,6 +84,12 @@ There is a `makefile` included that can build and test the application and rende
 *  `make test` - run the tests
 
 * `make gendoc` - render the documentation
+
+
+Update vendored dependencies
+----------------------------
+
+    govendor fetch github.com/spf13/cobra
     
 
 Gitlab Docker Image
