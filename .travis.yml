@@ -13,9 +13,9 @@ go:
   - 1.8
 
 before_install:
-- docker pull gitlab/gitlab-ce
+- docker pull gitlab/gitlab-ce:9.5.10-ce.0
 # see https://docs.gitlab.com/omnibus/docker/README.html for details
-- docker run --detach --hostname gitlab.example.com --env GITLAB_ROOT_PASSWORD=${GITLAB_ROOT_PASSWORD} --publish 8443:443 --publish 8080:80 --publish 8022:22 --name gitlab --restart always      gitlab/gitlab-ce:latest
+- docker run --detach --hostname gitlab.example.com --env GITLAB_ROOT_PASSWORD=${GITLAB_ROOT_PASSWORD} --publish 8443:443 --publish 8080:80 --publish 8022:22 --name gitlab --restart always      gitlab/gitlab-ce:9.5.10-ce.0
 - docker ps -a
 # since the Gitlab container takes some time to start, we wait until the health state of the container is "healthy"
 # see https://github.com/moby/moby/issues/7228 for checking container health state in Docker
