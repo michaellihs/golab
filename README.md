@@ -129,11 +129,13 @@ Therefore adapt the provided run command to the following:
         --name gitlab \
         --volume /tmp/gitlab/config:/etc/gitlab \
         --volume /tmp/gitlab/logs:/var/log/gitlab \
-        gitlab/gitlab-ce:latest
+        gitlab/gitlab-ce:9.5.10-ce.0
 
 Afterwards you can start the (existing) container with:
 
     sudo docker start gitlab
+
+**Attention** we are currently testing against Gitlab version `9.5.10-ce.0`. Make sure to pin the version of the Docker image instead of using `latest`.
 
 
 TODOs

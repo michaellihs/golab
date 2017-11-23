@@ -24,9 +24,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/pkg/errors"
     "github.com/howeyc/gopass"
 	"github.com/xanzy/go-gitlab"
 	"net/url"
