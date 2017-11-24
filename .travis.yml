@@ -2,7 +2,7 @@
 sudo: required
 
 env:
-  - GITLAB_ROOT_USER="root" GITLAB_ROOT_PASSWORD="12341234"
+  - GITLAB_ROOT_USER="root" GITLAB_ROOT_PASSWORD="12341234" GITLAB_HOST="http://localhost:8080"
 
 language: go
 
@@ -23,7 +23,7 @@ before_install:
 
 script:
 # get private token for root user (see https://stackoverflow.com/questions/23640961/gitlab-api-how-to-generate-the-private-token)
-- export GITLAB_ROOT_PRIVATE_TOKEN=`curl http://localhost:8080/api/v3/session --data "login=${GITLAB_ROOT_USER}&password=${GITLAB_ROOT_PASSWORD}" | jq -r '.private_token'`
+- export GITLAB_ROOT_PRIVATE_TOKEN=`curl ${GITLAB_HOST}/api/v3/session --data "login=${GITLAB_ROOT_USER}&password=${GITLAB_ROOT_PASSWORD}" | jq -r '.private_token'`
 - echo $GITLAB_ROOT_PRIVATE_TOKEN
 - sh .travis/write_golab_yml.sh
 - cat .golab.yml
@@ -37,10 +37,11 @@ script:
 - go test ./tests -v
 
 # this deploys the built application if a commit is tagged - see https://docs.travis-ci.com/user/deployment/releases/
-deploy:
-  provider: releases
-  api_key: ${GITHUB_TOKEN}
-  file: golab
-  skip_cleanup: true
-  on:
-    tags: true
+# TODO currently not working, see https://travis-ci.org/michaellihs/golab/builds/306958179
+# deploy:
+#  provider: releases
+#  api_key: ${GITHUB_TOKEN}
+#  file: golab
+#  skip_cleanup: true
+#  on:
+#    tags: true
