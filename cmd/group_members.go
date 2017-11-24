@@ -51,8 +51,7 @@ var groupMembersLsCmd = &cobra.Command{
 			return errors.New("required parameter `-i` or `--id`not given - exiting")
 		}
 		opts := &gitlab.ListGroupMembersOptions{
-			// TODO think about generic way of adding pagination...
-			// ListOptions:
+			ListOptions: gitlab.ListOptions{Page: 1, PerPage: 1000},
 		}
 		members, _, err := gitlabClient.Groups.ListGroupMembers(id, opts)
 		if err != nil { return err }
@@ -179,8 +178,9 @@ var groupMemberSyncCmd = &cobra.Command{
 			return errors.New("required parameter `--target` not given - exiting")
 		}
 
-		opts := &gitlab.ListGroupMembersOptions{}
-		opts.PerPage = 1000
+		opts := &gitlab.ListGroupMembersOptions{
+			ListOptions: gitlab.ListOptions{Page: 1, PerPage: 1000},
+		}
 
 		createNonExistingTargetUsers(source, target, opts)
 
