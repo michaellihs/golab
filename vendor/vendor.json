@@ -314,16 +314,22 @@
 			"revisionTime": "2017-09-21T17:41:56Z"
 		},
 		{
-			"checksumSHA1": "5Yb2z6UO+Arm/TEd+OEtdnwOt1A=",
+			"checksumSHA1": "4vi1yAnCfc+roJdMn/VZeHxlHj0=",
 			"path": "golang.org/x/crypto/ssh/terminal",
-			"revision": "9f005a07e0d31d45e6656d241bb5c0f2efd4bc94",
-			"revisionTime": "2017-09-21T17:41:56Z"
+			"revision": "b080dc9a8c480b08e698fb1219160d598526310f",
+			"revisionTime": "2017-11-22T09:46:40Z"
 		},
 		{
-			"checksumSHA1": "oVd5OHIvNHR5bhUvnBMPLVjaL6E=",
+			"checksumSHA1": "J8jpuwFY0KFR0hG2pgYGPkePB/Y=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "e4594059fe4cde2daf423055a596c2cd1e6c9adf",
-			"revisionTime": "2017-02-23T22:36:15Z"
+			"revision": "4ff8c001ce4cc464e644b922325097228fce14d8",
+			"revisionTime": "2017-11-24T13:32:17Z"
+		},
+		{
+			"checksumSHA1": "cQoW6a5F9mbu10APPXM39YJtv48=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "4ff8c001ce4cc464e644b922325097228fce14d8",
+			"revisionTime": "2017-11-24T13:32:17Z"
 		},
 		{
 			"checksumSHA1": "ziMb9+ANGRJSSIuxYdRbA+cDRBQ=",
