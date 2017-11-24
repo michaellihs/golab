@@ -33,5 +33,14 @@ script:
 # build our application
 - make
 
-# run end-to-end tests
+# run acceptance tests
 - go test ./tests -v
+
+# this deploys the built application if a commit is tagged - see https://docs.travis-ci.com/user/deployment/releases/
+deploy:
+  provider: releases
+  api_key: ${GITHUB_TOKEN}
+  file: golab
+  skip_cleanup: true
+  on:
+    tags: true
