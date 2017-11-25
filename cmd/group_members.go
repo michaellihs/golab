@@ -101,7 +101,7 @@ var groupMemberAddCmd = &cobra.Command{
 			return errors.New("required parameter `-a` or `--access_level` not given - exiting")
 		}
 		opts := &gitlab.AddGroupMemberOptions{
-			UserID: &userId,
+			UserID:      &userId,
 			AccessLevel: int2AccessLevel(accessLevel),
 		}
 		if expiresAt != "" {

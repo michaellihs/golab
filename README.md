@@ -107,6 +107,15 @@ There is a `makefile` included that can build and test the application and rende
 * `make gendoc` - render the documentation
 
 
+Ginkgo Tests
+------------
+
+Run Ginkgo tests with
+
+    cd cmd
+    ginkgo -v
+
+
 Update vendored dependencies
 ----------------------------
 

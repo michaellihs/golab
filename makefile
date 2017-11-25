@@ -9,3 +9,4 @@ gendoc: compile
 
 test: compile
 	go test ./tests -v
+	cd cmd && ginkgo -v

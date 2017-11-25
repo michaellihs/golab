@@ -38,18 +38,12 @@ var cfgFile string
 
 var gitlabClient *gitlab.Client
 
-// RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "golab",
 	Short: "Gitlab CLI written in Go",
 	Long: `This application provides a Command Line Interface for Gitlab.`,
-// Uncomment the following line if your bare application
-// has an action associated with it:
-//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
-// Execute adds all child commands to the root command sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		os.Exit(-1)
@@ -100,8 +94,11 @@ func initGitlabClient() {
 	if err != nil {
 		fmt.Printf("Could not parse given URL '%s': %s", baseUrl, err)
 	}
-	gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
-	gitlabClient.SetBaseURL(baseUrl.String() + "/api/v4")
+	// TODO this is an ugly hack to prevent re-initialization when mocked in testing
+	if gitlabClient == nil {
+		gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
+		gitlabClient.SetBaseURL(baseUrl.String() + "/api/v4")
+	}
 }
 
 func isoTime2String(time *gitlab.ISOTime) (string, error) {
