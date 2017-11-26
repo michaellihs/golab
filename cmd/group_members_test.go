@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/xanzy/go-gitlab"
 	"fmt"
 	"net/http/httptest"
 	"net/http"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/xanzy/go-gitlab"
 )
 
 var _ = Describe("int2AccessLevel", func() {
@@ -23,8 +24,8 @@ var _ = Describe("int2AccessLevel", func() {
 var _ = Describe("ls command", func() {
 
 	var (
-		mux          *http.ServeMux
-		server       *httptest.Server
+		mux    *http.ServeMux
+		server *httptest.Server
 	)
 
 	BeforeEach(func() {
@@ -49,22 +50,9 @@ var _ = Describe("ls command", func() {
 	})
 
 	It("returns expected group members", func() {
-		// we don't want config file to be read (mocking)
 		defer server.Close()
 		method := ""
-		expected := `[
-  {
-    "id": 1,
-    "username": "root",
-    "email": "",
-    "name": "Administrator",
-    "state": "active",
-    "created_at": null,
-    "access_level": 50,
-    "expires_at": null
-  }
-]
-`
+		expected := readFixture("group-ls")
 		mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
 			method = r.Method
 			fmt.Fprintf(w, expected)

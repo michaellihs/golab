@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"fmt"
 	"io"
+	"strings"
+	"io/ioutil"
 )
 
 func TestCmd(t *testing.T) {
@@ -24,7 +26,7 @@ func TestCmd(t *testing.T) {
 // see https://github.com/spf13/cobra/blob/master/command_test.go for basic implementation of this method
 func executeCommand(root *Command, args ...string) (stdout string, output string, err error) {
 	stdout, output, err = executeCommandC(root, args...)
-	return stdout, output, err
+	return strings.TrimRight(stdout, "\n"), output, err
 }
 
 // see https://github.com/spf13/cobra/blob/master/command_test.go for basic implementation of this method
@@ -64,4 +66,16 @@ func testMethod(r *http.Request, want string) {
 	if got := r.Method; got != want {
 		Fail(fmt.Sprintf("Request method: %s, want %s", got, want))
 	}
+}
+
+func readFixture(fixture string) string {
+	path := fmt.Sprintf("fixtures/%s.json", fixture)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		Fail(fmt.Sprintf("Fixture %s could not be found in %s", fixture, path))
+	}
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		Fail(err.Error())
+	}
+	return string(content)
 }
