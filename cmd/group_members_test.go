@@ -21,7 +21,7 @@ var _ = Describe("int2AccessLevel", func() {
 	})
 })
 
-var _ = Describe("ls command", func() {
+var _ = Describe("group-members command", func() {
 
 	var (
 		mux    *http.ServeMux
@@ -40,31 +40,37 @@ var _ = Describe("ls command", func() {
 		gitlabClient.SetBaseURL(server.URL + "/api/v4")
 	})
 
-	It("should exit with error, if no `--id` param is given", func() {
-		// we don't want config file to be read (mocking)
-		_, _, err := executeCommand(RootCmd, "group-members", "ls")
-		if err == nil {
-			Fail(fmt.Sprintf("Unexpected output: %v", err))
-		}
-		Expect(err.Error()).To(Equal("required parameter `-i` or `--id`not given - exiting"))
-	})
-
-	It("returns expected group members", func() {
-		defer server.Close()
-		method := ""
-		expected := readFixture("group-ls")
-		mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
-			method = r.Method
-			fmt.Fprintf(w, expected)
+	Context("when ls sub command is executed", func() {
+		Context("if no `--id` parameter is given", func() {
+			It("should exit with error", func() {
+				// we don't want config file to be read (mocking)
+				_, _, err := executeCommand(RootCmd, "group-members", "ls")
+				if err == nil {
+					Fail(fmt.Sprintf("Unexpected output: %v", err))
+				}
+				Expect(err.Error()).To(Equal("required parameter `-i` or `--id`not given - exiting"))
+			})
 		})
-		stdout, _, err := executeCommand(RootCmd, "group-members", "ls", "-i", "30")
-		if err != nil {
-			Fail(fmt.Sprintf("unexpected error: %v", err))
-		}
-		if stdout == "" {
-			Fail("we expected some output...")
-		}
-		Expect(method).To(Equal("GET"))
-		Expect(stdout).To(Equal(expected))
+
+		Context("when command is called successfully", func() {
+			It("returns expected group members", func() {
+				defer server.Close()
+				method := ""
+				expected := readFixture("group-ls")
+				mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
+					method = r.Method
+					fmt.Fprintf(w, expected)
+				})
+				stdout, _, err := executeCommand(RootCmd, "group-members", "ls", "-i", "30")
+				if err != nil {
+					Fail(fmt.Sprintf("unexpected error: %v", err))
+				}
+				if stdout == "" {
+					Fail("we expected some output...")
+				}
+				Expect(method).To(Equal("GET"))
+				Expect(stdout).To(Equal(expected))
+			})
+		})
 	})
 })

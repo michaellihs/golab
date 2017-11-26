@@ -251,15 +251,18 @@ func init() {
 	initGroupMemberSyncCmd()
 	RootCmd.AddCommand(groupMembersCmd)
 }
+
 func initGroupMembersLsCmd() {
 	groupMembersLsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to show members for")
 	groupMembersCmd.AddCommand(groupMembersLsCmd)
 }
+
 func initGroupMembersGetCmd() {
 	groupMemberGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to get member from")
 	groupMemberGetCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0,"(required) id of user to get group member infos")
 	groupMembersCmd.AddCommand(groupMemberGetCmd)
 }
+
 func initGroupMemberAddCmd() {
 	groupMemberAddCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to add new member to")
 	groupMemberAddCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id of user to be added as new group member")
@@ -267,6 +270,7 @@ func initGroupMemberAddCmd() {
 	groupMemberAddCmd.PersistentFlags().StringVarP(&expiresAt, "expires_at", "e", "", "(optional) expiry date of membership (yyyy-mm-dd)")
 	groupMembersCmd.AddCommand(groupMemberAddCmd)
 }
+
 func initGroupMemberUpdateCmd() {
 	groupMemberEditCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to change membership for")
 	groupMemberEditCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id the user to change membership for")
