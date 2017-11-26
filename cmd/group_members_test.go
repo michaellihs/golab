@@ -95,7 +95,7 @@ var _ = Describe("group-members command", func() {
 		It("returns expected group members", func() {
 			defer server.Close()
 			method := ""
-			expected := readFixture("group-ls")
+			expected := readFixture("group-members-ls")
 			mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
 				method = r.Method
 				fmt.Fprintf(w, expected)
