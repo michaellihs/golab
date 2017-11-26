@@ -30,6 +30,10 @@ script:
 
 # at this point we have a valid .golab.yml configuration (with a valid access token!)
 
+# install Ginkgo for testing
+- go get github.com/onsi/ginkgo/ginkgo
+- go get github.com/onsi/gomega
+
 # build our application
 - make
 
