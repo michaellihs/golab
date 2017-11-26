@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/xanzy/go-gitlab"
+	"io/ioutil"
 )
 
 var _ = Describe("int2AccessLevel", func() {
@@ -86,7 +87,6 @@ var _ = Describe("group-members command", func() {
 				id = 0
 				userId = 0
 				_, _, err := executeCommand(RootCmd, "group-members", "ls")
-				fmt.Println(err.Error())
 				Expect(err).NotTo(BeNil(), "No error was raised when missing -i parameter")
 				Expect(err.Error()).To(Equal("required parameter `-i` or `--id`not given - exiting"))
 			})
@@ -104,6 +104,48 @@ var _ = Describe("group-members command", func() {
 			Expect(err).To(BeNil())
 			Expect(stdout).NotTo(Equal(""))
 			Expect(method).To(Equal("GET"))
+			Expect(stdout).To(Equal(expected))
+		})
+	})
+
+	Context("when teh `add` sub command is executed", func() {
+		Context("if no `--id`, `--user_id` or `--access_level` parameter is given", func() {
+			It("should exit with error", func() {
+				// TODO think about a better way to reset vars from previous runs...
+				id = 0
+				userId = 0
+				accessLevel = 0
+				_, _, err := executeCommand(RootCmd, "group-members", "add")
+				Expect(err).NotTo(BeNil(), "No error was raised when missing -i parameter")
+				Expect(err.Error()).To(Equal("required parameter `-i` or `--id` not given - exiting"))
+
+				_, _, err = executeCommand(RootCmd, "group-members", "add", "-i", "30")
+				Expect(err).NotTo(BeNil(), "No error was raised when missing -u parameter")
+				Expect(err.Error()).To(Equal("required parameter `-u` or `--user_id` not given - exiting"))
+
+				_, _, err = executeCommand(RootCmd, "group-members", "add", "-i", "30", "-u", "30")
+				Expect(err).NotTo(BeNil(), "No error was raised when missing -u parameter")
+				Expect(err.Error()).To(Equal("required parameter `-a` or `--access_level` not given - exiting"))
+			})
+		})
+
+		It("creates group member as expected", func() {
+			defer server.Close()
+			// TODO think about a better way to reset vars from previous runs...
+			method := ""
+			body := ""
+			expected := readFixture("group-members-add")
+			mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
+				method = r.Method
+				bodyBytes, _ := ioutil.ReadAll(r.Body)
+				body = string(bodyBytes)
+				fmt.Fprintf(w, expected)
+			})
+			stdout, _, err := executeCommand(RootCmd, "group-members", "add", "-i", "30", "-u", "40", "-a", "50", "-e", "2016-09-23")
+			Expect(err).To(BeNil())
+			Expect(stdout).NotTo(Equal(""))
+			Expect(method).To(Equal("POST"))
+			Expect(body).To(Equal(`{"user_id":40,"access_level":50,"expires_at":"2016-09-23"}`))
 			Expect(stdout).To(Equal(expected))
 		})
 	})

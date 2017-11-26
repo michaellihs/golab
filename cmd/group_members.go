@@ -92,10 +92,10 @@ var groupMemberAddCmd = &cobra.Command{
 	50 = Owner Permissions`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
-			return errors.New("required parameter `-i` or `--id`not given - exiting")
+			return errors.New("required parameter `-i` or `--id` not given - exiting")
 		}
 		if userId == 0 {
-			return errors.New("required parameter `-u` or `--user_id`not given - exiting")
+			return errors.New("required parameter `-u` or `--user_id` not given - exiting")
 		}
 		if accessLevel == 0 {
 			return errors.New("required parameter `-a` or `--access_level` not given - exiting")
