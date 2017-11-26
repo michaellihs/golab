@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "username": "root",
+  "email": "",
+  "name": "Administrator",
+  "state": "active",
+  "created_at": null,
+  "access_level": 50,
+  "expires_at": null
+}

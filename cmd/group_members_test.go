@@ -29,6 +29,9 @@ var _ = Describe("group-members command", func() {
 	)
 
 	BeforeEach(func() {
+		// do this to reset command line flags
+		resetCommandLineFlagSet()
+
 		// mux is the HTTP request multiplexer used with the test server.
 		mux = http.NewServeMux()
 
@@ -40,37 +43,69 @@ var _ = Describe("group-members command", func() {
 		gitlabClient.SetBaseURL(server.URL + "/api/v4")
 	})
 
-	Context("when ls sub command is executed", func() {
+	Context("when the `get` sub command is executed", func() {
+		Context("if no `--id` or `--user-id` parameters are given", func() {
+			It("should exit with error", func() {
+				// TODO think about a better way to reset vars from previous runs...
+				id = 0;
+				userId = 0
+				_, _, err := executeCommand(RootCmd, "group-members", "get")
+				if err == nil {
+					Fail("No error was thrown, when no --id was given")
+				}
+				Expect(err.Error()).To(Equal("required parameter `-i` or `--id`not given - exiting"))
+
+				_, _, err = executeCommand(RootCmd, "group-members", "get", "-i", "19")
+				if err == nil {
+					Fail("No error was thrown, when --user-id was given")
+				}
+				fmt.Println(err.Error())
+				Expect(err.Error()).To(Equal("required parameter `-u` or `--user_id`not given - exiting"))
+			})
+		})
+
+		It("should return the expected group-members entry", func() {
+			defer server.Close()
+			method := ""
+			expected := readFixture("group-members-get")
+			mux.HandleFunc("/api/v4/groups/30/members/40", func(w http.ResponseWriter, r *http.Request) {
+				method = r.Method
+				fmt.Fprintf(w, expected)
+			})
+			stdout, _, err := executeCommand(RootCmd, "group-members", "get", "-i", "30", "-u", "40")
+			Expect(err).To(BeNil())
+			Expect(stdout).NotTo(Equal(""))
+			Expect(method).To(Equal("GET"))
+			Expect(stdout).To(Equal(expected))
+		})
+	})
+
+	Context("when the `ls` sub command is executed", func() {
 		Context("if no `--id` parameter is given", func() {
 			It("should exit with error", func() {
-				// we don't want config file to be read (mocking)
+				// TODO think about a better way to reset vars from previous runs...
+				id = 0
+				userId = 0
 				_, _, err := executeCommand(RootCmd, "group-members", "ls")
-				if err == nil {
-					Fail(fmt.Sprintf("Unexpected output: %v", err))
-				}
+				fmt.Println(err.Error())
+				Expect(err).NotTo(BeNil(), "No error was raised when missing -i parameter")
 				Expect(err.Error()).To(Equal("required parameter `-i` or `--id`not given - exiting"))
 			})
 		})
 
-		Context("when command is called successfully", func() {
-			It("returns expected group members", func() {
-				defer server.Close()
-				method := ""
-				expected := readFixture("group-ls")
-				mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
-					method = r.Method
-					fmt.Fprintf(w, expected)
-				})
-				stdout, _, err := executeCommand(RootCmd, "group-members", "ls", "-i", "30")
-				if err != nil {
-					Fail(fmt.Sprintf("unexpected error: %v", err))
-				}
-				if stdout == "" {
-					Fail("we expected some output...")
-				}
-				Expect(method).To(Equal("GET"))
-				Expect(stdout).To(Equal(expected))
+		It("returns expected group members", func() {
+			defer server.Close()
+			method := ""
+			expected := readFixture("group-ls")
+			mux.HandleFunc("/api/v4/groups/30/members", func(w http.ResponseWriter, r *http.Request) {
+				method = r.Method
+				fmt.Fprintf(w, expected)
 			})
+			stdout, _, err := executeCommand(RootCmd, "group-members", "ls", "-i", "30")
+			Expect(err).To(BeNil())
+			Expect(stdout).NotTo(Equal(""))
+			Expect(method).To(Equal("GET"))
+			Expect(stdout).To(Equal(expected))
 		})
 	})
 })
