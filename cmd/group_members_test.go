@@ -17,7 +17,6 @@ var _ = Describe("int2AccessLevel", func() {
 		Expect(int2AccessLevel(30)).To(Equal(gitlab.AccessLevel(gitlab.DeveloperPermissions)))
 		Expect(int2AccessLevel(40)).To(Equal(gitlab.AccessLevel(gitlab.MasterPermissions)))
 		Expect(int2AccessLevel(50)).To(Equal(gitlab.AccessLevel(gitlab.OwnerPermission)))
-		Expect(int2AccessLevel(34)).To(BeNil())
 	})
 })
 

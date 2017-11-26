@@ -234,12 +234,14 @@ func removeTargetMembers(target int, source int, opts *gitlab.ListGroupMembersOp
 }
 
 func int2AccessLevel(accessLevel int) *gitlab.AccessLevelValue {
-	if accessLevel == 10 { return gitlab.AccessLevel(gitlab.GuestPermissions)}
-	if accessLevel == 20 { return gitlab.AccessLevel(gitlab.ReporterPermissions)}
-	if accessLevel == 30 { return gitlab.AccessLevel(gitlab.DeveloperPermissions)}
-	if accessLevel == 40 { return gitlab.AccessLevel(gitlab.MasterPermissions)}
-	if accessLevel == 50 { return gitlab.AccessLevel(gitlab.OwnerPermission)}
-	return nil
+	switch accessLevel {
+	case 10: return gitlab.AccessLevel(gitlab.GuestPermissions)
+	case 20: return gitlab.AccessLevel(gitlab.ReporterPermissions)
+	case 30: return gitlab.AccessLevel(gitlab.DeveloperPermissions)
+	case 40: return gitlab.AccessLevel(gitlab.MasterPermissions)
+	case 50: return gitlab.AccessLevel(gitlab.OwnerPermission)
+	default: panic("Unrecognized value for AccessLevel")
+	}
 }
 
 func init() {
