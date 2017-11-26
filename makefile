@@ -8,5 +8,7 @@ gendoc: compile
 	golab zsh-completion --path zsh/_golab
 
 test: compile
+	### run integration tests with Ginkgo
+	cd cmd && ginkgo -v
+	### run acceptance tests against real instance
 	go test ./tests -v
-	# cd cmd && ginkgo -v

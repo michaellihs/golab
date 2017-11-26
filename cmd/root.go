@@ -38,10 +38,11 @@ var gitlabClient *gitlab.Client
 var RootCmd = &cobra.Command{
 	Use:   "golab",
 	Short: "Gitlab CLI written in Go",
-	Long: `This application provides a Command Line Interface for Gitlab.`,
+	Long:  `This application provides a Command Line Interface for Gitlab.`,
 }
 
 func Execute() {
+	initRootCommand()
 	if err := RootCmd.Execute(); err != nil {
 		os.Exit(-1)
 	}
@@ -56,18 +57,16 @@ func OutputJson(object interface{}) error {
 	return nil
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
-	cobra.OnInitialize(initGitlabClient)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags, which, if defined here,
-	// will be global for your application.
+func initRootCommand() {
+	// TODO this is an ugly hack to prevent re-initialization when mocked in testing
+	if gitlabClient == nil {
+		cobra.OnInitialize(initConfig)
+		cobra.OnInitialize(initGitlabClient)
+	}
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "(optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)")
 }
 
-// initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(cfgFile)
@@ -76,12 +75,9 @@ func initConfig() {
 	viper.SetConfigName(".golab") // name of config file (without extension)
 	viper.AddConfigPath("$HOME")  // adding home directory as first search path
 	viper.AddConfigPath(".")      // adding current directory as first search path
-	viper.AutomaticEnv()          // read in environment variables that match
+ 	viper.AutomaticEnv()              // read in environment variables that match
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		// fmt.Println("Using config file:", viper.ConfigFileUsed())
-	} else {
+	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -91,11 +87,9 @@ func initGitlabClient() {
 	if err != nil {
 		fmt.Printf("Could not parse given URL '%s': %s", baseUrl, err)
 	}
-	// TODO this is an ugly hack to prevent re-initialization when mocked in testing
-	if gitlabClient == nil {
-		gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
-		gitlabClient.SetBaseURL(baseUrl.String() + "/api/v4")
-	}
+
+	gitlabClient = gitlab.NewClient(nil, viper.GetString("token"))
+	gitlabClient.SetBaseURL(baseUrl.String() + "/api/v4")
 }
 
 func isoTime2String(time *gitlab.ISOTime) (string, error) {
