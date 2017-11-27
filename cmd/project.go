@@ -21,15 +21,19 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"errors"
 	"github.com/xanzy/go-gitlab"
 )
 
 var name string
 var id int
 var group string
+
+var archived, simple, owned, membership, starred bool
+var orderBy, sort string
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -43,6 +47,39 @@ var projectCmd = &cobra.Command{
 		err = OutputJson(projects)
 		return err
 	},
+}
+
+var projectListCmd = &cobra.Command{
+	Use: "ls",
+	Short: "List all projects",
+	Long: `Get a list of all visible projects across GitLab for the authenticated user.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		projects, _, err := gitlabClient.Projects.ListProjects(flagsToListOptions())
+		if err != nil { return err }
+		return OutputJson(projects)
+	},
+}
+
+func flagsToListOptions() *gitlab.ListProjectsOptions {
+	listOptions := &gitlab.ListProjectsOptions{
+		Archived: &archived,
+		Membership: &membership,
+		Owned: &owned,
+		Search: &search,
+		Simple: &simple,
+		Starred: &starred,
+		Statistics: &statistics,
+	}
+	if orderBy != "" {
+		listOptions.OrderBy = &orderBy
+	}
+	if sort != "" {
+		listOptions.Sort = &sort
+	}
+	if visibility != "" {
+		listOptions.Visibility = str2Visibility(visibility)
+	}
+	return listOptions
 }
 
 var projectGetCmd = &cobra.Command{
@@ -108,7 +145,26 @@ func init() {
 	initProjectGetCommand()
 	initProjectCreateCommand()
 	initProjectDeleteCommand()
+	initProjectLsCommand()
 	RootCmd.AddCommand(projectCmd)
+}
+
+func initProjectLsCommand() {
+	projectListCmd.PersistentFlags().BoolVarP(&archived, "archived", "a", false, "(optional) Limit by archived status")
+	projectListCmd.PersistentFlags().StringVarP(&visibility, "visibility", "v", "", "(optional) Limit by visibility public, internal, or private")
+	projectListCmd.PersistentFlags().StringVarP(&orderBy, "order_by", "o", "", "(optional) Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at")
+	projectListCmd.PersistentFlags().StringVar(&sort, "sort", "", "(optional) Return projects sorted in asc or desc order. Default is desc")
+	projectListCmd.PersistentFlags().StringVar(&search, "search", "", "(optional) Return list of projects matching the search criteria")
+	projectListCmd.PersistentFlags().BoolVarP(&simple, "simple", "s", false, "(optional) Return only the ID, URL, name, and path of each project")
+	projectListCmd.PersistentFlags().BoolVarP(&owned, "owned", "", false, "(optional) Limit by projects owned by the current user")
+	projectListCmd.PersistentFlags().BoolVarP(&membership, "membership", "m", false, "(optional) Limit by projects that the current user is a member of")
+	projectListCmd.PersistentFlags().BoolVar(&starred, "starred", false, "(optional) Limit by projects starred by the current user")
+	projectListCmd.PersistentFlags().BoolVar(&statistics, "statistics", false, "(optional) Include project statistics")
+	// TODO not supported by go-gitlab
+	//projectListCmd.PersistentFlags().BoolVarP(listOptions.with_issues_enabled, "	with_issues_enabled", "", false, "(optional) Limit by enabled issues feature")
+	// TODO not supported by go-gitlab
+	//projectListCmd.PersistentFlags().BoolVarP(listOptions.with_merge_requests_enabled, "	with_merge_requests_enabled", "", false, "(optional) Limit by enabled merge requests feature	")
+	projectCmd.AddCommand(projectListCmd)
 }
 
 func initProjectGetCommand() {
