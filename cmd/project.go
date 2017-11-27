@@ -49,6 +49,7 @@ var projectCmd = &cobra.Command{
 	},
 }
 
+// TODO custom attributes are currently not supported
 var projectListCmd = &cobra.Command{
 	Use: "ls",
 	Short: "List all projects",
@@ -58,28 +59,6 @@ var projectListCmd = &cobra.Command{
 		if err != nil { return err }
 		return OutputJson(projects)
 	},
-}
-
-func flagsToListOptions() *gitlab.ListProjectsOptions {
-	listOptions := &gitlab.ListProjectsOptions{
-		Archived: &archived,
-		Membership: &membership,
-		Owned: &owned,
-		Search: &search,
-		Simple: &simple,
-		Starred: &starred,
-		Statistics: &statistics,
-	}
-	if orderBy != "" {
-		listOptions.OrderBy = &orderBy
-	}
-	if sort != "" {
-		listOptions.Sort = &sort
-	}
-	if visibility != "" {
-		listOptions.Visibility = str2Visibility(visibility)
-	}
-	return listOptions
 }
 
 var projectGetCmd = &cobra.Command{
@@ -139,6 +118,28 @@ var projectDeleteCmd = &cobra.Command{
 		_, err := gitlabClient.Projects.DeleteProject(id)
 		return err
 	},
+}
+
+func flagsToListOptions() *gitlab.ListProjectsOptions {
+	listOptions := &gitlab.ListProjectsOptions{
+		Archived: &archived,
+		Membership: &membership,
+		Owned: &owned,
+		Search: &search,
+		Simple: &simple,
+		Starred: &starred,
+		Statistics: &statistics,
+	}
+	if orderBy != "" {
+		listOptions.OrderBy = &orderBy
+	}
+	if sort != "" {
+		listOptions.Sort = &sort
+	}
+	if visibility != "" {
+		listOptions.Visibility = str2Visibility(visibility)
+	}
+	return listOptions
 }
 
 func init() {

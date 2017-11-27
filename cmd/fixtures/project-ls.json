@@ -1,0 +1,68 @@
+[
+  {
+    "id": 3,
+    "description": "",
+    "default_branch": "",
+    "public": false,
+    "visibility": "private",
+    "ssh_url_to_repo": "git@gitlab.localhost:test2/testproject.git",
+    "http_url_to_repo": "http://gitlab.localhost/test2/testproject.git",
+    "web_url": "http://gitlab.localhost/test2/testproject",
+    "tag_list": [],
+    "owner": null,
+    "name": "testproject",
+    "name_with_namespace": "test2 / testproject",
+    "path": "testproject",
+    "path_with_namespace": "test2/testproject",
+    "issues_enabled": true,
+    "open_issues_count": 0,
+    "merge_requests_enabled": true,
+    "approvals_before_merge": 0,
+    "jobs_enabled": true,
+    "wiki_enabled": true,
+    "snippets_enabled": true,
+    "container_registry_enabled": true,
+    "created_at": "2017-11-27T22:22:43.177Z",
+    "last_activity_at": "2017-11-27T22:22:43.177Z",
+    "creator_id": 1,
+    "namespace": {
+      "created_at": null,
+      "description": "",
+      "id": 35,
+      "name": "test2",
+      "owner_id": 0,
+      "path": "test2",
+      "updated_at": null
+    },
+    "permissions": {
+      "project_access": null,
+      "group_access": {
+        "access_level": 50,
+        "notification_level": "global"
+      }
+    },
+    "archived": false,
+    "avatar_url": "",
+    "shared_runners_enabled": true,
+    "forks_count": 0,
+    "star_count": 0,
+    "runners_token": "",
+    "public_jobs": true,
+    "only_allow_merge_if_pipeline_succeeds": false,
+    "only_allow_merge_if_all_discussions_are_resolved": false,
+    "lfs_enabled": true,
+    "request_access_enabled": false,
+    "forked_from_project": null,
+    "shared_with_groups": [],
+    "statistics": null,
+    "_links": {
+      "self": "http://gitlab.localhost/api/v4/projects/3",
+      "issues": "http://gitlab.localhost/api/v4/projects/3/issues",
+      "merge_requests": "http://gitlab.localhost/api/v4/projects/3/merge_requests",
+      "repo_branches": "http://gitlab.localhost/api/v4/projects/3/repository/branches",
+      "labels": "http://gitlab.localhost/api/v4/projects/3/labels",
+      "events": "http://gitlab.localhost/api/v4/projects/3/events",
+      "members": "http://gitlab.localhost/api/v4/projects/3/members"
+    }
+  }
+]
