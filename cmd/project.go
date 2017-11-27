@@ -26,11 +26,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
+	"strconv"
 )
 
 var name string
 var id int
 var group string
+var pid string
 
 var archived, simple, owned, membership, starred bool
 var orderBy, sort string
@@ -66,17 +68,24 @@ var projectGetCmd = &cobra.Command{
 	Short: "Get detailed information for a project",
 	Long: `Get detailed information for a project identified by either project ID or 'namespace/project-name'`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == 0 {
-			return errors.New("You have to provide a project ID or 'namespace/project-name' with the -i --id flag")
+		if pid == "" {
+			return errors.New("you have to provide a project ID or 'namespace/project-name' with the -i --id flag")
 		}
-		// TODO do something useful with the response
-		project, _, err := gitlabClient.Projects.GetProject(id)
+		parsedPid := parsePid(pid) // make sure, parsedPid is of type int if numeric
+		project, _, err := gitlabClient.Projects.GetProject(parsedPid)
 		if err != nil {
 			return err
 		}
-		err = OutputJson(project)
-		return err
+		return OutputJson(project)
 	},
+}
+
+func parsePid(value string) interface{} {
+	if pid, err := strconv.Atoi(value); err == nil {
+		return pid
+	} else {
+		return value
+	}
 }
 
 var projectCreateCmd = &cobra.Command{
@@ -169,8 +178,7 @@ func initProjectLsCommand() {
 }
 
 func initProjectGetCommand() {
-	projectGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
-	viper.BindPFlag("id", projectGetCmd.PersistentFlags().Lookup("id"))
+	projectGetCmd.PersistentFlags().StringVarP(&pid, "id", "i", "", "(required) Either the project ID (numeric) or 'namespace/project-name'")
 	projectCmd.AddCommand(projectGetCmd)
 }
 
