@@ -22,19 +22,21 @@ package cmd
 
 import (
 	"errors"
+	"reflect"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	"github.com/spf13/viper"
-	"reflect"
-	"strconv"
-	"fmt"
+	"github.com/jinzhu/copier"
 )
 
 var name string
 var id int
 var group string
 var pid string
+
+var createProjectParams *interface{}
 
 var archived, simple, owned, membership, starred bool
 var orderBy, sort string
@@ -90,7 +92,7 @@ type createOpts struct {
 	Name                                      *string   `flag_name:"name" type:"string" required:"yes" description:"The name of the new project"`
 	Path                                      *string   `flag_name:"path" type:"string" required:"no" description:"Custom repository name for new project.By default generated based on name"`
 	DefaultBranch                             *string   `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`
-	NamespaceId                               *int      `flag_name:"namespace_id" type:"integer" required:"no" description:"Namespace for the new project (defaults to the current user's namespace)"`
+	NamespaceID                               *int      `flag_name:"namespace_id" type:"integer" required:"no" description:"Namespace ID (Group ID) for the new project (defaults to the current user's namespace)"`
 	Description                               *string   `flag_name:"description" type:"string" required:"no" description:"Short project description"`
 	IssuesEnabled                             *bool     `flag_name:"issues_enabled" type:"boolean" required:"no" description:"Enable issues for this project"`
 	MergeRequestsEnabled                      *bool     `flag_name:"merge_requests_enabled" type:"boolean" required:"no" description:"Enable merge requests for this project"`
@@ -107,21 +109,59 @@ type createOpts struct {
 	OnlyAllowMergeIfAllDiscussionsAreResolved *bool     `flag_name:"only_allow_merge_if_all_discussions_are_resolved" type:"boolean" required:"no" description:"Set whether merge requests can only be merged when all the discussions are resolved"`
 	LfsEnabled                                *bool     `flag_name:"lfs_enabled" type:"boolean" required:"no" description:"Enable LFS"`
 	RequestAccessEnabled                      *bool     `flag_name:"request_access_enabled" type:"boolean" required:"no" description:"Allow users to request member access"`
-	// TODO how to handle *[]string, when we get a *string from the flag...
-	//TagList                                   *[]string `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
-	TagList                                   *string `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
+	// TODO TagList is not available in go-gitlab's CreateProjectOptions
+	TagList                                   *[]string `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
 	Avatar                                    *string   `flag_name:"avatar" type:"mixed" required:"no" description:"Image file for avatar of the project"`
 	PrintingMergeRequestLinkEnabled           *bool     `flag_name:"printing_merge_request_link_enabled" type:"boolean" required:"no" description:"Show link to create/view merge request when pushing from the command line"`
 	CiConfigPath                              *string   `flag_name:"ci_config_path" type:"string" required:"no" description:"The path to CI config file"`
 }
 
-var currOpts *interface{}
+var projectCreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Create a new project",
+	Long:  `Create a new project for the given parameters`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO add this to use name of group instead of namespace_id
+		//groups, _, err := gitlabClient.Groups.SearchGroup(group)
+		//if err != nil {
+		//	// TODO make sure we stop here when namespace_id cannot be properly resolved
+		//	return errors.New("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
+		//}
+		//if len(groups) > 1 {
+		//	return errors.New("More than one group was found for given group" + group)
+		//}
+		//
+		//p := &gitlab.CreateProjectOptions{
+		//	Name:        &name,
+		//	NamespaceID: &groups[0].ID,
+		//}
+
+		opts, err := currParams2createProjectOpts()
+		if err != nil {
+			return err
+		}
+		project, _, err := gitlabClient.Projects.CreateProject(opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(project)
+	},
+}
+
+var projectDeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete an existing project",
+	Long:  `Delete an existing project by either its project ID or namespace/project-name`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO maybe we want to return something upon success
+		// TODO do something useful with the response
+		_, err := gitlabClient.Projects.DeleteProject(id)
+		return err
+	},
+}
 
 func optsToFlags(opts interface{}, cmd *cobra.Command, rootCmd *cobra.Command) (*interface{}, error) {
 	v := reflect.ValueOf(opts).Elem()
-
-	fmt.Println(v.String())
-
 	for i := 0; i < v.NumField(); i++ {
 		// this gives us the type of a struct field
 		//fieldType := v.Field(i).Type().String()
@@ -137,8 +177,7 @@ func optsToFlags(opts interface{}, cmd *cobra.Command, rootCmd *cobra.Command) (
 
 		f := v.Field(i)
 
-		fmt.Println(f.Type().String())
-
+		// avoid usage of flag map and directly set values to opts struct
 		switch f.Type().String() {
 		case "*int":
 			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().Int(tag.Get("flag_name"), 0, tag.Get("description"))
@@ -146,6 +185,8 @@ func optsToFlags(opts interface{}, cmd *cobra.Command, rootCmd *cobra.Command) (
 			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().String(tag.Get("flag_name"), "", tag.Get("description"))
 		case "*bool":
 			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().Bool(tag.Get("flag_name"), false, tag.Get("description"))
+		case "*[]string":
+			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().StringArray(tag.Get("flag_name"), nil, tag.Get("description"))
 		default:
 			panic("Unknown type " + f.Type().String())
 		}
@@ -153,82 +194,30 @@ func optsToFlags(opts interface{}, cmd *cobra.Command, rootCmd *cobra.Command) (
 		// see https://stackoverflow.com/questions/6395076/using-reflect-how-do-you-set-the-value-of-a-struct-field
 		// see https://stackoverflow.com/questions/40060131/reflect-assign-a-pointer-struct-value
 		if f.IsValid() {
-			// A Value can be changed only if it is
-			// addressable and was not obtained by
-			// the use of unexported struct fields.
+			// A Value can be changed only if it is addressable and was not obtained by the use of unexported struct fields.
 			if f.CanSet() {
-				// change value of N
-				//if f.Kind() == reflect.UnsafePointer {
-				//	fmt.Println("ssssttttting")
-					fmt.Println("set value for " + tag.Get("flag_name"))
-					f.Set(reflect.ValueOf(flagMap[tag.Get("flag_name")]))
-				//} else {
-				//	fmt.Println("is not unsafe pointer")
-				//}
+				f.Set(reflect.ValueOf(flagMap[tag.Get("flag_name")]))
 			} else {
-				fmt.Println("can not set")
+				return nil, errors.New("can not set " + tag.Get("flag_name"))
 			}
 		} else {
-			fmt.Println("is not valid")
+			return nil, errors.New(tag.Get("flag_name") + "is not valid")
 		}
 	}
-
 	rootCmd.AddCommand(cmd)
-
 	return &opts, nil
 }
 
-var projectCreateCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new project",
-	Long:  `Create a new project for the given parameters`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println(flagMap)
-		fmt.Println(flagMap["name"])
-
-		// TODO how can we de-pointer this?
-		createOpts, ok := (*currOpts).(*createOpts)
-		if ok {
-			fmt.Println(*createOpts.Name)
-		} else {
-			fmt.Println("SHEEEEET")
-		}
-
-		return nil
-		//groups, _, err := gitlabClient.Groups.SearchGroup(group)
-		//if err != nil {
-		//	// TODO make sure we stop here when namespace_id cannot be properly resolved
-		//	return errors.New("An error occurred while detecting namespace ID for " + group + ":" + err.Error())
-		//}
-		//if len(groups) > 1 {
-		//	return errors.New("More than one group was found for given group" + group)
-		//}
-		//
-		//p := &gitlab.CreateProjectOptions{
-		//	Name:        &name,
-		//	NamespaceID: &groups[0].ID,
-		//}
-		//
-		//// TODO do something useful with the response
-		//project, _, err := gitlabClient.Projects.CreateProject(p)
-		//if err != nil {
-		//	return err
-		//}
-		//err = OutputJson(project)
-		//return err
-	},
-}
-
-var projectDeleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete an existing project",
-	Long:  `Delete an existing project by either its project ID or namespace/project-name`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO maybe we want to return something upon success
-		// TODO do something useful with the response
-		_, err := gitlabClient.Projects.DeleteProject(id)
-		return err
-	},
+func currParams2createProjectOpts() (*gitlab.CreateProjectOptions, error) {
+	//// TODO how can we de-pointer this?
+	createOpts, ok := (*createProjectParams).(*createOpts)
+	if !ok {
+		return &gitlab.CreateProjectOptions{}, errors.New("casting of createOpts went wrong")
+	}
+	opts := &gitlab.CreateProjectOptions{}
+	copier.Copy(opts, *createProjectParams)
+	opts.Visibility = str2Visibility(*createOpts.Visibility)
+	return opts, nil
 }
 
 func flagsToListOptions() *gitlab.ListProjectsOptions {
@@ -263,9 +252,8 @@ func parsePid(value string) interface{} {
 
 func init() {
 	createOpts := &createOpts{}
-	currOpts, _ = optsToFlags(createOpts, projectCreateCmd, projectCmd)
+	createProjectParams, _ = optsToFlags(createOpts, projectCreateCmd, projectCmd)
 	initProjectGetCommand()
-	//initProjectCreateCommand()
 	initProjectDeleteCommand()
 	initProjectLsCommand()
 	RootCmd.AddCommand(projectCmd)
@@ -294,13 +282,6 @@ func initProjectGetCommand() {
 	// TODO currently not supported by go-gitlab
 	projectGetCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) Include project statistics")
 	projectCmd.AddCommand(projectGetCmd)
-}
-
-func initProjectCreateCommand() {
-	projectCreateCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) Name of the project")
-	projectCreateCmd.PersistentFlags().StringVarP(&group, "group", "g", "", "Group to add project to (either ID or namespace)")
-	viper.BindPFlag("name", projectCreateCmd.PersistentFlags().Lookup("name"))
-	projectCmd.AddCommand(projectCreateCmd)
 }
 
 func initProjectDeleteCommand() {

@@ -129,6 +129,12 @@
 			"revisionTime": "2014-10-17T20:07:13Z"
 		},
 		{
+			"checksumSHA1": "j6XafsL9j74n4p3Nx1FDNetQ2PU=",
+			"path": "github.com/jinzhu/copier",
+			"revision": "db4671f3a9b8df855e993f7c94ec5ef1ffb0a23b",
+			"revisionTime": "2017-09-22T08:27:39Z"
+		},
+		{
 			"checksumSHA1": "KR72MpmwQRMYJuK0BHi2RWgGU2o=",
 			"path": "github.com/magiconair/properties",
 			"revision": "b3b15ef068fd0b17ddf408a23669f20811d194d2",
