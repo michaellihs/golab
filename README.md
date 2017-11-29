@@ -122,6 +122,15 @@ Update vendored dependencies
     govendor fetch github.com/spf13/cobra
     
 
+Translate API Doc into Flag Structs
+-----------------------------------
+
+Regular expression for replace in IntelliJ
+
+    \s+([^\s]+?)\s+([^\s]+?)\s+([^\s]+?)\s+(.+)
+    $1 *$2`map_to:"$1" type:"$2" required:"$3" description:"$4"
+
+
 Gitlab Docker Image
 -------------------
 
