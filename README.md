@@ -37,7 +37,7 @@ Installation
 
 Install the CLI tool with
 
-    go get github.com/michaellihs/golab
+    go get -u github.com/michaellihs/golab
     go install github.com/michaellihs/golab
 
 or download a [binary release](https://github.com/michaellihs/golab/releases).
