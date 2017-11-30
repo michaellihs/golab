@@ -1,2 +1,3 @@
+.idea/
 .golab.yml
 vendor/**/*.local
