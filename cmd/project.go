@@ -88,7 +88,6 @@ var projectGetCmd = &cobra.Command{
 }
 
 type createOpts struct {
-	UserId                                    *int      `flag_name:"user_id" type:"integer" required:"yes" description:"The user ID of the project owner"`
 	Name                                      *string   `flag_name:"name" type:"string" required:"yes" description:"The name of the new project"`
 	Path                                      *string   `flag_name:"path" type:"string" required:"no" description:"Custom repository name for new project.By default generated based on name"`
 	DefaultBranch                             *string   `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`

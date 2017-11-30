@@ -18,9 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      user)
-        _arguments '2: :(activities create delete emails get impersonation-token ls modify ssh-keys)'
-      ;;
       group)
         _arguments '2: :(create delete get ls projects search transfer-project update)'
       ;;
@@ -29,6 +26,9 @@ case $state in
       ;;
       project)
         _arguments '2: :(create delete get ls)'
+      ;;
+      user)
+        _arguments '2: :(activities create delete emails get impersonation-token ls modify ssh-keys)'
       ;;
       *)
         _arguments '*: :_files'
