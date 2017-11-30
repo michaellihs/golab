@@ -33,7 +33,6 @@ import (
 	"github.com/spf13/viper"
 	"io/ioutil"
 	path2 "path"
-
 )
 
 var host string
@@ -100,7 +99,13 @@ func getLoginClient(host string) (*gitlab.Client, error) {
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("could not parse given host '%s': %s", baseUrl, err))
 	}
-	loginClient := gitlab.NewClient(nil, viper.GetString("token"))
+
+	client, err := initHttpClient()
+	if err != nil {
+		return nil, err
+	}
+
+	loginClient := gitlab.NewClient(client, viper.GetString("token"))
 	loginClient.SetBaseURL(baseUrl.String() + "/api/v4")
 	return loginClient, nil
 }
