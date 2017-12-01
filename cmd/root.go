@@ -35,7 +35,7 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 )
 
-var cfgFile string
+var cfgFile, caFile, caPath string
 
 var gitlabClient *gitlab.Client
 
@@ -69,6 +69,8 @@ func initRootCommand() {
 	}
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "(optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)")
+	RootCmd.PersistentFlags().StringVar(&caFile, "ca-file", "", "(optional) provides a .pem file to be used in certificates pool for SSL connection")
+	RootCmd.PersistentFlags().StringVar(&caPath, "ca-path", "", "(optional) provides a directory with .pem certificates to be used for SSL connection")
 }
 
 func initConfig() {
@@ -105,8 +107,10 @@ func initHttpClient() (*http.Client, error) {
 	// see https://github.com/hashicorp/go-rootcerts
 	tlsConfig := &tls.Config{}
 	err := rootcerts.ConfigureTLS(tlsConfig, &rootcerts.Config{
-		CAFile: os.Getenv("GOLAB_CAFILE"),
-		CAPath: os.Getenv("GOLAB_CAPATH"),
+		//CAFile: os.Getenv("GOLAB_CAFILE"),
+		//CAPath: os.Getenv("GOLAB_CAPATH"),
+		CAFile: caFile,
+		CAPath: caPath,
 	})
 	if err != nil {
 		return nil, err

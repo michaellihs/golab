@@ -22,8 +22,10 @@ golab user ssh-keys delete [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   (optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)
-  -i, --id int          (optional) id of user to show ssh-keys for - if none is given, logged in user will be used
+      --ca-file string   (optional) provides a .pem file to be used in certificates pool for SSL connection
+      --ca-path string   (optional) provides a directory with .pem certificates to be used for SSL connection
+      --config string    (optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)
+  -i, --id int           (optional) id of user to show ssh-keys for - if none is given, logged in user will be used
 ```
 
 ### SEE ALSO
