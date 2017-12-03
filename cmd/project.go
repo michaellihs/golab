@@ -108,7 +108,6 @@ type createOpts struct {
 	OnlyAllowMergeIfAllDiscussionsAreResolved *bool     `flag_name:"only_allow_merge_if_all_discussions_are_resolved" type:"boolean" required:"no" description:"Set whether merge requests can only be merged when all the discussions are resolved"`
 	LfsEnabled                                *bool     `flag_name:"lfs_enabled" type:"boolean" required:"no" description:"Enable LFS"`
 	RequestAccessEnabled                      *bool     `flag_name:"request_access_enabled" type:"boolean" required:"no" description:"Allow users to request member access"`
-	// TODO TagList is not available in go-gitlab's CreateProjectOptions
 	TagList                                   *[]string `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
 	Avatar                                    *string   `flag_name:"avatar" type:"mixed" required:"no" description:"Image file for avatar of the project"`
 	PrintingMergeRequestLinkEnabled           *bool     `flag_name:"printing_merge_request_link_enabled" type:"boolean" required:"no" description:"Show link to create/view merge request when pushing from the command line"`
