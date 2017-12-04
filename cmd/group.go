@@ -28,7 +28,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-var newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString, search string
+var name, newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString, search string
 
 var statistics, lfsEnabled, requestAccessEnabled bool
 

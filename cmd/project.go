@@ -26,16 +26,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"github.com/spf13/viper"
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper mapper.FlagMapper
 
-var name string
 var id int
-var group string
-var pid string
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -66,6 +62,7 @@ type listFlags struct {
 	WithMergeRequestsEnabled *bool   `flag_name:"with_merge_requests_enabled" type:"bool" required:"no" description:"Limit by enabled merge requests feature"`
 	// TODO custom attributes are currently not supported
 }
+
 var projectListCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List all projects",
@@ -87,20 +84,34 @@ func createListOpts() (*gitlab.ListProjectsOptions, error) {
 	return opts, nil
 }
 
+type getFlags struct {
+	Id         *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"either the project ID (numeric) or 'namespace/project-name'"`
+	// TODO currently not supported by go-gitlab
+	Statistics *bool   `flag_name:"statistics" short:"s" required:"no" description:"include project statistics"`
+}
+
 var projectGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get detailed information for a project",
 	Long:  `Get detailed information for a project identified by either project ID or 'namespace/project-name'`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if pid == "" {
+		opts, err := initProjectGetOpts()
+		if *opts.Id == "" {
 			return errors.New("you have to provide a project ID or 'namespace/project-name' with the -i --id flag")
 		}
-		project, _, err := gitlabClient.Projects.GetProject(parsePid(pid)) // make sure, parsedPid is of type int if numeric
+		project, _, err := gitlabClient.Projects.GetProject(parsePid(*opts.Id)) // make sure, parsedPid is of type int if numeric
 		if err != nil {
 			return err
 		}
 		return OutputJson(project)
 	},
+}
+
+func initProjectGetOpts() (*getFlags, error) {
+	flags := &getFlags{}
+	opts := &getFlags{}
+	getOptsMapper.Map(flags, opts)
+	return opts, nil
 }
 
 type createOpts struct {
@@ -208,9 +219,9 @@ func initProjectListCmd() {
 }
 
 func initProjectGetCmd() {
-	projectGetCmd.PersistentFlags().StringVarP(&pid, "id", "i", "", "(required) Either the project ID (numeric) or 'namespace/project-name'")
-	// TODO currently not supported by go-gitlab
-	projectGetCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) Include project statistics")
+	flags := &getFlags{}
+	getOptsMapper = mapper.New(projectGetCmd)
+	getOptsMapper.SetFlags(flags)
 	projectCmd.AddCommand(projectGetCmd)
 }
 
@@ -223,6 +234,5 @@ func initProjectCreateCmd() {
 
 func initProjectDeleteCommand() {
 	projectDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
-	viper.BindPFlag("id", projectDeleteCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectDeleteCmd)
 }
