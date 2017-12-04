@@ -22,26 +22,20 @@ package cmd
 
 import (
 	"errors"
-	"reflect"
 	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	"github.com/spf13/viper"
-	"github.com/jinzhu/copier"
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper mapper.FlagMapper
 
 var name string
 var id int
 var group string
 var pid string
-
-var createProjectParams, listProjectParams *interface{}
-
-var flagMap = make(map[string]interface{})
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -57,7 +51,7 @@ var projectCmd = &cobra.Command{
 	},
 }
 
-type listOpts struct {
+type listFlags struct {
 	Archived                 *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
 	Visibility               *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
 	OrderBy                  *string `flag_name:"order_by" type:"string" required:"no" description:"Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at"`
@@ -77,19 +71,20 @@ var projectListCmd = &cobra.Command{
 	Short: "List all projects",
 	Long:  `Get a list of all visible projects across GitLab for the authenticated user.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var err error
-		listProjectOpts := &listOpts{}
-		listProjectParams, err = flagMapToOpts(listProjectOpts, cmd)
-		if err != nil { return err }
-
-		opts, err := currParams2listProjectOpts()
-
+		opts, err := createListOpts()
 		projects, _, err := gitlabClient.Projects.ListProjects(opts)
 		if err != nil {
 			return err
 		}
 		return OutputJson(projects)
 	},
+}
+
+func createListOpts() (*gitlab.ListProjectsOptions, error) {
+	opts := &gitlab.ListProjectsOptions{}
+	flags := &listFlags{}
+	listOptsMapper.Map(flags, opts)
+	return opts, nil
 }
 
 var projectGetCmd = &cobra.Command{
@@ -189,18 +184,6 @@ var projectDeleteCmd = &cobra.Command{
 	},
 }
 
-func currParams2listProjectOpts() (*gitlab.ListProjectsOptions, error) {
-	//listOpts, ok := (*listProjectParams).(*listOpts)
-	//if !ok {
-	//	return &gitlab.ListProjectsOptions{}, errors.New("casting of listOpts went wrong")
-	//}
-	opts := &gitlab.ListProjectsOptions{}
-	copier.Copy(opts, *listProjectParams)
-	return opts,nil
-}
-
-
-
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
 		return pid
@@ -210,15 +193,18 @@ func parsePid(value string) interface{} {
 }
 
 func init() {
+	initProjectListCmd()
 	initProjectGetCmd()
 	initProjectCreateCmd()
-
-	listOpts := &listOpts{}
-	listProjectParams, _ = paramsToMap(listOpts, projectListCmd, projectCmd)
-
 	initProjectDeleteCommand()
-
 	RootCmd.AddCommand(projectCmd)
+}
+
+func initProjectListCmd() {
+	flags := &listFlags{}
+	listOptsMapper = mapper.New(projectListCmd)
+	listOptsMapper.SetFlags(flags)
+	projectCmd.AddCommand(projectListCmd)
 }
 
 func initProjectGetCmd() {
@@ -239,68 +225,4 @@ func initProjectDeleteCommand() {
 	projectDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
 	viper.BindPFlag("id", projectDeleteCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectDeleteCmd)
-}
-
-func paramsToMap(opts interface{}, cmd *cobra.Command, baseCmd *cobra.Command) (*interface{}, error) {
-	v := reflect.ValueOf(opts).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		// this gives us the type of a struct field
-		//fieldType := v.Field(i).Type().String()
-		//fmt.Println(fieldType)
-
-		// this gives us the name of a struct field
-		//fieldName := v.Type().Field(i).Name
-		//fmt.Println(fieldName)
-
-		// this gives us the tag of a struct field
-		tag := v.Type().Field(i).Tag
-		f := v.Field(i)
-
-		// avoid usage of flag map and directly set values to opts struct
-		flagName := tag.Get("flag_name")
-		switch f.Type().String() {
-		case "*int":
-			flagMap[flagName] = cmd.PersistentFlags().Int(flagName, 0, tag.Get("description"))
-		case "*string":
-			flagMap[flagName] = cmd.PersistentFlags().String(flagName, "", tag.Get("description"))
-		case "*bool":
-			flagMap[flagName] = cmd.PersistentFlags().Bool(flagName, false, tag.Get("description"))
-		case "*[]string":
-			flagMap[flagName] = cmd.PersistentFlags().StringArray(flagName, nil, tag.Get("description"))
-		default:
-			panic("Unknown type " + f.Type().String())
-		}
-
-	}
-	baseCmd.AddCommand(cmd)
-	return &opts, nil
-}
-
-func flagMapToOpts(opts interface{}, cmd *cobra.Command) (*interface{}, error) {
-	v := reflect.ValueOf(opts).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		tag := v.Type().Field(i).Tag
-
-		flagName := tag.Get("flag_name")
-		flagChanged := cmd.PersistentFlags().Changed(flagName)
-
-		// see https://stackoverflow.com/questions/6395076/using-reflect-how-do-you-set-the-value-of-a-struct-field
-		// see https://stackoverflow.com/questions/40060131/reflect-assign-a-pointer-struct-value
-		if f.IsValid() {
-			// A Value can be changed only if it is addressable and was not obtained by the use of unexported struct fields.
-			if f.CanSet() {
-				if flagChanged {
-					f.Set(reflect.ValueOf(flagMap[flagName]))
-				} else {
-					// TODO implement an additional tag that allows setting of "default" values
-				}
-			} else {
-				return nil, errors.New("can not set " + flagName)
-			}
-		} else {
-			return nil, errors.New(flagName + "is not valid")
-		}
-	}
-	return &opts, nil
 }
