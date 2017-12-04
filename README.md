@@ -102,7 +102,11 @@ There is a `makefile` included that can build and test the application and rende
 
 *  `make` - build the application
 
-*  `make test` - run the tests
+*  `make test` - run the tests. Before you run the tests, you have to set the environment variables
+
+  * `GITLAB_HOST`
+  * `GITLAB_ROOT_USER`
+  * `GITLAB_ROOT_PASSWORD`
 
 * `make gendoc` - render the documentation
 
@@ -128,7 +132,7 @@ Translate API Doc into Flag Structs
 Regular expression for replace in IntelliJ
 
     \s+([^\s]+?)\s+([^\s]+?)\s+([^\s]+?)\s+(.+)
-    $1 *$2`map_to:"$1" type:"$2" required:"$3" description:"$4"
+    $1 *$2 `flag_name:"$1" type:"$2" required:"$3" description:"$4"`\n
 
 
 Gitlab Docker Image

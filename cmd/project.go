@@ -36,10 +36,7 @@ var id int
 var group string
 var pid string
 
-var createProjectParams *interface{}
-
-var archived, simple, owned, membership, starred bool
-var orderBy, sort string
+var createProjectParams, listProjectParams *interface{}
 
 var flagMap = make(map[string]interface{})
 
@@ -57,13 +54,34 @@ var projectCmd = &cobra.Command{
 	},
 }
 
-// TODO custom attributes are currently not supported
+type listOpts struct {
+	Archived                 *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
+	Visibility               *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
+	OrderBy                  *string `flag_name:"order_by" type:"string" required:"no" description:"Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at"`
+	Sort                     *string `flag_name:"sort" type:"string" required:"no" description:"Return projects sorted in asc or desc order. Default is desc"`
+	Search                   *string `flag_name:"search" type:"string" required:"no" description:"Return list of projects matching the search criteria"`
+	Simple                   *bool   `flag_name:"simple" type:"bool" required:"no" description:"Return only the ID, URL, name, and path of each project"`
+	Owned                    *bool   `flag_name:"owned" type:"bool" required:"no" description:"Limit by projects owned by the current user"`
+	Membership               *bool   `flag_name:"membership" type:"bool" required:"no" description:"Limit by projects that the current user is a member of"`
+	Starred                  *bool   `flag_name:"starred" type:"bool" required:"no" description:"Limit by projects starred by the current user"`
+	Statistics               *bool   `flag_name:"statistics" type:"bool" required:"no" description:"Include project statistics"`
+	WithIssuesEnabled        *bool   `flag_name:"with_issues_enabled" type:"bool" required:"no" description:"Limit by enabled issues feature"`
+	WithMergeRequestsEnabled *bool   `flag_name:"with_merge_requests_enabled" type:"bool" required:"no" description:"Limit by enabled merge requests feature"`
+	// TODO custom attributes are currently not supported
+}
 var projectListCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List all projects",
 	Long:  `Get a list of all visible projects across GitLab for the authenticated user.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		projects, _, err := gitlabClient.Projects.ListProjects(flagsToListOptions())
+		var err error
+		listProjectOpts := &listOpts{}
+		listProjectParams, err = flagMapToOpts(listProjectOpts, cmd)
+		if err != nil { return err }
+
+		opts, err := currParams2listProjectOpts()
+
+		projects, _, err := gitlabClient.Projects.ListProjects(opts)
 		if err != nil {
 			return err
 		}
@@ -93,24 +111,24 @@ type createOpts struct {
 	DefaultBranch                             *string   `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`
 	NamespaceID                               *int      `flag_name:"namespace_id" type:"integer" required:"no" description:"Namespace ID (Group ID) for the new project (defaults to the current user's namespace)"`
 	Description                               *string   `flag_name:"description" type:"string" required:"no" description:"Short project description"`
-	IssuesEnabled                             *bool     `flag_name:"issues_enabled" type:"boolean" required:"no" description:"Enable issues for this project"`
-	MergeRequestsEnabled                      *bool     `flag_name:"merge_requests_enabled" type:"boolean" required:"no" description:"Enable merge requests for this project"`
-	JobsEnabled                               *bool     `flag_name:"jobs_enabled" type:"boolean" required:"no" description:"Enable jobs for this project"`
-	WikiEnabled                               *bool     `flag_name:"wiki_enabled" type:"boolean" required:"no" description:"Enable wiki for this project"`
-	SnippetsEnabled                           *bool     `flag_name:"snippets_enabled" type:"boolean" required:"no" description:"Enable snippets for this project"`
-	ResolveOutdatedDiffDiscussions            *bool     `flag_name:"resolve_outdated_diff_discussions" type:"boolean" required:"no" description:"Automatically resolve merge request diffs discussions on lines changed with a push"`
-	ContainerRegistryEnabled                  *bool     `flag_name:"container_registry_enabled" type:"boolean" required:"no" description:"Enable container registry for this project"`
-	SharedRunnersEnabled                      *bool     `flag_name:"shared_runners_enabled" type:"boolean" required:"no" description:"Enable shared runners for this project"`
+	IssuesEnabled                             *bool     `flag_name:"issues_enabled" type:"bool" required:"no" description:"Enable issues for this project"`
+	MergeRequestsEnabled                      *bool     `flag_name:"merge_requests_enabled" type:"bool" required:"no" description:"Enable merge requests for this project"`
+	JobsEnabled                               *bool     `flag_name:"jobs_enabled" type:"bool" required:"no" description:"Enable jobs for this project"`
+	WikiEnabled                               *bool     `flag_name:"wiki_enabled" type:"bool" required:"no" description:"Enable wiki for this project"`
+	SnippetsEnabled                           *bool     `flag_name:"snippets_enabled" type:"bool" required:"no" description:"Enable snippets for this project"`
+	ResolveOutdatedDiffDiscussions            *bool     `flag_name:"resolve_outdated_diff_discussions" type:"bool" required:"no" description:"Automatically resolve merge request diffs discussions on lines changed with a push"`
+	ContainerRegistryEnabled                  *bool     `flag_name:"container_registry_enabled" type:"bool" required:"no" description:"Enable container registry for this project"`
+	SharedRunnersEnabled                      *bool     `flag_name:"shared_runners_enabled" type:"bool" required:"no" description:"Enable shared runners for this project"`
 	Visibility                                *string   `flag_name:"visibility" type:"string" required:"no" description:"See project visibility level"`
 	ImportUrl                                 *string   `flag_name:"import_url" type:"string" required:"no" description:"URL to import repository from"`
-	PublicJobs                                *bool     `flag_name:"public_jobs" type:"boolean" required:"no" description:"If true, jobs can be viewed by non-project-members"`
-	OnlyAllowMergeIfPipelineSucceeds          *bool     `flag_name:"only_allow_merge_if_pipeline_succeeds" type:"boolean" required:"no" description:"Set whether merge requests can only be merged with successful jobs"`
-	OnlyAllowMergeIfAllDiscussionsAreResolved *bool     `flag_name:"only_allow_merge_if_all_discussions_are_resolved" type:"boolean" required:"no" description:"Set whether merge requests can only be merged when all the discussions are resolved"`
-	LfsEnabled                                *bool     `flag_name:"lfs_enabled" type:"boolean" required:"no" description:"Enable LFS"`
-	RequestAccessEnabled                      *bool     `flag_name:"request_access_enabled" type:"boolean" required:"no" description:"Allow users to request member access"`
+	PublicJobs                                *bool     `flag_name:"public_jobs" type:"bool" required:"no" description:"If true, jobs can be viewed by non-project-members"`
+	OnlyAllowMergeIfPipelineSucceeds          *bool     `flag_name:"only_allow_merge_if_pipeline_succeeds" type:"bool" required:"no" description:"Set whether merge requests can only be merged with successful jobs"`
+	OnlyAllowMergeIfAllDiscussionsAreResolved *bool     `flag_name:"only_allow_merge_if_all_discussions_are_resolved" type:"bool" required:"no" description:"Set whether merge requests can only be merged when all the discussions are resolved"`
+	LfsEnabled                                *bool     `flag_name:"lfs_enabled" type:"bool" required:"no" description:"Enable LFS"`
+	RequestAccessEnabled                      *bool     `flag_name:"request_access_enabled" type:"bool" required:"no" description:"Allow users to request member access"`
 	TagList                                   *[]string `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
 	Avatar                                    *string   `flag_name:"avatar" type:"mixed" required:"no" description:"Image file for avatar of the project"`
-	PrintingMergeRequestLinkEnabled           *bool     `flag_name:"printing_merge_request_link_enabled" type:"boolean" required:"no" description:"Show link to create/view merge request when pushing from the command line"`
+	PrintingMergeRequestLinkEnabled           *bool     `flag_name:"printing_merge_request_link_enabled" type:"bool" required:"no" description:"Show link to create/view merge request when pushing from the command line"`
 	CiConfigPath                              *string   `flag_name:"ci_config_path" type:"string" required:"no" description:"The path to CI config file"`
 }
 
@@ -134,7 +152,7 @@ var projectCreateCmd = &cobra.Command{
 		//	NamespaceID: &groups[0].ID,
 		//}
 
-		opts, err := currParams2createProjectOpts()
+		opts, err := createProjectOpts(cmd)
 		if err != nil {
 			return err
 		}
@@ -146,64 +164,15 @@ var projectCreateCmd = &cobra.Command{
 	},
 }
 
-var projectDeleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete an existing project",
-	Long:  `Delete an existing project by either its project ID or namespace/project-name`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO maybe we want to return something upon success
-		// TODO do something useful with the response
-		_, err := gitlabClient.Projects.DeleteProject(id)
-		return err
-	},
-}
-
-func optsToFlags(opts interface{}, cmd *cobra.Command, rootCmd *cobra.Command) (*interface{}, error) {
-	v := reflect.ValueOf(opts).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		// this gives us the type of a struct field
-		//fieldType := v.Field(i).Type().String()
-		//fmt.Println(fieldType)
-
-		// this gives us the name of a struct field
-		//fieldName := v.Type().Field(i).Name
-		//fmt.Println(fieldName)
-
-		// this gives us the tag of a struct field
-		tag := v.Type().Field(i).Tag
-		//fmt.Println(string(tag))
-
-		f := v.Field(i)
-
-		// avoid usage of flag map and directly set values to opts struct
-		switch f.Type().String() {
-		case "*int":
-			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().Int(tag.Get("flag_name"), 0, tag.Get("description"))
-		case "*string":
-			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().String(tag.Get("flag_name"), "", tag.Get("description"))
-		case "*bool":
-			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().Bool(tag.Get("flag_name"), false, tag.Get("description"))
-		case "*[]string":
-			flagMap[tag.Get("flag_name")] = cmd.PersistentFlags().StringArray(tag.Get("flag_name"), nil, tag.Get("description"))
-		default:
-			panic("Unknown type " + f.Type().String())
-		}
-
-		// see https://stackoverflow.com/questions/6395076/using-reflect-how-do-you-set-the-value-of-a-struct-field
-		// see https://stackoverflow.com/questions/40060131/reflect-assign-a-pointer-struct-value
-		if f.IsValid() {
-			// A Value can be changed only if it is addressable and was not obtained by the use of unexported struct fields.
-			if f.CanSet() {
-				f.Set(reflect.ValueOf(flagMap[tag.Get("flag_name")]))
-			} else {
-				return nil, errors.New("can not set " + tag.Get("flag_name"))
-			}
-		} else {
-			return nil, errors.New(tag.Get("flag_name") + "is not valid")
-		}
+func createProjectOpts(cmd *cobra.Command) (*gitlab.CreateProjectOptions, error) {
+	var err error
+	createProjectOpts := &createOpts{}
+	createProjectParams, err = flagMapToOpts(createProjectOpts, cmd)
+	if err != nil {
+		return nil, err
 	}
-	rootCmd.AddCommand(cmd)
-	return &opts, nil
+
+	return currParams2createProjectOpts()
 }
 
 func currParams2createProjectOpts() (*gitlab.CreateProjectOptions, error) {
@@ -218,27 +187,29 @@ func currParams2createProjectOpts() (*gitlab.CreateProjectOptions, error) {
 	return opts, nil
 }
 
-func flagsToListOptions() *gitlab.ListProjectsOptions {
-	listOptions := &gitlab.ListProjectsOptions{
-		Archived:   &archived,
-		Membership: &membership,
-		Owned:      &owned,
-		Search:     &search,
-		Simple:     &simple,
-		Starred:    &starred,
-		Statistics: &statistics,
-	}
-	if orderBy != "" {
-		listOptions.OrderBy = &orderBy
-	}
-	if sort != "" {
-		listOptions.Sort = &sort
-	}
-	if visibility != "" {
-		listOptions.Visibility = str2Visibility(visibility)
-	}
-	return listOptions
+var projectDeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete an existing project",
+	Long:  `Delete an existing project by either its project ID or namespace/project-name`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO maybe we want to return something upon success
+		// TODO do something useful with the response
+		_, err := gitlabClient.Projects.DeleteProject(id)
+		return err
+	},
 }
+
+func currParams2listProjectOpts() (*gitlab.ListProjectsOptions, error) {
+	//listOpts, ok := (*listProjectParams).(*listOpts)
+	//if !ok {
+	//	return &gitlab.ListProjectsOptions{}, errors.New("casting of listOpts went wrong")
+	//}
+	opts := &gitlab.ListProjectsOptions{}
+	copier.Copy(opts, *listProjectParams)
+	return opts,nil
+}
+
+
 
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
@@ -249,30 +220,17 @@ func parsePid(value string) interface{} {
 }
 
 func init() {
-	createOpts := &createOpts{}
-	createProjectParams, _ = optsToFlags(createOpts, projectCreateCmd, projectCmd)
 	initProjectGetCommand()
-	initProjectDeleteCommand()
-	initProjectLsCommand()
-	RootCmd.AddCommand(projectCmd)
-}
 
-func initProjectLsCommand() {
-	projectListCmd.PersistentFlags().BoolVarP(&archived, "archived", "a", false, "(optional) Limit by archived status")
-	projectListCmd.PersistentFlags().StringVarP(&visibility, "visibility", "v", "", "(optional) Limit by visibility public, internal, or private")
-	projectListCmd.PersistentFlags().StringVarP(&orderBy, "order_by", "o", "", "(optional) Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at")
-	projectListCmd.PersistentFlags().StringVar(&sort, "sort", "", "(optional) Return projects sorted in asc or desc order. Default is desc")
-	projectListCmd.PersistentFlags().StringVar(&search, "search", "", "(optional) Return list of projects matching the search criteria")
-	projectListCmd.PersistentFlags().BoolVarP(&simple, "simple", "s", false, "(optional) Return only the ID, URL, name, and path of each project")
-	projectListCmd.PersistentFlags().BoolVarP(&owned, "owned", "", false, "(optional) Limit by projects owned by the current user")
-	projectListCmd.PersistentFlags().BoolVarP(&membership, "membership", "m", false, "(optional) Limit by projects that the current user is a member of")
-	projectListCmd.PersistentFlags().BoolVar(&starred, "starred", false, "(optional) Limit by projects starred by the current user")
-	projectListCmd.PersistentFlags().BoolVar(&statistics, "statistics", false, "(optional) Include project statistics")
-	// TODO not supported by go-gitlab
-	//projectListCmd.PersistentFlags().BoolVarP(listOptions.with_issues_enabled, "	with_issues_enabled", "", false, "(optional) Limit by enabled issues feature")
-	// TODO not supported by go-gitlab
-	//projectListCmd.PersistentFlags().BoolVarP(listOptions.with_merge_requests_enabled, "	with_merge_requests_enabled", "", false, "(optional) Limit by enabled merge requests feature	")
-	projectCmd.AddCommand(projectListCmd)
+	createOpts := &createOpts{}
+	createProjectParams, _ = paramsToMap(createOpts, projectCreateCmd, projectCmd)
+
+	listOpts := &listOpts{}
+	listProjectParams, _ = paramsToMap(listOpts, projectListCmd, projectCmd)
+
+	initProjectDeleteCommand()
+
+	RootCmd.AddCommand(projectCmd)
 }
 
 func initProjectGetCommand() {
@@ -286,4 +244,68 @@ func initProjectDeleteCommand() {
 	projectDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
 	viper.BindPFlag("id", projectDeleteCmd.PersistentFlags().Lookup("id"))
 	projectCmd.AddCommand(projectDeleteCmd)
+}
+
+func paramsToMap(opts interface{}, cmd *cobra.Command, baseCmd *cobra.Command) (*interface{}, error) {
+	v := reflect.ValueOf(opts).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		// this gives us the type of a struct field
+		//fieldType := v.Field(i).Type().String()
+		//fmt.Println(fieldType)
+
+		// this gives us the name of a struct field
+		//fieldName := v.Type().Field(i).Name
+		//fmt.Println(fieldName)
+
+		// this gives us the tag of a struct field
+		tag := v.Type().Field(i).Tag
+		f := v.Field(i)
+
+		// avoid usage of flag map and directly set values to opts struct
+		flagName := tag.Get("flag_name")
+		switch f.Type().String() {
+		case "*int":
+			flagMap[flagName] = cmd.PersistentFlags().Int(flagName, 0, tag.Get("description"))
+		case "*string":
+			flagMap[flagName] = cmd.PersistentFlags().String(flagName, "", tag.Get("description"))
+		case "*bool":
+			flagMap[flagName] = cmd.PersistentFlags().Bool(flagName, false, tag.Get("description"))
+		case "*[]string":
+			flagMap[flagName] = cmd.PersistentFlags().StringArray(flagName, nil, tag.Get("description"))
+		default:
+			panic("Unknown type " + f.Type().String())
+		}
+
+	}
+	baseCmd.AddCommand(cmd)
+	return &opts, nil
+}
+
+func flagMapToOpts(opts interface{}, cmd *cobra.Command) (*interface{}, error) {
+	v := reflect.ValueOf(opts).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		tag := v.Type().Field(i).Tag
+
+		flagName := tag.Get("flag_name")
+		flagChanged := cmd.PersistentFlags().Changed(flagName)
+
+		// see https://stackoverflow.com/questions/6395076/using-reflect-how-do-you-set-the-value-of-a-struct-field
+		// see https://stackoverflow.com/questions/40060131/reflect-assign-a-pointer-struct-value
+		if f.IsValid() {
+			// A Value can be changed only if it is addressable and was not obtained by the use of unexported struct fields.
+			if f.CanSet() {
+				if flagChanged {
+					f.Set(reflect.ValueOf(flagMap[flagName]))
+				} else {
+					// TODO implement an additional tag that allows setting of "default" values
+				}
+			} else {
+				return nil, errors.New("can not set " + flagName)
+			}
+		} else {
+			return nil, errors.New(flagName + "is not valid")
+		}
+	}
+	return &opts, nil
 }
