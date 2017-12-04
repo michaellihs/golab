@@ -183,7 +183,9 @@ func currParams2createProjectOpts() (*gitlab.CreateProjectOptions, error) {
 	}
 	opts := &gitlab.CreateProjectOptions{}
 	copier.Copy(opts, *createProjectParams)
-	opts.Visibility = str2Visibility(*createOpts.Visibility)
+	if createOpts.Visibility != nil {
+		opts.Visibility = str2Visibility(*createOpts.Visibility)
+	}
 	return opts, nil
 }
 
