@@ -40,6 +40,13 @@ var _ = Describe("FlagMapper", func() {
 		Flag4 *[]string
 	}
 
+	type testOptsNonMatching struct {
+		Flag1 *bool
+		Flag2 *string
+		Flag3 *int
+		Flag4 *string   // non matching with flags
+	}
+
 	It("provides a constructor that takes a cobra command as parameter", func() {
 		mockCmd := mockCmd()
 		var flagMapper = New(mockCmd)
@@ -70,7 +77,7 @@ var _ = Describe("FlagMapper", func() {
 		Expect(mockCmd.Flag("flag4").Shorthand).To(Equal(""))
 	})
 
-	It("maps args to given struct as expected", func() {
+	It("maps valid args to given struct as expected", func() {
 		flags := &testFlags{}
 		opts := &testOpts{}
 		mockCmd := mockCmd()
@@ -87,7 +94,32 @@ var _ = Describe("FlagMapper", func() {
 		Expect(*opts.Flag4).Should(ConsistOf("v1, v2, v3"))
 	})
 
+	It("skips args with non-matching types as expected", func() {
+		flags := &testFlags{}
+		opts := &testOptsNonMatching{}
+		mockCmd := mockCmd()
+		var flagMapper = New(mockCmd)
+		flagMapper.SetFlags(flags)
+
+		executeCommand(mockCmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3")
+		flagMapper.Map(flags, opts)
+
+		Expect(opts.Flag4).To(BeNil())
+	})
+
 })
+
+
+
+
+
+
+
+
+
+
+
+// TODO put the following methods into a testhelper
 
 // see https://github.com/spf13/cobra/blob/master/command_test.go for basic implementation of this method
 func executeCommand(root *Command, args ...string) (stdout string, output string, err error) {

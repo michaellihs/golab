@@ -62,19 +62,27 @@ func (m FlagMapper) Map(flags interface{}, opts interface{}) {
 					case "*int":
 						value, err := m.cmd.PersistentFlags().GetInt(flagName)
 						if err != nil { panic(err.Error()) }
-						opt.Set(reflect.ValueOf(&value))
+						if typesMatch(opt, &value) {
+							opt.Set(reflect.ValueOf(&value))
+						}
 					case "*string":
 						value, err := m.cmd.PersistentFlags().GetString(flagName)
 						if err != nil { panic(err.Error()) }
-						opt.Set(reflect.ValueOf(&value))
+						if typesMatch(opt, &value) {
+							opt.Set(reflect.ValueOf(&value))
+						}
 					case "*bool":
 						value, err := m.cmd.PersistentFlags().GetBool(flagName)
 						if err != nil { panic(err.Error()) }
-						opt.Set(reflect.ValueOf(&value))
+						if typesMatch(opt, &value) {
+							opt.Set(reflect.ValueOf(&value))
+						}
 					case "*[]string":
 						value, err := m.cmd.PersistentFlags().GetStringArray(flagName)
 						if err != nil { panic(err.Error()) }
-						opt.Set(reflect.ValueOf(&value))
+						if typesMatch(opt, &value) {
+							opt.Set(reflect.ValueOf(&value))
+						}
 					default:
 						panic("Unknown type " + f.Type().String())
 					}
@@ -89,4 +97,11 @@ func (m FlagMapper) Map(flags interface{}, opts interface{}) {
 			panic(flagName + "is not valid")
 		}
 	}
+}
+
+func typesMatch(target reflect.Value, source interface{}) bool {
+	targetType := target.Type().String()
+	sourceType := reflect.ValueOf(source).Type().String()
+
+	return targetType == sourceType
 }
