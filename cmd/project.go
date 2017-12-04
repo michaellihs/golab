@@ -29,7 +29,10 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"github.com/spf13/viper"
 	"github.com/jinzhu/copier"
+	"github.com/michaellihs/golab/cmd/mapper"
 )
+
+var createOptsMapper mapper.FlagMapper
 
 var name string
 var id int
@@ -152,7 +155,7 @@ var projectCreateCmd = &cobra.Command{
 		//	NamespaceID: &groups[0].ID,
 		//}
 
-		opts, err := createProjectOpts(cmd)
+		opts, err := createProjectOpts()
 		if err != nil {
 			return err
 		}
@@ -164,27 +167,12 @@ var projectCreateCmd = &cobra.Command{
 	},
 }
 
-func createProjectOpts(cmd *cobra.Command) (*gitlab.CreateProjectOptions, error) {
-	var err error
-	createProjectOpts := &createOpts{}
-	createProjectParams, err = flagMapToOpts(createProjectOpts, cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	return currParams2createProjectOpts()
-}
-
-func currParams2createProjectOpts() (*gitlab.CreateProjectOptions, error) {
-	//// TODO how can we de-pointer this?
-	createOpts, ok := (*createProjectParams).(*createOpts)
-	if !ok {
-		return &gitlab.CreateProjectOptions{}, errors.New("casting of createOpts went wrong")
-	}
+func createProjectOpts() (*gitlab.CreateProjectOptions, error) {
+	flags := &createOpts{}
 	opts := &gitlab.CreateProjectOptions{}
-	copier.Copy(opts, *createProjectParams)
-	if createOpts.Visibility != nil {
-		opts.Visibility = str2Visibility(*createOpts.Visibility)
+	createOptsMapper.Map(flags, opts)
+	if flags.Visibility != nil {
+		opts.Visibility = str2Visibility(*flags.Visibility)
 	}
 	return opts, nil
 }
@@ -222,10 +210,8 @@ func parsePid(value string) interface{} {
 }
 
 func init() {
-	initProjectGetCommand()
-
-	createOpts := &createOpts{}
-	createProjectParams, _ = paramsToMap(createOpts, projectCreateCmd, projectCmd)
+	initProjectGetCmd()
+	initProjectCreateCmd()
 
 	listOpts := &listOpts{}
 	listProjectParams, _ = paramsToMap(listOpts, projectListCmd, projectCmd)
@@ -235,11 +221,18 @@ func init() {
 	RootCmd.AddCommand(projectCmd)
 }
 
-func initProjectGetCommand() {
+func initProjectGetCmd() {
 	projectGetCmd.PersistentFlags().StringVarP(&pid, "id", "i", "", "(required) Either the project ID (numeric) or 'namespace/project-name'")
 	// TODO currently not supported by go-gitlab
 	projectGetCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) Include project statistics")
 	projectCmd.AddCommand(projectGetCmd)
+}
+
+func initProjectCreateCmd() {
+	createFlags := &createOpts{}
+	createOptsMapper = mapper.New(projectCreateCmd)
+	createOptsMapper.SetFlags(createFlags)
+	projectCmd.AddCommand(projectCreateCmd)
 }
 
 func initProjectDeleteCommand() {
