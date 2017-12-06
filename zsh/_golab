@@ -25,7 +25,7 @@ case $state in
         _arguments '2: :(add delete edit get ls sync)'
       ;;
       project)
-        _arguments '2: :(create delete edit get ls)'
+        _arguments '2: :(create delete edit fork get ls)'
       ;;
       user)
         _arguments '2: :(activities create delete emails get impersonation-token ls modify ssh-keys)'

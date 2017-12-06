@@ -29,7 +29,7 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper mapper.FlagMapper
 
 var id int
 
@@ -184,34 +184,34 @@ func createProjectOpts() (*gitlab.CreateProjectOptions, error) {
 }
 
 type editOpts struct {
-	Id                                        *string  `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
-	Name                                      *string  `flag_name:"name" type:"string" required:"yes" description:"The name of the project"`
-	Path                                      *string  `flag_name:"path" type:"string" required:"no" description:"Custom repository name for the project. By default generated based on name"`
-	DefaultBranch                             *string  `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`
-	Description                               *string  `flag_name:"description" type:"string" required:"no" description:"Short project description"`
-	IssuesEnabled                             *bool `flag_name:"issues_enabled" type:"bool" required:"no" description:"Enable issues for this project"`
-	MergeRequestsEnabled                      *bool `flag_name:"merge_requests_enabled" type:"bool" required:"no" description:"Enable merge requests for this project"`
-	JobsEnabled                               *bool `flag_name:"jobs_enabled" type:"bool" required:"no" description:"Enable jobs for this project"`
-	WikiEnabled                               *bool `flag_name:"wiki_enabled" type:"bool" required:"no" description:"Enable wiki for this project"`
-	SnippetsEnabled                           *bool `flag_name:"snippets_enabled" type:"bool" required:"no" description:"Enable snippets for this project"`
-	ResolveOutdatedDiffDiscussions            *bool `flag_name:"resolve_outdated_diff_discussions" type:"bool" required:"no" description:"Automatically resolve merge request diffs discussions on lines changed with a push"`
-	ContainerRegistryEnabled                  *bool `flag_name:"container_registry_enabled" type:"bool" required:"no" description:"Enable container registry for this project"`
-	SharedRunnersEnabled                      *bool `flag_name:"shared_runners_enabled" type:"bool" required:"no" description:"Enable shared runners for this project"`
-	Visibility                                *string  `flag_name:"visibility" type:"string" required:"no" description:"See project visibility level"`
-	ImportUrl                                 *string  `flag_name:"import_url" type:"string" required:"no" description:"URL to import repository from"`
-	PublicJobs                                *bool `flag_name:"public_jobs" type:"bool" required:"no" description:"If true, jobs can be viewed by non-project-members"`
-	OnlyAllowMergeIfPipelineSucceeds          *bool `flag_name:"only_allow_merge_if_pipeline_succeeds" type:"bool" required:"no" description:"Set whether merge requests can only be merged with successful jobs"`
-	OnlyAllowMergeIfAllDiscussionsAreResolved *bool `flag_name:"only_allow_merge_if_all_discussions_are_resolved" type:"bool" required:"no" description:"Set whether merge requests can only be merged when all the discussions are resolved"`
-	LfsEnabled                                *bool `flag_name:"lfs_enabled" type:"bool" required:"no" description:"Enable LFS"`
-	RequestAccessEnabled                      *bool `flag_name:"request_access_enabled" type:"bool" required:"no" description:"Allow users to request member access"`
-	TagList                                   *[]string   `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
-	CiConfigPath                              *string  `flag_name:"ci_config_path" type:"string" required:"no" description:"The path to CI config file"`
+	Id                                        *string   `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Name                                      *string   `flag_name:"name" type:"string" required:"yes" description:"The name of the project"`
+	Path                                      *string   `flag_name:"path" type:"string" required:"no" description:"Custom repository name for the project. By default generated based on name"`
+	DefaultBranch                             *string   `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`
+	Description                               *string   `flag_name:"description" type:"string" required:"no" description:"Short project description"`
+	IssuesEnabled                             *bool     `flag_name:"issues_enabled" type:"bool" required:"no" description:"Enable issues for this project"`
+	MergeRequestsEnabled                      *bool     `flag_name:"merge_requests_enabled" type:"bool" required:"no" description:"Enable merge requests for this project"`
+	JobsEnabled                               *bool     `flag_name:"jobs_enabled" type:"bool" required:"no" description:"Enable jobs for this project"`
+	WikiEnabled                               *bool     `flag_name:"wiki_enabled" type:"bool" required:"no" description:"Enable wiki for this project"`
+	SnippetsEnabled                           *bool     `flag_name:"snippets_enabled" type:"bool" required:"no" description:"Enable snippets for this project"`
+	ResolveOutdatedDiffDiscussions            *bool     `flag_name:"resolve_outdated_diff_discussions" type:"bool" required:"no" description:"Automatically resolve merge request diffs discussions on lines changed with a push"`
+	ContainerRegistryEnabled                  *bool     `flag_name:"container_registry_enabled" type:"bool" required:"no" description:"Enable container registry for this project"`
+	SharedRunnersEnabled                      *bool     `flag_name:"shared_runners_enabled" type:"bool" required:"no" description:"Enable shared runners for this project"`
+	Visibility                                *string   `flag_name:"visibility" type:"string" required:"no" description:"See project visibility level"`
+	ImportUrl                                 *string   `flag_name:"import_url" type:"string" required:"no" description:"URL to import repository from"`
+	PublicJobs                                *bool     `flag_name:"public_jobs" type:"bool" required:"no" description:"If true, jobs can be viewed by non-project-members"`
+	OnlyAllowMergeIfPipelineSucceeds          *bool     `flag_name:"only_allow_merge_if_pipeline_succeeds" type:"bool" required:"no" description:"Set whether merge requests can only be merged with successful jobs"`
+	OnlyAllowMergeIfAllDiscussionsAreResolved *bool     `flag_name:"only_allow_merge_if_all_discussions_are_resolved" type:"bool" required:"no" description:"Set whether merge requests can only be merged when all the discussions are resolved"`
+	LfsEnabled                                *bool     `flag_name:"lfs_enabled" type:"bool" required:"no" description:"Enable LFS"`
+	RequestAccessEnabled                      *bool     `flag_name:"request_access_enabled" type:"bool" required:"no" description:"Allow users to request member access"`
+	TagList                                   *[]string `flag_name:"tag_list" type:"array" required:"no" description:"The list of tags for a project; put array of tags, that should be finally assigned to a project"`
+	CiConfigPath                              *string   `flag_name:"ci_config_path" type:"string" required:"no" description:"The path to CI config file"`
 }
 
 var projectEditCmd = &cobra.Command{
-	Use: "edit",
+	Use:   "edit",
 	Short: "Edit project",
-	Long: `Updates an existing project.`,
+	Long:  `Updates an existing project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		opts, err := editProjectOpts()
 		if err != nil {
@@ -230,6 +230,35 @@ func editProjectOpts() (*gitlab.EditProjectOptions, error) {
 	flags := &editOpts{}
 	opts := &gitlab.EditProjectOptions{}
 	editOptsMapper.Map(flags, opts)
+	return opts, nil
+}
+
+type forkOpts struct {
+	Id        *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Namespace *string `flag_name:"namespace" type:"integer/string" required:"yes" description:"The ID or path of the namespace that the project will be forked to"`
+}
+
+var projectForkCmd = &cobra.Command{
+	Use:   "fork",
+	Short: "Fork project",
+	Long: `Forks a project into the user namespace of the authenticated user or the one provided.
+
+The forking operation for a project is asynchronous and is completed in a background job. The request will return immediately. To determine whether the fork of the project has completed, query the import_status for the new project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		opts, err := forkProjectOpts()
+		// TODO target namespace is currently not supported by go-gitlab
+		project, _, err := gitlabClient.Projects.ForkProject(*opts.Id)
+		if err != nil {
+			return err
+		}
+		return OutputJson(project)
+	},
+}
+
+func forkProjectOpts() (*forkOpts, error) {
+	flags := &forkOpts{}
+	opts := &forkOpts{}
+	forkOptsMapper.Map(flags, opts)
 	return opts, nil
 }
 
@@ -258,6 +287,7 @@ func init() {
 	initProjectGetCmd()
 	initProjectCreateCmd()
 	initProjectEditCmd()
+	initProjectForkCmd()
 	initProjectDeleteCommand()
 	RootCmd.AddCommand(projectCmd)
 }
@@ -288,6 +318,13 @@ func initProjectEditCmd() {
 	editOptsMapper = mapper.New(projectEditCmd)
 	editOptsMapper.SetFlags(flags)
 	projectCmd.AddCommand(projectEditCmd)
+}
+
+func initProjectForkCmd() {
+	flags := &forkOpts{}
+	forkOptsMapper = mapper.New(projectForkCmd)
+	forkOptsMapper.SetFlags(flags)
+	projectCmd.AddCommand(projectForkCmd)
 }
 
 func initProjectDeleteCommand() {

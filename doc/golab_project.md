@@ -30,6 +30,7 @@ golab project [flags]
 * [golab project create](golab_project_create.md)	 - Create a new project
 * [golab project delete](golab_project_delete.md)	 - Delete an existing project
 * [golab project edit](golab_project_edit.md)	 - Edit project
+* [golab project fork](golab_project_fork.md)	 - Fork project
 * [golab project get](golab_project_get.md)	 - Get detailed information for a project
 * [golab project ls](golab_project_ls.md)	 - List all projects
 
