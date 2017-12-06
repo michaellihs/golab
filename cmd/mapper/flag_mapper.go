@@ -105,7 +105,8 @@ func (m FlagMapper) Map(flags interface{}, opts interface{}) {
 					panic(fieldName + " can not be set")
 				}
 			} else {
-				panic(fieldName + " is not valid")
+				// we want to ignore flags, that are not available in opts
+				// panic(fieldName + " is not valid")
 			}
 		}
 	}

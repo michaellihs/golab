@@ -56,6 +56,15 @@ var _ = Describe("FlagMapper", func() {
 		Flag1 *gitlab.VisibilityValue
 	}
 
+	type testFlagsWithPropertyNotInOpts struct {
+		Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"id"`
+		Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"name"`
+	}
+
+	type testOptsWithMissingProperty struct {
+		Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"name"`
+	}
+
 	It("provides a constructor that takes a cobra command as parameter", func() {
 		mockCmd := mockCmd()
 		var flagMapper = New(mockCmd)
@@ -127,6 +136,19 @@ var _ = Describe("FlagMapper", func() {
 		flagMapper.Map(flags, opts)
 
 		Expect(*opts.Flag1).To(Equal(*gitlab.Visibility(gitlab.PrivateVisibility)))
+	})
+
+	It("silently ignores properties in flags that are not available in opts", func() {
+		flags := &testFlagsWithPropertyNotInOpts{}
+		opts := &testOptsWithMissingProperty{}
+		mockCmd := mockCmd()
+		var flagMapper = New(mockCmd)
+		flagMapper.SetFlags(flags)
+
+		executeCommand(mockCmd, "mock", "-i", "34", "-n", "name")
+		flagMapper.Map(flags, opts)
+
+		Expect(*opts.Name).To(Equal("name"))
 	})
 
 })

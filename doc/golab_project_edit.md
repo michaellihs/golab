@@ -1,36 +1,34 @@
-## golab project create
+## golab project edit
 
-Create a new project
+Edit project
 
 ### Synopsis
 
 
-Create a new project for the given parameters
+Updates an existing project.
 
 ```
-golab project create [flags]
+golab project edit [flags]
 ```
 
 ### Options
 
 ```
-      --avatar string                                      Image file for avatar of the project
       --ci_config_path string                              The path to CI config file
       --container_registry_enabled                         Enable container registry for this project
       --default_branch string                              master by default
       --description string                                 Short project description
-  -h, --help                                               help for create
+  -h, --help                                               help for edit
+  -i, --id string                                          The ID or URL-encoded path of the project
       --import_url string                                  URL to import repository from
       --issues_enabled                                     Enable issues for this project
       --jobs_enabled                                       Enable jobs for this project
       --lfs_enabled                                        Enable LFS
       --merge_requests_enabled                             Enable merge requests for this project
-      --name string                                        The name of the new project
-      --namespace_id int                                   Namespace ID (Group ID) for the new project (defaults to the current user's namespace)
+      --name string                                        The name of the project
       --only_allow_merge_if_all_discussions_are_resolved   Set whether merge requests can only be merged when all the discussions are resolved
       --only_allow_merge_if_pipeline_succeeds              Set whether merge requests can only be merged with successful jobs
-      --path string                                        Custom repository name for new project.By default generated based on name
-      --printing_merge_request_link_enabled                Show link to create/view merge request when pushing from the command line
+      --path string                                        Custom repository name for the project. By default generated based on name
       --public_jobs                                        If true, jobs can be viewed by non-project-members
       --request_access_enabled                             Allow users to request member access
       --resolve_outdated_diff_discussions                  Automatically resolve merge request diffs discussions on lines changed with a push
