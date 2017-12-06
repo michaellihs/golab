@@ -29,7 +29,7 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper mapper.FlagMapper
 
 var id int
 
@@ -85,9 +85,9 @@ func createListOpts() (*gitlab.ListProjectsOptions, error) {
 }
 
 type getFlags struct {
-	Id         *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"either the project ID (numeric) or 'namespace/project-name'"`
+	Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"either the project ID (numeric) or 'namespace/project-name'"`
 	// TODO currently not supported by go-gitlab
-	Statistics *bool   `flag_name:"statistics" short:"s" required:"no" description:"include project statistics"`
+	Statistics *bool `flag_name:"statistics" short:"s" required:"no" description:"include project statistics"`
 }
 
 var projectGetCmd = &cobra.Command{
@@ -262,6 +262,41 @@ func forkProjectOpts() (*forkOpts, error) {
 	return opts, nil
 }
 
+type listForksOpts struct {
+	Id                       *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Archived                 *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
+	Visibility               *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
+	OrderBy                  *string `flag_name:"order_by" type:"string" required:"no" description:"Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at"`
+	Sort                     *string `flag_name:"sort" type:"string" required:"no" description:"Return projects sorted in asc or desc order. Default is desc"`
+	Search                   *string `flag_name:"search" type:"string" required:"no" description:"Return list of projects matching the search criteria"`
+	Simple                   *bool   `flag_name:"simple" type:"bool" required:"no" description:"Return only the ID, URL, name, and path of each project"`
+	Owned                    *bool   `flag_name:"owned" type:"bool" required:"no" description:"Limit by projects owned by the current user"`
+	Membership               *bool   `flag_name:"membership" type:"bool" required:"no" description:"Limit by projects that the current user is a member of"`
+	Starred                  *bool   `flag_name:"starred" type:"bool" required:"no" description:"Limit by projects starred by the current user"`
+	Statistics               *bool   `flag_name:"statistics" type:"bool" required:"no" description:"Include project statistics"`
+	WithIssuesEnabled        *bool   `flag_name:"with_issues_enabled" type:"bool" required:"no" description:"Limit by enabled issues feature"`
+	WithMergeRequestsEnabled *bool   `flag_name:"with_merge_requests_enabled" type:"bool" required:"no" description:"Limit by enabled merge requests feature"`
+}
+
+var projectListForksCmd = &cobra.Command{
+	Use:   "list-forks",
+	Short: "List Forks of a project",
+	Long:  `List the projects accessible to the calling user that have an established, forked relationship with the specified project (available since Gitlab 10.1).`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO currently not available in go-gitlab
+		//opts := listForkOpts()
+		return errors.New("list forks of a project is currently not implemented")
+	},
+}
+
+// TODO currently not available in go-gitlab
+//func listForkOpts() gitlab.ListForkOptions, err {
+//	flags := &listForksOpts{}
+//	opts := &gitlab.ListForkOptions{}
+//	listForksOptsMapper.Map(flags, opts)
+//	return opts, nil
+//}
+
 var projectDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete an existing project",
@@ -288,6 +323,7 @@ func init() {
 	initProjectCreateCmd()
 	initProjectEditCmd()
 	initProjectForkCmd()
+	initProjectListForksCmd()
 	initProjectDeleteCommand()
 	RootCmd.AddCommand(projectCmd)
 }
@@ -325,6 +361,13 @@ func initProjectForkCmd() {
 	forkOptsMapper = mapper.New(projectForkCmd)
 	forkOptsMapper.SetFlags(flags)
 	projectCmd.AddCommand(projectForkCmd)
+}
+
+func initProjectListForksCmd() {
+	flags := &listForksOpts{}
+	listForksOptsMapper = mapper.New(projectListForksCmd)
+	listForksOptsMapper.SetFlags(flags)
+	projectCmd.AddCommand(projectListForksCmd)
 }
 
 func initProjectDeleteCommand() {
