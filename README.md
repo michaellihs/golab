@@ -131,8 +131,8 @@ Translate API Doc into Flag Structs
 
 Regular expression for replace in IntelliJ
 
-    \s+([^\s]+?)\s+([^\s]+?)\s+([^\s]+?)\s+(.+)
-    $1 *$2 `flag_name:"$1" type:"$2" required:"$3" description:"$4"`\n
+    (\s+)([^\s]+?)\s+([^\s]+?)\s+([^\s]+?)\s+(.+)
+    $1$2 *$3 `flag_name:"$2" type:"$3" required:"$4" description:"$5"`
 
 
 Gitlab Docker Image
