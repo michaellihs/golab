@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 func mockCmd() *Command {
@@ -29,8 +30,8 @@ var _ = Describe("FlagMapper", func() {
 	type testFlags struct {
 		Flag1 *bool     `flag_name:"flag1" short:"f" type:"bool" required:"no" description:"first flag"`
 		Flag2 *string   `flag_name:"flag2" type:"string" required:"no" description:"second flag"`
-		Flag3 *int      `flag_name:"flag3" type:"string" required:"no" description:"second flag"`
-		Flag4 *[]string `flag_name:"flag4" type:"string" required:"no" description:"second flag"`
+		Flag3 *int      `flag_name:"flag3" type:"string" required:"no" description:"third flag"`
+		Flag4 *[]string `flag_name:"flag4" type:"string" required:"no" description:"fourth flag"`
 	}
 
 	type testOpts struct {
@@ -45,6 +46,14 @@ var _ = Describe("FlagMapper", func() {
 		Flag2 *string
 		Flag3 *int
 		Flag4 *string   // non matching with flags
+	}
+
+	type testFlagsWithTransformation struct {
+		Flag1 *string   `flag_name:"visibility" type:"bool" required:"no" description:"first flag" transform:"string2visibility"`
+	}
+
+	type optsRequireTransformation struct {
+		Flag1 *gitlab.VisibilityValue
 	}
 
 	It("provides a constructor that takes a cobra command as parameter", func() {
@@ -105,6 +114,19 @@ var _ = Describe("FlagMapper", func() {
 		flagMapper.Map(flags, opts)
 
 		Expect(opts.Flag4).To(BeNil())
+	})
+
+	It("calls a transform function as expected", func() {
+		flags := &testFlagsWithTransformation{}
+		opts := &optsRequireTransformation{}
+		mockCmd := mockCmd()
+		var flagMapper = New(mockCmd)
+		flagMapper.SetFlags(flags)
+
+		executeCommand(mockCmd, "mock", "--visibility", "private")
+		flagMapper.Map(flags, opts)
+
+		Expect(*opts.Flag1).To(Equal(*gitlab.Visibility(gitlab.PrivateVisibility)))
 	})
 
 })
