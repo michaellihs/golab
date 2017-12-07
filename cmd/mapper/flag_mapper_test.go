@@ -120,6 +120,20 @@ var _ = Describe("FlagMapper", func() {
 		Expect(mockCmd.Flag("flag4").Shorthand).To(Equal(""))
 	})
 
+	It("maps flags and opts as expected with AutoMap", func() {
+		mockCmd := mockCmd()
+		var mapper = InitializedMapper(mockCmd, &testFlags{}, &testOpts{})
+
+		executeCommand(mockCmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3")
+		_,_,err := mapper.AutoMap()
+		flags := mapper.MappedFlags().(*testFlags)
+		opts := mapper.MappedOpts().(*testOpts)
+
+		Expect(err).To(BeNil())
+		Expect(*flags.Flag1).To(Equal(true))
+		Expect(*opts.Flag1).To(Equal(true))
+	})
+
 	It("maps valid args to given opts struct as expected", func() {
 		flags := &testFlags{}
 		opts := &testOpts{}

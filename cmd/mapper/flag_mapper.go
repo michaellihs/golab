@@ -29,11 +29,23 @@ import (
 )
 
 type FlagMapper struct {
-	cmd *cobra.Command
+	cmd   *cobra.Command
+	flags interface{}
+	opts  interface{}
 }
 
 func New(cmd *cobra.Command) FlagMapper {
 	return FlagMapper{cmd: cmd}
+}
+
+func InitializedMapper(cmd *cobra.Command, flags interface{}, opts interface{}) FlagMapper {
+	mapper := FlagMapper{
+		cmd:   cmd,
+		flags: flags,
+		opts:  opts,
+	}
+	mapper.SetFlags(flags)
+	return mapper
 }
 
 func (m FlagMapper) SetFlags(flags interface{}) {
@@ -58,6 +70,7 @@ func (m FlagMapper) SetFlags(flags interface{}) {
 		}
 	}
 }
+
 func flagUsage(tag reflect.StructTag) string {
 	description := tag.Get("description")
 	required := tag.Get("required")
@@ -68,6 +81,19 @@ func flagUsage(tag reflect.StructTag) string {
 		usage = "(optional) "
 	}
 	return usage + description
+}
+
+func (m FlagMapper) AutoMap() (interface{}, interface{}, error) {
+	m.Map(m.flags, m.opts)
+	return m.flags, m.opts, nil
+}
+
+func (m FlagMapper) MappedOpts() interface{} {
+	return m.opts
+}
+
+func (m FlagMapper) MappedFlags() interface{} {
+	return m.flags
 }
 
 func (m FlagMapper) Map(flags interface{}, opts interface{}) {

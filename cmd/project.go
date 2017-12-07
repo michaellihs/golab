@@ -61,20 +61,14 @@ var projectListCmd = &cobra.Command{
 	Short: "List all projects",
 	Long:  `Get a list of all visible projects across GitLab for the authenticated user.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		opts, err := createListOpts()
+		_, _, err := listOptsMapper.AutoMap()
+		opts := listOptsMapper.MappedOpts().(*gitlab.ListProjectsOptions)
 		projects, _, err := gitlabClient.Projects.ListProjects(opts)
 		if err != nil {
 			return err
 		}
 		return OutputJson(projects)
 	},
-}
-
-func createListOpts() (*gitlab.ListProjectsOptions, error) {
-	opts := &gitlab.ListProjectsOptions{}
-	flags := &listFlags{}
-	listOptsMapper.Map(flags, opts)
-	return opts, nil
 }
 
 type getFlags struct {
@@ -88,11 +82,12 @@ var projectGetCmd = &cobra.Command{
 	Short: "Get detailed information for a project",
 	Long:  `Get detailed information for a project identified by either project ID or 'namespace/project-name'`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		opts, err := initProjectGetOpts()
-		if *opts.Id == "" {
+		_, _, err := getOptsMapper.AutoMap()
+		flags := getOptsMapper.MappedOpts().(*getFlags)
+		if *flags.Id == "" {
 			return errors.New("you have to provide a project ID or 'namespace/project-name' with the -i --id flag")
 		}
-		project, _, err := gitlabClient.Projects.GetProject(parsePid(*opts.Id)) // make sure, parsedPid is of type int if numeric
+		project, _, err := gitlabClient.Projects.GetProject(parsePid(*flags.Id)) // make sure, parsedPid is of type int if numeric
 		if err != nil {
 			return err
 		}
@@ -100,15 +95,8 @@ var projectGetCmd = &cobra.Command{
 	},
 }
 
-func initProjectGetOpts() (*getFlags, error) {
-	flags := &getFlags{}
-	opts := &getFlags{}
-	getOptsMapper.Map(flags, opts)
-	return opts, nil
-}
-
-type createOpts struct {
-	Name                                      *string   `flag_name:"name" type:"string" required:"yes" description:"The name of the new project"`
+type createFlags struct {
+	Name                                      *string   `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the new project"`
 	Path                                      *string   `flag_name:"path" type:"string" required:"no" description:"Custom repository name for new project.By default generated based on name"`
 	DefaultBranch                             *string   `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`
 	NamespaceID                               *int      `flag_name:"namespace_id" type:"integer" required:"no" description:"Namespace ID (Group ID) for the new project (defaults to the current user's namespace)"`
@@ -154,7 +142,8 @@ var projectCreateCmd = &cobra.Command{
 		//	NamespaceID: &groups[0].ID,
 		//}
 
-		opts, err := createProjectOpts()
+		_, _, err := createOptsMapper.AutoMap()
+		opts := createOptsMapper.MappedOpts().(*gitlab.CreateProjectOptions)
 		if err != nil {
 			return err
 		}
@@ -166,19 +155,9 @@ var projectCreateCmd = &cobra.Command{
 	},
 }
 
-func createProjectOpts() (*gitlab.CreateProjectOptions, error) {
-	flags := &createOpts{}
-	opts := &gitlab.CreateProjectOptions{}
-	createOptsMapper.Map(flags, opts)
-	if flags.Visibility != nil {
-		opts.Visibility = str2Visibility(*flags.Visibility)
-	}
-	return opts, nil
-}
-
-type editOpts struct {
+type editFlags struct {
 	Id                                        *string   `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
-	Name                                      *string   `flag_name:"name" type:"string" required:"yes" description:"The name of the project"`
+	Name                                      *string   `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the project"`
 	Path                                      *string   `flag_name:"path" type:"string" required:"no" description:"Custom repository name for the project. By default generated based on name"`
 	DefaultBranch                             *string   `flag_name:"default_branch" type:"string" required:"no" description:"master by default"`
 	Description                               *string   `flag_name:"description" type:"string" required:"no" description:"Short project description"`
@@ -206,27 +185,18 @@ var projectEditCmd = &cobra.Command{
 	Short: "Edit project",
 	Long:  `Updates an existing project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		opts, err := editProjectOpts()
+		editOptsMapper.AutoMap()
+		opts := editOptsMapper.MappedOpts().(*gitlab.EditProjectOptions)
+		flags := editOptsMapper.MappedFlags().(*editFlags)
+		project, _, err := gitlabClient.Projects.EditProject(*flags.Id, opts)
 		if err != nil {
 			return err
 		}
-		pid, err := cmd.Flags().GetString("id")
-		if err != nil {
-			return err
-		}
-		project, _, err := gitlabClient.Projects.EditProject(pid, opts)
 		return OutputJson(project)
 	},
 }
 
-func editProjectOpts() (*gitlab.EditProjectOptions, error) {
-	flags := &editOpts{}
-	opts := &gitlab.EditProjectOptions{}
-	editOptsMapper.Map(flags, opts)
-	return opts, nil
-}
-
-type forkOpts struct {
+type forkFlags struct {
 	Id        *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
 	Namespace *string `flag_name:"namespace" type:"integer/string" required:"yes" description:"The ID or path of the namespace that the project will be forked to"`
 }
@@ -234,13 +204,14 @@ type forkOpts struct {
 var projectForkCmd = &cobra.Command{
 	Use:   "fork",
 	Short: "Fork project",
-	Long: `Forks a project into the user namespace of the authenticated user or the one provided.
+	Long:  `Forks a project into the user namespace of the authenticated user or the one provided.
 
 The forking operation for a project is asynchronous and is completed in a background job. The request will return immediately. To determine whether the fork of the project has completed, query the import_status for the new project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		opts, err := forkProjectOpts()
+		forkOptsMapper.AutoMap()
+		flags := forkOptsMapper.MappedFlags().(*forkFlags)
 		// TODO target namespace is currently not supported by go-gitlab
-		project, _, err := gitlabClient.Projects.ForkProject(*opts.Id)
+		project, _, err := gitlabClient.Projects.ForkProject(*flags.Id)
 		if err != nil {
 			return err
 		}
@@ -248,14 +219,7 @@ The forking operation for a project is asynchronous and is completed in a backgr
 	},
 }
 
-func forkProjectOpts() (*forkOpts, error) {
-	flags := &forkOpts{}
-	opts := &forkOpts{}
-	forkOptsMapper.Map(flags, opts)
-	return opts, nil
-}
-
-type listForksOpts struct {
+type listForksFlags struct {
 	Id                       *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
 	Archived                 *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
 	Visibility               *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
@@ -281,14 +245,6 @@ var projectListForksCmd = &cobra.Command{
 		return errors.New("list forks of a project is currently not implemented")
 	},
 }
-
-// TODO currently not available in go-gitlab
-//func listForkOpts() gitlab.ListForkOptions, err {
-//	flags := &listForksOpts{}
-//	opts := &gitlab.ListForkOptions{}
-//	listForksOptsMapper.Map(flags, opts)
-//	return opts, nil
-//}
 
 var projectStarCmd = &cobra.Command{
 	Use:   "star",
@@ -407,24 +363,12 @@ var projectShareWithGroupCmd = &cobra.Command{
 	Short: "Share project with group",
 	Long:  `Allow to share project with group.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		opts, err := shareProjectOpts()
-		if err != nil {
-			return err
-		}
-		pid, err := cmd.Flags().GetString("id")
-		if err != nil {
-			return err
-		}
-		_, err = gitlabClient.Projects.ShareProjectWithGroup(pid, opts)
+		shareOptsMapper.AutoMap()
+		opts := shareOptsMapper.MappedOpts().(*gitlab.ShareWithGroupOptions)
+		flags := shareOptsMapper.MappedFlags().(*shareFlags)
+		_, err := gitlabClient.Projects.ShareProjectWithGroup(*flags.Id, opts)
 		return err
 	},
-}
-
-func shareProjectOpts() (*gitlab.ShareWithGroupOptions, error) {
-	flags := &shareFlags{}
-	opts := &gitlab.ShareWithGroupOptions{}
-	shareOptsMapper.Map(flags, opts)
-	return opts, nil
 }
 
 var projectUnshareWithGroupCmd = &cobra.Command{
@@ -518,23 +462,15 @@ var projectAddHookCmd = &cobra.Command{
 	Short: "Add project hook",
 	Long:  `Adds a hook to a specified project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		flags, opts, err := projectAddHookOpts()
-		if err != nil {
-			return err
-		}
+		addHookOptsMapper.AutoMap()
+		flags := addHookOptsMapper.MappedFlags().(*addHookFlags)
+		opts := addHookOptsMapper.MappedOpts().(*gitlab.AddProjectHookOptions)
 		hook, _, err := gitlabClient.Projects.AddProjectHook(parsePid(*flags.Id), opts)
 		if err != nil {
 			return err
 		}
 		return OutputJson(hook)
 	},
-}
-
-func projectAddHookOpts() (*addHookFlags, *gitlab.AddProjectHookOptions, error) {
-	flags := &addHookFlags{}
-	opts := &gitlab.AddProjectHookOptions{}
-	addHookOptsMapper.Map(flags, opts)
-	return flags, opts, nil
 }
 
 type editHookFlags struct {
@@ -558,23 +494,15 @@ var projectEditHookCmd = &cobra.Command{
 	Short: "Edit project hook",
 	Long:  `Edits a hook for a specified project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		flags, opts, err := projectEditHookOpts()
-		if err != nil {
-			return err
-		}
+		editHookOptsMapper.AutoMap()
+		flags := editHookOptsMapper.MappedFlags().(*editHookFlags)
+		opts := editHookOptsMapper.MappedOpts().(*gitlab.EditProjectHookOptions)
 		hook, _, err := gitlabClient.Projects.EditProjectHook(parsePid(*flags.Id), *flags.HookId, opts)
 		if err != nil {
 			return err
 		}
 		return OutputJson(hook)
 	},
-}
-
-func projectEditHookOpts() (*editHookFlags, *gitlab.EditProjectHookOptions, error) {
-	flags := &editHookFlags{}
-	opts := &gitlab.EditProjectHookOptions{}
-	editHookOptsMapper.Map(flags, opts)
-	return flags, opts, nil
 }
 
 var projectDeleteHookCmd = &cobra.Command{
@@ -694,44 +622,33 @@ func init() {
 }
 
 func initProjectListCmd() {
-	flags := &listFlags{}
-	listOptsMapper = mapper.New(projectListCmd)
-	listOptsMapper.SetFlags(flags)
+	listOptsMapper = mapper.InitializedMapper(projectListCmd, &listFlags{}, &gitlab.ListProjectsOptions{})
 	projectCmd.AddCommand(projectListCmd)
 }
 
 func initProjectGetCmd() {
-	flags := &getFlags{}
-	getOptsMapper = mapper.New(projectGetCmd)
-	getOptsMapper.SetFlags(flags)
+	getOptsMapper = mapper.InitializedMapper(projectGetCmd, &getFlags{}, &getFlags{})
 	projectCmd.AddCommand(projectGetCmd)
 }
 
 func initProjectCreateCmd() {
-	flags := &createOpts{}
-	createOptsMapper = mapper.New(projectCreateCmd)
-	createOptsMapper.SetFlags(flags)
+	createOptsMapper = mapper.InitializedMapper(projectCreateCmd, &createFlags{}, &gitlab.CreateProjectOptions{})
 	projectCmd.AddCommand(projectCreateCmd)
 }
 
 func initProjectEditCmd() {
-	flags := &editOpts{}
-	editOptsMapper = mapper.New(projectEditCmd)
-	editOptsMapper.SetFlags(flags)
+	editOptsMapper = mapper.InitializedMapper(projectEditCmd, &editFlags{}, &gitlab.EditProjectOptions{})
 	projectCmd.AddCommand(projectEditCmd)
 }
 
 func initProjectForkCmd() {
-	flags := &forkOpts{}
-	forkOptsMapper = mapper.New(projectForkCmd)
-	forkOptsMapper.SetFlags(flags)
+	forkOptsMapper = mapper.InitializedMapper(projectForkCmd, &forkFlags{}, &forkFlags{})
 	projectCmd.AddCommand(projectForkCmd)
 }
 
 func initProjectListForksCmd() {
-	flags := &listForksOpts{}
-	listForksOptsMapper = mapper.New(projectListForksCmd)
-	listForksOptsMapper.SetFlags(flags)
+	// TODO the opts are currently not available in go-gitlab
+	listForksOptsMapper = mapper.InitializedMapper(projectListForksCmd, &listForksFlags{}, &listForksFlags{})
 	projectCmd.AddCommand(projectListForksCmd)
 }
 
@@ -742,9 +659,7 @@ func initProjectUploadFileCmd() {
 }
 
 func initProjectShareCmd() {
-	flags := &shareFlags{}
-	shareOptsMapper = mapper.New(projectShareWithGroupCmd)
-	shareOptsMapper.SetFlags(flags)
+	shareOptsMapper = mapper.InitializedMapper(projectShareWithGroupCmd, &shareFlags{}, &gitlab.ShareWithGroupOptions{})
 	projectCmd.AddCommand(projectShareWithGroupCmd)
 }
 
@@ -761,16 +676,12 @@ func initProjectHooksGetCmd() {
 }
 
 func initProjectAddHookCmd() {
-	flags := &addHookFlags{}
-	addHookOptsMapper = mapper.New(projectAddHookCmd)
-	addHookOptsMapper.SetFlags(flags)
+	addHookOptsMapper = mapper.InitializedMapper(projectAddHookCmd, &addHookFlags{}, &gitlab.AddProjectHookOptions{})
 	projectHooksCmd.AddCommand(projectAddHookCmd)
 }
 
 func initProjectEditHookCmd() {
-	flags := &editHookFlags{}
-	editHookOptsMapper = mapper.New(projectEditHookCmd)
-	editHookOptsMapper.SetFlags(flags)
+	editHookOptsMapper = mapper.InitializedMapper(projectEditHookCmd, &editHookFlags{}, &gitlab.EditProjectHookOptions{})
 	projectHooksCmd.AddCommand(projectEditHookCmd)
 }
 
