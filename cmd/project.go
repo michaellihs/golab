@@ -289,6 +289,40 @@ var projectListForksCmd = &cobra.Command{
 	},
 }
 
+var projectStarCmd = &cobra.Command{
+	Use: "star",
+	Short: "Star a project ",
+	Long: `Stars a given project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		project, _, err := gitlabClient.Projects.StarProject(pid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(project)
+	},
+}
+
+var projectUnstarCmd = &cobra.Command{
+	Use: "unstar",
+	Short: "Unstar a project",
+	Long: `Unstars a given project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		project, _, err := gitlabClient.Projects.UnstarProject(pid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(project)
+	},
+}
+
 // TODO currently not available in go-gitlab
 //func listForkOpts() gitlab.ListForkOptions, err {
 //	flags := &listForksOpts{}
@@ -324,6 +358,8 @@ func init() {
 	initProjectEditCmd()
 	initProjectForkCmd()
 	initProjectListForksCmd()
+	initProjectStarCmd()
+	initProjectUnstarCmd()
 	initProjectDeleteCommand()
 	RootCmd.AddCommand(projectCmd)
 }
@@ -368,6 +404,16 @@ func initProjectListForksCmd() {
 	listForksOptsMapper = mapper.New(projectListForksCmd)
 	listForksOptsMapper.SetFlags(flags)
 	projectCmd.AddCommand(projectListForksCmd)
+}
+
+func initProjectStarCmd() {
+	projectStarCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
+	projectCmd.AddCommand(projectStarCmd)
+}
+
+func initProjectUnstarCmd() {
+	projectUnstarCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
+	projectCmd.AddCommand(projectUnstarCmd)
 }
 
 func initProjectDeleteCommand() {
