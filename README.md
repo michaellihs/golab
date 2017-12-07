@@ -160,6 +160,20 @@ Afterwards you can start the (existing) container with:
 **Attention** we are currently testing against Gitlab version `9.5.10-ce.0`. Make sure to pin the version of the Docker image instead of using `latest`.
 
 
+Troubleshooting
+---------------
+
+### `panic: trying to get string value of flag of type int`
+
+If you see `panic: trying to get string value of flag of type int`, most likely you used a flag type other than `*string` for a flag that needs transformation, e.g.
+
+````
+GroupAccess *string  `flag_name:"group_access" short:"a" type:"integer" transform:"str2AccessLevel" required:"yes" description:"..."`
+````
+
+Remember: you only can use `*string` as field type, when you need a transformation of the value!
+
+
 TODOs
 =====
 

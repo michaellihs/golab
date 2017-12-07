@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
+	"time"
 )
 
 type FlagMapper struct {
@@ -130,8 +131,29 @@ func str2Visibility(s string) *gitlab.VisibilityValue {
 	return nil
 }
 
+func string2IsoTime(s string) *gitlab.ISOTime {
+	iso8601 := "2006-01-02"
+	isotime, err := time.Parse(`"`+iso8601+`"`, string(s))
+	if err != nil {
+		panic(err.Error())
+	}
+	t := gitlab.ISOTime(isotime)
+	return &t
+}
+
+func str2AccessLevel(s string) *gitlab.AccessLevelValue {
+	if s == "10" { return gitlab.AccessLevel(gitlab.GuestPermissions) }
+	if s == "20" { return gitlab.AccessLevel(gitlab.ReporterPermissions) }
+	if s == "30" { return gitlab.AccessLevel(gitlab.DeveloperPermissions) }
+	if s == "40" { return gitlab.AccessLevel(gitlab.MasterPermissions) }
+	if s == "50" { return gitlab.AccessLevel(gitlab.OwnerPermission) }
+	panic("Unknown access level: " + s)
+}
+
 var funcs = map[string]interface{}{
 	"string2visibility": str2Visibility,
+	"string2IsoTime": string2IsoTime,
+	"str2AccessLevel": str2AccessLevel,
 }
 
 func call(m map[string]interface{}, name string, params ... interface{}) (result []reflect.Value, err error) {

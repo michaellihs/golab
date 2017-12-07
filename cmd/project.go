@@ -29,7 +29,7 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper mapper.FlagMapper
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -398,6 +398,40 @@ var projectUploadFileCmd = &cobra.Command{
 	},
 }
 
+type shareFlags struct {
+	Id          *string  `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	GroupID     *int     `flag_name:"group_id" short:"g" type:"integer" required:"yes" description:"The ID of the group to share with"`
+	GroupAccess *string  `flag_name:"group_access" short:"a" type:"integer" transform:"str2AccessLevel" required:"yes" description:"The permissions level to grant the group"`
+	ExpiresAt   *string  `flag_name:"expires_at" short:"e" type:"string" required:"no" description:"Share expiration date in ISO 8601 format: 2016-09-26"`
+	// gitlab opts should use ISOTime instead of string, then this line is valid:
+	//ExpiresAt   *string  `flag_name:"expires_at" short:"e" type:"string" transform:"string2IsoTime" required:"no" description:"Share expiration date in ISO 8601 format: 2016-09-26"`
+}
+
+var projectShareWithGroupCmd = &cobra.Command{
+	Use: "share",
+	Short: "Share project with group",
+	Long: `Allow to share project with group.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		opts, err := shareProjectOpts()
+		if err != nil {
+			return err
+		}
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		_, err = gitlabClient.Projects.ShareProjectWithGroup(pid, opts)
+		return err
+	},
+}
+
+func shareProjectOpts() (*gitlab.ShareWithGroupOptions, error) {
+	flags := &shareFlags{}
+	opts := &gitlab.ShareWithGroupOptions{}
+	shareOptsMapper.Map(flags, opts)
+	return opts, nil
+}
+
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
 		return pid
@@ -419,6 +453,7 @@ func init() {
 	initCommandWithIdOnly(projectUnarchiveCmd)
 	initCommandWithIdOnly(projectDeleteCmd)
 	initProjectUploadFileCmd()
+	initProjectShareCmd()
 	
 	RootCmd.AddCommand(projectCmd)
 }
@@ -469,6 +504,13 @@ func initProjectUploadFileCmd() {
 	projectUploadFileCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
 	projectUploadFileCmd.PersistentFlags().StringP("file", "f", "", "(required) Path to the file to be uploaded")
 	projectCmd.AddCommand(projectUploadFileCmd)
+}
+
+func initProjectShareCmd() {
+	flags := &shareFlags{}
+	shareOptsMapper = mapper.New(projectShareWithGroupCmd)
+	shareOptsMapper.SetFlags(flags)
+	projectCmd.AddCommand(projectShareWithGroupCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command) {
