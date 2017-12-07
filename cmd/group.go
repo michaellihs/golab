@@ -32,7 +32,7 @@ var name, newName, path, visibility, description, lfsEnabledString, requestAcces
 
 var statistics, lfsEnabled, requestAccessEnabled bool
 
-var projectId int
+var id, projectId int
 
 var groupCmd = &cobra.Command{
 	Use:   "group",

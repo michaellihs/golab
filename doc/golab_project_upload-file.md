@@ -1,21 +1,22 @@
-## golab project delete
+## golab project upload-file
 
-Remove project
+Upload a file
 
 ### Synopsis
 
 
-Removes a project including all associated resources (issues, merge requests etc.)
+Uploads a file to the specified project to be used in an issue or merge request description, or a comment.
 
 ```
-golab project delete [flags]
+golab project upload-file [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help        help for delete
-  -i, --id string   (required) The ID or URL-encoded path of the project
+  -f, --file string   (required) Path to the file to be uploaded
+  -h, --help          help for upload-file
+  -i, --id string     (required) The ID or URL-encoded path of the project
 ```
 
 ### Options inherited from parent commands

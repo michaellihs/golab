@@ -31,8 +31,6 @@ import (
 
 var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper mapper.FlagMapper
 
-var id int
-
 var projectCmd = &cobra.Command{
 	Use:   "project",
 	Short: "Manage projects",
@@ -289,6 +287,14 @@ var projectListForksCmd = &cobra.Command{
 	},
 }
 
+// TODO currently not available in go-gitlab
+//func listForkOpts() gitlab.ListForkOptions, err {
+//	flags := &listForksOpts{}
+//	opts := &gitlab.ListForkOptions{}
+//	listForksOptsMapper.Map(flags, opts)
+//	return opts, nil
+//}
+
 var projectStarCmd = &cobra.Command{
 	Use: "star",
 	Short: "Star a project ",
@@ -357,23 +363,38 @@ var projectUnarchiveCmd = &cobra.Command{
 	},
 }
 
-// TODO currently not available in go-gitlab
-//func listForkOpts() gitlab.ListForkOptions, err {
-//	flags := &listForksOpts{}
-//	opts := &gitlab.ListForkOptions{}
-//	listForksOptsMapper.Map(flags, opts)
-//	return opts, nil
-//}
-
 var projectDeleteCmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Delete an existing project",
-	Long:  `Delete an existing project by either its project ID or namespace/project-name`,
+	Short: "Remove project",
+	Long:  `Removes a project including all associated resources (issues, merge requests etc.)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO maybe we want to return something upon success
-		// TODO do something useful with the response
-		_, err := gitlabClient.Projects.DeleteProject(id)
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		_, err = gitlabClient.Projects.DeleteProject(pid)
 		return err
+	},
+}
+
+var projectUploadFileCmd = &cobra.Command{
+	Use: "upload-file",
+	Short: "Upload a file",
+	Long: `Uploads a file to the specified project to be used in an issue or merge request description, or a comment.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		file, err := cmd.Flags().GetString("file")
+		if err != nil {
+			return err
+		}
+		projectFile, _, err := gitlabClient.Projects.UploadFile(pid, file)
+		if err != nil {
+			return err
+		}
+		return OutputJson(projectFile)
 	},
 }
 
@@ -397,6 +418,7 @@ func init() {
 	initCommandWithIdOnly(projectArchiveCmd)
 	initCommandWithIdOnly(projectUnarchiveCmd)
 	initCommandWithIdOnly(projectDeleteCmd)
+	initProjectUploadFileCmd()
 	
 	RootCmd.AddCommand(projectCmd)
 }
@@ -441,6 +463,12 @@ func initProjectListForksCmd() {
 	listForksOptsMapper = mapper.New(projectListForksCmd)
 	listForksOptsMapper.SetFlags(flags)
 	projectCmd.AddCommand(projectListForksCmd)
+}
+
+func initProjectUploadFileCmd() {
+	projectUploadFileCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
+	projectUploadFileCmd.PersistentFlags().StringP("file", "f", "", "(required) Path to the file to be uploaded")
+	projectCmd.AddCommand(projectUploadFileCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command) {
