@@ -1,20 +1,20 @@
-## golab project delete
+## golab project unarchive
 
-Delete an existing project
+Unarchive a project
 
 ### Synopsis
 
 
-Delete an existing project by either its project ID or namespace/project-name
+Unarchives the project if the user is either admin or the project owner of this project. This action is idempotent, thus unarchiving an non-archived project will not change the project.
 
 ```
-golab project delete [flags]
+golab project unarchive [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help        help for delete
+  -h, --help        help for unarchive
   -i, --id string   (required) The ID or URL-encoded path of the project
 ```
 

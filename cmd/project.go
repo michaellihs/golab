@@ -323,6 +323,40 @@ var projectUnstarCmd = &cobra.Command{
 	},
 }
 
+var projectArchiveCmd = &cobra.Command{
+	Use: "archive",
+	Short: "Archive a project",
+	Long: `Archives the project if the user is either admin or the project owner of this project. This action is idempotent, thus archiving an already archived project will not change the project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		project, _, err := gitlabClient.Projects.ArchiveProject(pid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(project)
+	},
+}
+
+var projectUnarchiveCmd = &cobra.Command{
+	Use: "unarchive",
+	Short: "Unarchive a project",
+	Long: `Unarchives the project if the user is either admin or the project owner of this project. This action is idempotent, thus unarchiving an non-archived project will not change the project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		project, _, err := gitlabClient.Projects.UnarchiveProject(pid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(project)
+	},
+}
+
 // TODO currently not available in go-gitlab
 //func listForkOpts() gitlab.ListForkOptions, err {
 //	flags := &listForksOpts{}
@@ -358,9 +392,12 @@ func init() {
 	initProjectEditCmd()
 	initProjectForkCmd()
 	initProjectListForksCmd()
-	initProjectStarCmd()
-	initProjectUnstarCmd()
-	initProjectDeleteCommand()
+	initCommandWithIdOnly(projectStarCmd)
+	initCommandWithIdOnly(projectUnstarCmd)
+	initCommandWithIdOnly(projectArchiveCmd)
+	initCommandWithIdOnly(projectUnarchiveCmd)
+	initCommandWithIdOnly(projectDeleteCmd)
+	
 	RootCmd.AddCommand(projectCmd)
 }
 
@@ -406,17 +443,7 @@ func initProjectListForksCmd() {
 	projectCmd.AddCommand(projectListForksCmd)
 }
 
-func initProjectStarCmd() {
-	projectStarCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
-	projectCmd.AddCommand(projectStarCmd)
-}
-
-func initProjectUnstarCmd() {
-	projectUnstarCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
-	projectCmd.AddCommand(projectUnstarCmd)
-}
-
-func initProjectDeleteCommand() {
-	projectDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) Either ID of project or 'namespace/project-name'")
-	projectCmd.AddCommand(projectDeleteCmd)
+func initCommandWithIdOnly(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
+	projectCmd.AddCommand(cmd)
 }

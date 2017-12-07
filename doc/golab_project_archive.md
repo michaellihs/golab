@@ -1,20 +1,20 @@
-## golab project delete
+## golab project archive
 
-Delete an existing project
+Archive a project
 
 ### Synopsis
 
 
-Delete an existing project by either its project ID or namespace/project-name
+Archives the project if the user is either admin or the project owner of this project. This action is idempotent, thus archiving an already archived project will not change the project.
 
 ```
-golab project delete [flags]
+golab project archive [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help        help for delete
+  -h, --help        help for archive
   -i, --id string   (required) The ID or URL-encoded path of the project
 ```
 
