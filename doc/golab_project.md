@@ -38,6 +38,7 @@ golab project [flags]
 * [golab project share](golab_project_share.md)	 - Share project with group
 * [golab project star](golab_project_star.md)	 - Star a project 
 * [golab project unarchive](golab_project_unarchive.md)	 - Unarchive a project
+* [golab project unshare](golab_project_unshare.md)	 - Delete a shared project link within a group
 * [golab project unstar](golab_project_unstar.md)	 - Unstar a project
 * [golab project upload-file](golab_project_upload-file.md)	 - Upload a file
 

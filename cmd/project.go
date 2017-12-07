@@ -296,9 +296,9 @@ var projectListForksCmd = &cobra.Command{
 //}
 
 var projectStarCmd = &cobra.Command{
-	Use: "star",
+	Use:   "star",
 	Short: "Star a project ",
-	Long: `Stars a given project.`,
+	Long:  `Stars a given project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -313,9 +313,9 @@ var projectStarCmd = &cobra.Command{
 }
 
 var projectUnstarCmd = &cobra.Command{
-	Use: "unstar",
+	Use:   "unstar",
 	Short: "Unstar a project",
-	Long: `Unstars a given project.`,
+	Long:  `Unstars a given project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -330,9 +330,9 @@ var projectUnstarCmd = &cobra.Command{
 }
 
 var projectArchiveCmd = &cobra.Command{
-	Use: "archive",
+	Use:   "archive",
 	Short: "Archive a project",
-	Long: `Archives the project if the user is either admin or the project owner of this project. This action is idempotent, thus archiving an already archived project will not change the project.`,
+	Long:  `Archives the project if the user is either admin or the project owner of this project. This action is idempotent, thus archiving an already archived project will not change the project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -347,9 +347,9 @@ var projectArchiveCmd = &cobra.Command{
 }
 
 var projectUnarchiveCmd = &cobra.Command{
-	Use: "unarchive",
+	Use:   "unarchive",
 	Short: "Unarchive a project",
-	Long: `Unarchives the project if the user is either admin or the project owner of this project. This action is idempotent, thus unarchiving an non-archived project will not change the project.`,
+	Long:  `Unarchives the project if the user is either admin or the project owner of this project. This action is idempotent, thus unarchiving an non-archived project will not change the project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -378,9 +378,9 @@ var projectDeleteCmd = &cobra.Command{
 }
 
 var projectUploadFileCmd = &cobra.Command{
-	Use: "upload-file",
+	Use:   "upload-file",
 	Short: "Upload a file",
-	Long: `Uploads a file to the specified project to be used in an issue or merge request description, or a comment.`,
+	Long:  `Uploads a file to the specified project to be used in an issue or merge request description, or a comment.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -399,18 +399,18 @@ var projectUploadFileCmd = &cobra.Command{
 }
 
 type shareFlags struct {
-	Id          *string  `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
-	GroupID     *int     `flag_name:"group_id" short:"g" type:"integer" required:"yes" description:"The ID of the group to share with"`
-	GroupAccess *string  `flag_name:"group_access" short:"a" type:"integer" transform:"str2AccessLevel" required:"yes" description:"The permissions level to grant the group"`
-	ExpiresAt   *string  `flag_name:"expires_at" short:"e" type:"string" required:"no" description:"Share expiration date in ISO 8601 format: 2016-09-26"`
+	Id          *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	GroupID     *int    `flag_name:"group_id" short:"g" type:"integer" required:"yes" description:"The ID of the group to share with"`
+	GroupAccess *string `flag_name:"group_access" short:"a" type:"integer" transform:"str2AccessLevel" required:"yes" description:"The permissions level to grant the group"`
+	ExpiresAt   *string `flag_name:"expires_at" short:"e" type:"string" required:"no" description:"Share expiration date in ISO 8601 format: 2016-09-26"`
 	// gitlab opts should use ISOTime instead of string, then this line is valid:
 	//ExpiresAt   *string  `flag_name:"expires_at" short:"e" type:"string" transform:"string2IsoTime" required:"no" description:"Share expiration date in ISO 8601 format: 2016-09-26"`
 }
 
 var projectShareWithGroupCmd = &cobra.Command{
-	Use: "share",
+	Use:   "share",
 	Short: "Share project with group",
-	Long: `Allow to share project with group.`,
+	Long:  `Allow to share project with group.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		opts, err := shareProjectOpts()
 		if err != nil {
@@ -430,6 +430,27 @@ func shareProjectOpts() (*gitlab.ShareWithGroupOptions, error) {
 	opts := &gitlab.ShareWithGroupOptions{}
 	shareOptsMapper.Map(flags, opts)
 	return opts, nil
+}
+
+var projectUnshareWithGroupCmd = &cobra.Command{
+	Use:   "unshare",
+	Short: "Delete a shared project link within a group",
+	Long:  `Unshare the project from the group.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		gid, err := cmd.Flags().GetString("group_id")
+		if err != nil {
+			return err
+		}
+		// TODO delete a share is currently missing in go-gitlab
+		// gitlabClient.Projects...
+		OutputJson(pid)
+		OutputJson(gid)
+		return errors.New("not implemented...")
+	},
 }
 
 func parsePid(value string) interface{} {
@@ -454,7 +475,8 @@ func init() {
 	initCommandWithIdOnly(projectDeleteCmd)
 	initProjectUploadFileCmd()
 	initProjectShareCmd()
-	
+	initProjectUnshareCmd()
+
 	RootCmd.AddCommand(projectCmd)
 }
 
@@ -511,6 +533,12 @@ func initProjectShareCmd() {
 	shareOptsMapper = mapper.New(projectShareWithGroupCmd)
 	shareOptsMapper.SetFlags(flags)
 	projectCmd.AddCommand(projectShareWithGroupCmd)
+}
+
+func initProjectUnshareCmd() {
+	projectUnshareWithGroupCmd.PersistentFlags().StringP("id", "i", "", "The ID or URL-encoded path of the project")
+	projectUnshareWithGroupCmd.PersistentFlags().StringP("group_id", "g", "", "The ID of the group")
+	projectCmd.AddCommand(projectUnshareWithGroupCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command) {

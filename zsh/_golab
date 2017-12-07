@@ -25,7 +25,7 @@ case $state in
         _arguments '2: :(add delete edit get ls sync)'
       ;;
       project)
-        _arguments '2: :(archive create delete edit fork get list-forks ls share star unarchive unstar upload-file)'
+        _arguments '2: :(archive create delete edit fork get list-forks ls share star unarchive unshare unstar upload-file)'
       ;;
       user)
         _arguments '2: :(activities create delete emails get impersonation-token ls modify ssh-keys)'
@@ -37,14 +37,14 @@ case $state in
   ;;
   level3)
     case $words[3] in
+      emails)
+        _arguments '3: :(add delete ls)'
+      ;;
       impersonation-token)
         _arguments '3: :(create get revoke)'
       ;;
       ssh-keys)
         _arguments '3: :(add delete get)'
-      ;;
-      emails)
-        _arguments '3: :(add delete ls)'
       ;;
       *)
         _arguments '*: :_files'
