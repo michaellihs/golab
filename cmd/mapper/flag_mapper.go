@@ -26,17 +26,28 @@ func (m FlagMapper) SetFlags(flags interface{}) {
 
 		switch f.Type().String() {
 		case "*int":
-			m.cmd.PersistentFlags().IntP(flagName, shortHand, 0, tag.Get("description"))
+			m.cmd.PersistentFlags().IntP(flagName, shortHand, 0, flagUsage(tag))
 		case "*string":
-			m.cmd.PersistentFlags().StringP(flagName, shortHand, "", tag.Get("description"))
+			m.cmd.PersistentFlags().StringP(flagName, shortHand, "", flagUsage(tag))
 		case "*bool":
-			m.cmd.PersistentFlags().BoolP(flagName, shortHand, false, tag.Get("description"))
+			m.cmd.PersistentFlags().BoolP(flagName, shortHand, false, flagUsage(tag))
 		case "*[]string":
-			m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, tag.Get("description"))
+			m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
 		default:
 			panic("Unknown type " + f.Type().String())
 		}
 	}
+}
+func flagUsage(tag reflect.StructTag) string {
+	description := tag.Get("description")
+	required := tag.Get("required")
+	usage := ""
+	if required == "yes" {
+		usage = "(required) "
+	} else {
+		usage = "(optional) "
+	}
+	return usage + description
 }
 
 func (m FlagMapper) Map(flags interface{}, opts interface{}) {

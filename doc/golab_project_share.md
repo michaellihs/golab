@@ -14,11 +14,11 @@ golab project share [flags]
 ### Options
 
 ```
-  -e, --expires_at string     Share expiration date in ISO 8601 format: 2016-09-26
-  -a, --group_access string   The permissions level to grant the group
-  -g, --group_id int          The ID of the group to share with
+  -e, --expires_at string     (optional) Share expiration date in ISO 8601 format: 2016-09-26
+  -a, --group_access string   (required) The permissions level to grant the group
+  -g, --group_id int          (required) The ID of the group to share with
   -h, --help                  help for share
-  -i, --id string             The ID or URL-encoded path of the project
+  -i, --id string             (required) The ID or URL-encoded path of the project
 ```
 
 ### Options inherited from parent commands

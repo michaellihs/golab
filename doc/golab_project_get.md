@@ -15,8 +15,8 @@ golab project get [flags]
 
 ```
   -h, --help         help for get
-  -i, --id string    either the project ID (numeric) or 'namespace/project-name'
-  -s, --statistics   include project statistics
+  -i, --id string    (required) either the project ID (numeric) or 'namespace/project-name'
+  -s, --statistics   (optional) include project statistics
 ```
 
 ### Options inherited from parent commands

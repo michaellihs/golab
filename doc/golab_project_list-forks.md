@@ -14,20 +14,20 @@ golab project list-forks [flags]
 ### Options
 
 ```
-      --archived                      Limit by archived status
+      --archived                      (optional) Limit by archived status
   -h, --help                          help for list-forks
-      --id string                     The ID or URL-encoded path of the project
-      --membership                    Limit by projects that the current user is a member of
-      --order_by string               Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at
-      --owned                         Limit by projects owned by the current user
-      --search string                 Return list of projects matching the search criteria
-      --simple                        Return only the ID, URL, name, and path of each project
-      --sort string                   Return projects sorted in asc or desc order. Default is desc
-      --starred                       Limit by projects starred by the current user
-      --statistics                    Include project statistics
-      --visibility string             Limit by visibility public, internal, or private
-      --with_issues_enabled           Limit by enabled issues feature
-      --with_merge_requests_enabled   Limit by enabled merge requests feature
+      --id string                     (required) The ID or URL-encoded path of the project
+      --membership                    (optional) Limit by projects that the current user is a member of
+      --order_by string               (optional) Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at
+      --owned                         (optional) Limit by projects owned by the current user
+      --search string                 (optional) Return list of projects matching the search criteria
+      --simple                        (optional) Return only the ID, URL, name, and path of each project
+      --sort string                   (optional) Return projects sorted in asc or desc order. Default is desc
+      --starred                       (optional) Limit by projects starred by the current user
+      --statistics                    (optional) Include project statistics
+      --visibility string             (optional) Limit by visibility public, internal, or private
+      --with_issues_enabled           (optional) Limit by enabled issues feature
+      --with_merge_requests_enabled   (optional) Limit by enabled merge requests feature
 ```
 
 ### Options inherited from parent commands

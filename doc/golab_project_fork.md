@@ -17,8 +17,8 @@ golab project fork [flags]
 
 ```
   -h, --help               help for fork
-      --id string          The ID or URL-encoded path of the project
-      --namespace string   The ID or path of the namespace that the project will be forked to
+      --id string          (required) The ID or URL-encoded path of the project
+      --namespace string   (required) The ID or path of the namespace that the project will be forked to
 ```
 
 ### Options inherited from parent commands

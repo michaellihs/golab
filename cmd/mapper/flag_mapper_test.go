@@ -28,7 +28,7 @@ func mockCmd() *Command {
 var _ = Describe("FlagMapper", func() {
 
 	type testFlags struct {
-		Flag1 *bool     `flag_name:"flag1" short:"f" type:"bool" required:"no" description:"first flag"`
+		Flag1 *bool     `flag_name:"flag1" short:"f" type:"bool" required:"yes" description:"first flag"`
 		Flag2 *string   `flag_name:"flag2" type:"string" required:"no" description:"second flag"`
 		Flag3 *int      `flag_name:"flag3" type:"string" required:"no" description:"third flag"`
 		Flag4 *[]string `flag_name:"flag4" type:"string" required:"no" description:"fourth flag"`
@@ -80,18 +80,22 @@ var _ = Describe("FlagMapper", func() {
 
 		Expect(mockCmd.Flag("flag1")).NotTo(BeNil())
 		Expect(mockCmd.Flag("flag1").Name).To(Equal("flag1"))
+		Expect(mockCmd.Flag("flag1").Usage).To(Equal("(required) first flag"))
 		Expect(mockCmd.Flag("flag1").Shorthand).To(Equal("f"))
 
 		Expect(mockCmd.Flag("flag2")).NotTo(BeNil())
 		Expect(mockCmd.Flag("flag2").Name).To(Equal("flag2"))
+		Expect(mockCmd.Flag("flag2").Usage).To(Equal("(optional) second flag"))
 		Expect(mockCmd.Flag("flag2").Shorthand).To(Equal(""))
 
 		Expect(mockCmd.Flag("flag3")).NotTo(BeNil())
 		Expect(mockCmd.Flag("flag3").Name).To(Equal("flag3"))
+		Expect(mockCmd.Flag("flag3").Usage).To(Equal("(optional) third flag"))
 		Expect(mockCmd.Flag("flag3").Shorthand).To(Equal(""))
 
 		Expect(mockCmd.Flag("flag4")).NotTo(BeNil())
 		Expect(mockCmd.Flag("flag4").Name).To(Equal("flag4"))
+		Expect(mockCmd.Flag("flag4").Usage).To(Equal("(optional) fourth flag"))
 		Expect(mockCmd.Flag("flag4").Shorthand).To(Equal(""))
 	})
 
