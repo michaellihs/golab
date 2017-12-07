@@ -577,6 +577,27 @@ func projectEditHookOpts() (*editHookFlags, *gitlab.EditProjectHookOptions, erro
 	return flags, opts, nil
 }
 
+var projectDeleteHookCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Delete project hook",
+	Long: `Removes a hook from a project. This is an idempotent method and can be called multiple times. Either the hook is available or not.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		hookId, err := cmd.Flags().GetInt("hook_id")
+		if err != nil {
+			return err
+		}
+		_, err = gitlabClient.Projects.DeleteProjectHook(pid, hookId)
+		if err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
 		return pid
@@ -604,11 +625,11 @@ func init() {
 	initProjectHooksGetCmd()
 	initProjectAddHookCmd()
 	initProjectEditHookCmd()
+	initProjectDeleteHookCmd()
 
 	projectCmd.AddCommand(projectHooksCmd)
 	RootCmd.AddCommand(projectCmd)
 }
-
 func initProjectListCmd() {
 	flags := &listFlags{}
 	listOptsMapper = mapper.New(projectListCmd)
@@ -688,6 +709,12 @@ func initProjectEditHookCmd() {
 	editHookOptsMapper = mapper.New(projectEditHookCmd)
 	editHookOptsMapper.SetFlags(flags)
 	projectHooksCmd.AddCommand(projectEditHookCmd)
+}
+
+func initProjectDeleteHookCmd() {
+	projectDeleteHookCmd.PersistentFlags().StringP("id", "i", "", "The ID or URL-encoded path of the project")
+	projectDeleteHookCmd.PersistentFlags().Int("hook_id", 0, "The ID of the project hook")
+	projectHooksCmd.AddCommand(projectDeleteHookCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {

@@ -28,6 +28,8 @@ golab project hooks [flags]
 ### SEE ALSO
 * [golab project](golab_project.md)	 - Manage projects
 * [golab project hooks add](golab_project_hooks_add.md)	 - Add project hook
+* [golab project hooks delete](golab_project_hooks_delete.md)	 - Delete project hook
+* [golab project hooks edit](golab_project_hooks_edit.md)	 - Edit project hook
 * [golab project hooks get](golab_project_hooks_get.md)	 - Get project hook
 * [golab project hooks ls](golab_project_hooks_ls.md)	 - List project hooks
 
