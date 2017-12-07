@@ -629,6 +629,23 @@ var projectForksCreateCmd = &cobra.Command{
 	},
 }
 
+var projectForksDeleteCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Delete an existing forked from relationship",
+	Long: `Delete an existing forked from relationship (available only for admins)`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetInt("id")
+		if err != nil {
+			return err
+		}
+		_, err = gitlabClient.Projects.DeleteProjectForkRelation(pid)
+		if err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
 		return pid
@@ -658,6 +675,7 @@ func init() {
 	initProjectEditHookCmd()
 	initProjectDeleteHookCmd()
 	initProjectForksCreateCmd()
+	initCommandWithIntIdOnly(projectForksDeleteCmd, projectForskCmd)
 
 	projectCmd.AddCommand(projectForskCmd)
 	projectCmd.AddCommand(projectHooksCmd)
@@ -760,5 +778,10 @@ func initProjectForksCreateCmd() {
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
 	cmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
+	parent.AddCommand(cmd)
+}
+
+func initCommandWithIntIdOnly(cmd *cobra.Command, parent *cobra.Command) {
+	cmd.PersistentFlags().IntP("id", "i", 0, "(required) The ID of the project")
 	parent.AddCommand(cmd)
 }
