@@ -36,12 +36,7 @@ var projectCmd = &cobra.Command{
 	Short: "Manage projects",
 	Long:  `List, create, edit and delete projects`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		projects, _, err := gitlabClient.Projects.ListProjects(&gitlab.ListProjectsOptions{})
-		if err != nil {
-			return err
-		}
-		err = OutputJson(projects)
-		return err
+		return errors.New("cannot run this command without further sub-commands")
 	},
 }
 
@@ -453,6 +448,32 @@ var projectUnshareWithGroupCmd = &cobra.Command{
 	},
 }
 
+var projectHooksCmd = &cobra.Command{
+	Use: "hooks",
+	Short: "Manage project hooks.",
+	Long: `Also called Project Hooks and Webhooks. These are different for System Hooks that are system wide.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("cannot run this command without further sub-commands")
+	},
+}
+
+var projectHooksListCmd = &cobra.Command{
+	Use: "ls",
+	Short: "List project hooks",
+	Long: `Get a list of project hooks.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return nil
+		}
+		hooks, _, err := gitlabClient.Projects.ListProjectHooks(pid, &gitlab.ListProjectHooksOptions{})
+		if err != nil {
+			return err
+		}
+		return OutputJson(hooks)
+	},
+}
+
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
 		return pid
@@ -468,15 +489,17 @@ func init() {
 	initProjectEditCmd()
 	initProjectForkCmd()
 	initProjectListForksCmd()
-	initCommandWithIdOnly(projectStarCmd)
-	initCommandWithIdOnly(projectUnstarCmd)
-	initCommandWithIdOnly(projectArchiveCmd)
-	initCommandWithIdOnly(projectUnarchiveCmd)
-	initCommandWithIdOnly(projectDeleteCmd)
+	initCommandWithIdOnly(projectStarCmd, projectCmd)
+	initCommandWithIdOnly(projectUnstarCmd, projectCmd)
+	initCommandWithIdOnly(projectArchiveCmd, projectCmd)
+	initCommandWithIdOnly(projectUnarchiveCmd, projectCmd)
+	initCommandWithIdOnly(projectDeleteCmd, projectCmd)
 	initProjectUploadFileCmd()
 	initProjectShareCmd()
 	initProjectUnshareCmd()
+	initCommandWithIdOnly(projectHooksListCmd, projectHooksCmd)
 
+	projectCmd.AddCommand(projectHooksCmd)
 	RootCmd.AddCommand(projectCmd)
 }
 
@@ -541,7 +564,7 @@ func initProjectUnshareCmd() {
 	projectCmd.AddCommand(projectUnshareWithGroupCmd)
 }
 
-func initCommandWithIdOnly(cmd *cobra.Command) {
+func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
 	cmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
-	projectCmd.AddCommand(cmd)
+	parent.AddCommand(cmd)
 }
