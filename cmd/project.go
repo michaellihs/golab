@@ -29,7 +29,7 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper, addHookOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper, addHookOptsMapper, editHookOptsMapper mapper.FlagMapper
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -514,9 +514,9 @@ type addHookFlags struct {
 }
 
 var projectAddHookCmd = &cobra.Command{
-	Use: "add",
+	Use:   "add",
 	Short: "Add project hook",
-	Long: `Adds a hook to a specified project.`,
+	Long:  `Adds a hook to a specified project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags, opts, err := projectAddHookOpts()
 		if err != nil {
@@ -534,6 +534,46 @@ func projectAddHookOpts() (*addHookFlags, *gitlab.AddProjectHookOptions, error) 
 	flags := &addHookFlags{}
 	opts := &gitlab.AddProjectHookOptions{}
 	addHookOptsMapper.Map(flags, opts)
+	return flags, opts, nil
+}
+
+type editHookFlags struct {
+	Id                    *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	HookId                *int    `flag_name:"hook_id" type:"integer" required:"yes" description:"The ID of the project hook"`
+	URL                   *string `flag_name:"url" short:"u" type:"string" required:"yes" description:"The hook URL"`
+	PushEvents            *bool   `flag_name:"push_events" type:"bool" required:"no" description:"Trigger hook on push events"`
+	IssuesEvents          *bool   `flag_name:"issues_events" type:"bool" required:"no" description:"Trigger hook on issues events"`
+	MergeRequestsEvents   *bool   `flag_name:"merge_requests_events" type:"bool" required:"no" description:"Trigger hook on merge requests events"`
+	TagPushEvents         *bool   `flag_name:"tag_push_events" type:"bool" required:"no" description:"Trigger hook on tag push events"`
+	NoteEvents            *bool   `flag_name:"note_events" type:"bool" required:"no" description:"Trigger hook on note events"`
+	JobEvents             *bool   `flag_name:"job_events" type:"bool" required:"no" description:"Trigger hook on job events"`
+	PipelineEvents        *bool   `flag_name:"pipeline_events" type:"bool" required:"no" description:"Trigger hook on pipeline events"`
+	WikiEvents            *bool   `flag_name:"wiki_events" type:"bool" required:"no" description:"Trigger hook on wiki events"`
+	EnableSslVerification *bool   `flag_name:"enable_ssl_verification" type:"bool" required:"no" description:"Do SSL verification when triggering the hook"`
+	Token                 *string `flag_name:"token" type:"string" required:"no" description:"Secret token to validate received payloads; this will not be returned in the response"`
+}
+
+var projectEditHookCmd = &cobra.Command{
+	Use: "edit",
+	Short: "Edit project hook",
+	Long: `Edits a hook for a specified project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		flags, opts, err := projectEditHookOpts()
+		if err != nil {
+			return err
+		}
+		hook, _, err := gitlabClient.Projects.EditProjectHook(parsePid(*flags.Id), *flags.HookId, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(hook)
+	},
+}
+
+func projectEditHookOpts() (*editHookFlags, *gitlab.EditProjectHookOptions, error) {
+	flags := &editHookFlags{}
+	opts := &gitlab.EditProjectHookOptions{}
+	editHookOptsMapper.Map(flags, opts)
 	return flags, opts, nil
 }
 
@@ -563,6 +603,7 @@ func init() {
 	initCommandWithIdOnly(projectHooksListCmd, projectHooksCmd)
 	initProjectHooksGetCmd()
 	initProjectAddHookCmd()
+	initProjectEditHookCmd()
 
 	projectCmd.AddCommand(projectHooksCmd)
 	RootCmd.AddCommand(projectCmd)
@@ -610,13 +651,6 @@ func initProjectListForksCmd() {
 	projectCmd.AddCommand(projectListForksCmd)
 }
 
-func initProjectAddHookCmd() {
-	flags := &addHookFlags{}
-	addHookOptsMapper = mapper.New(projectAddHookCmd)
-	addHookOptsMapper.SetFlags(flags)
-	projectHooksCmd.AddCommand(projectAddHookCmd)
-}
-
 func initProjectUploadFileCmd() {
 	projectUploadFileCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
 	projectUploadFileCmd.PersistentFlags().StringP("file", "f", "", "(required) Path to the file to be uploaded")
@@ -640,6 +674,20 @@ func initProjectHooksGetCmd() {
 	projectHooksGetCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
 	projectHooksGetCmd.PersistentFlags().IntP("hook_id", "", 0, "The ID of a project hook")
 	projectHooksCmd.AddCommand(projectHooksGetCmd)
+}
+
+func initProjectAddHookCmd() {
+	flags := &addHookFlags{}
+	addHookOptsMapper = mapper.New(projectAddHookCmd)
+	addHookOptsMapper.SetFlags(flags)
+	projectHooksCmd.AddCommand(projectAddHookCmd)
+}
+
+func initProjectEditHookCmd() {
+	flags := &editHookFlags{}
+	editHookOptsMapper = mapper.New(projectEditHookCmd)
+	editHookOptsMapper.SetFlags(flags)
+	projectHooksCmd.AddCommand(projectEditHookCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
