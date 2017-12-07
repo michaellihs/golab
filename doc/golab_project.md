@@ -32,6 +32,7 @@ golab project [flags]
 * [golab project delete](golab_project_delete.md)	 - Remove project
 * [golab project edit](golab_project_edit.md)	 - Edit project
 * [golab project fork](golab_project_fork.md)	 - Fork project
+* [golab project forks](golab_project_forks.md)	 - Admin fork relation
 * [golab project get](golab_project_get.md)	 - Get detailed information for a project
 * [golab project hooks](golab_project_hooks.md)	 - Manage project hooks.
 * [golab project list-forks](golab_project_list-forks.md)	 - List Forks of a project

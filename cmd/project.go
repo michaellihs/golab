@@ -464,7 +464,7 @@ var projectHooksListCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
-			return nil
+			return err
 		}
 		hooks, _, err := gitlabClient.Projects.ListProjectHooks(pid, &gitlab.ListProjectHooksOptions{})
 		if err != nil {
@@ -598,6 +598,37 @@ var projectDeleteHookCmd = &cobra.Command{
 	},
 }
 
+var projectForskCmd = &cobra.Command{
+	Use: "forks",
+	Short: "Admin fork relation",
+	Long: `Allows modification of the forked relationship between existing projects. Available only for admins.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("cannot run this command without a sub-command")
+	},
+}
+
+var projectForksCreateCmd = &cobra.Command{
+	Use: "create",
+	Short: "Create a forked from/to relation between existing projects",
+	Long: `Create a forked from/to relation between existing projects (available only for admins)`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetInt("id")
+		if err != nil {
+			return err
+		}
+		forkedFromId, err := cmd.Flags().GetInt("forked_from_id")
+		if err != nil {
+			return err
+		}
+		// go-gitlab assumes that a JSON with the fork info is returned, but it seems like only "OK" is returned upon success
+		_, res, err := gitlabClient.Projects.CreateProjectForkRelation(pid, forkedFromId)
+		if res.Status != "201 Created" {
+			return err
+		}
+		return nil
+	},
+}
+
 func parsePid(value string) interface{} {
 	if pid, err := strconv.Atoi(value); err == nil {
 		return pid
@@ -626,10 +657,13 @@ func init() {
 	initProjectAddHookCmd()
 	initProjectEditHookCmd()
 	initProjectDeleteHookCmd()
+	initProjectForksCreateCmd()
 
+	projectCmd.AddCommand(projectForskCmd)
 	projectCmd.AddCommand(projectHooksCmd)
 	RootCmd.AddCommand(projectCmd)
 }
+
 func initProjectListCmd() {
 	flags := &listFlags{}
 	listOptsMapper = mapper.New(projectListCmd)
@@ -715,6 +749,13 @@ func initProjectDeleteHookCmd() {
 	projectDeleteHookCmd.PersistentFlags().StringP("id", "i", "", "The ID or URL-encoded path of the project")
 	projectDeleteHookCmd.PersistentFlags().Int("hook_id", 0, "The ID of the project hook")
 	projectHooksCmd.AddCommand(projectDeleteHookCmd)
+}
+
+func initProjectForksCreateCmd() {
+	// TODO gitlab API now supports URL encoded path for project id, but go-gitlab does not
+	projectForksCreateCmd.PersistentFlags().IntP("id", "i", 0, "(required) The ID of the project")
+	projectForksCreateCmd.PersistentFlags().IntP("forked_from_id", "f", 0, "(required) The ID of the project that was forked from")
+	projectForskCmd.AddCommand(projectForksCreateCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
