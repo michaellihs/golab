@@ -18,17 +18,17 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      group-members)
-        _arguments '2: :(add delete edit get ls sync)'
-      ;;
-      project)
-        _arguments '2: :(archive create delete edit fork get hooks list-forks ls share star unarchive unshare unstar upload-file)'
-      ;;
       user)
         _arguments '2: :(activities create delete emails get impersonation-token ls modify ssh-keys)'
       ;;
       group)
         _arguments '2: :(create delete get ls projects search transfer-project update)'
+      ;;
+      group-members)
+        _arguments '2: :(add delete edit get ls sync)'
+      ;;
+      project)
+        _arguments '2: :(archive create delete edit fork get hooks list-forks ls share star unarchive unshare unstar upload-file)'
       ;;
       *)
         _arguments '*: :_files'
@@ -38,7 +38,7 @@ case $state in
   level3)
     case $words[3] in
       hooks)
-        _arguments '3: :(ls)'
+        _arguments '3: :(add get ls)'
       ;;
       emails)
         _arguments '3: :(add delete ls)'

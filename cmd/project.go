@@ -29,7 +29,7 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper, addHookOptsMapper mapper.FlagMapper
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -449,18 +449,18 @@ var projectUnshareWithGroupCmd = &cobra.Command{
 }
 
 var projectHooksCmd = &cobra.Command{
-	Use: "hooks",
+	Use:   "hooks",
 	Short: "Manage project hooks.",
-	Long: `Also called Project Hooks and Webhooks. These are different for System Hooks that are system wide.`,
+	Long:  `Also called Project Hooks and Webhooks. These are different for System Hooks that are system wide.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("cannot run this command without further sub-commands")
 	},
 }
 
 var projectHooksListCmd = &cobra.Command{
-	Use: "ls",
+	Use:   "ls",
 	Short: "List project hooks",
-	Long: `Get a list of project hooks.`,
+	Long:  `Get a list of project hooks.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -472,6 +472,69 @@ var projectHooksListCmd = &cobra.Command{
 		}
 		return OutputJson(hooks)
 	},
+}
+
+var projectHooksGetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Get project hook",
+	Long:  `Get a specific hook for a project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pid, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+		hookId, err := cmd.Flags().GetInt("hook_id")
+		if err != nil {
+			return err
+		}
+		if hookId == 0 {
+			return errors.New("you have to provide a valid hook id")
+		}
+		hook, _, err := gitlabClient.Projects.GetProjectHook(pid, hookId)
+		if err != nil {
+			return err
+		}
+		return OutputJson(hook)
+	},
+}
+
+type addHookFlags struct {
+	Id                    *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	URL                   *string `flag_name:"url" short:"u" type:"string" required:"yes" description:"The hook URL"`
+	PushEvents            *bool   `flag_name:"push_events" type:"bool" required:"no" description:"Trigger hook on push events"`
+	IssuesEvents          *bool   `flag_name:"issues_events" type:"bool" required:"no" description:"Trigger hook on issues events"`
+	MergeRequestsEvents   *bool   `flag_name:"merge_requests_events" type:"bool" required:"no" description:"Trigger hook on merge requests events"`
+	TagPushEvents         *bool   `flag_name:"tag_push_events" type:"bool" required:"no" description:"Trigger hook on tag push events"`
+	NoteEvents            *bool   `flag_name:"note_events" type:"bool" required:"no" description:"Trigger hook on note events"`
+	JobEvents             *bool   `flag_name:"job_events" type:"bool" required:"no" description:"Trigger hook on job events"`
+	PipelineEvents        *bool   `flag_name:"pipeline_events" type:"bool" required:"no" description:"Trigger hook on pipeline events"`
+	WikiEvents            *bool   `flag_name:"wiki_events" type:"bool" required:"no" description:"Trigger hook on wiki events"`
+	EnableSslVerification *bool   `flag_name:"enable_ssl_verification" type:"bool" required:"no" description:"Do SSL verification when triggering the hook"`
+	Token                 *string `flag_name:"token" type:"string" required:"no" description:"Secret token to validate received payloads; this will not be returned in the response"`
+}
+
+var projectAddHookCmd = &cobra.Command{
+	Use: "add",
+	Short: "Add project hook",
+	Long: `Adds a hook to a specified project.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		flags, opts, err := projectAddHookOpts()
+		if err != nil {
+			return err
+		}
+		hook, _, err := gitlabClient.Projects.AddProjectHook(parsePid(*flags.Id), opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(hook)
+	},
+}
+
+func projectAddHookOpts() (*addHookFlags, *gitlab.AddProjectHookOptions, error) {
+	flags := &addHookFlags{}
+	opts := &gitlab.AddProjectHookOptions{}
+	addHookOptsMapper.Map(flags, opts)
+	return flags, opts, nil
 }
 
 func parsePid(value string) interface{} {
@@ -498,6 +561,8 @@ func init() {
 	initProjectShareCmd()
 	initProjectUnshareCmd()
 	initCommandWithIdOnly(projectHooksListCmd, projectHooksCmd)
+	initProjectHooksGetCmd()
+	initProjectAddHookCmd()
 
 	projectCmd.AddCommand(projectHooksCmd)
 	RootCmd.AddCommand(projectCmd)
@@ -545,6 +610,13 @@ func initProjectListForksCmd() {
 	projectCmd.AddCommand(projectListForksCmd)
 }
 
+func initProjectAddHookCmd() {
+	flags := &addHookFlags{}
+	addHookOptsMapper = mapper.New(projectAddHookCmd)
+	addHookOptsMapper.SetFlags(flags)
+	projectHooksCmd.AddCommand(projectAddHookCmd)
+}
+
 func initProjectUploadFileCmd() {
 	projectUploadFileCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
 	projectUploadFileCmd.PersistentFlags().StringP("file", "f", "", "(required) Path to the file to be uploaded")
@@ -562,6 +634,12 @@ func initProjectUnshareCmd() {
 	projectUnshareWithGroupCmd.PersistentFlags().StringP("id", "i", "", "The ID or URL-encoded path of the project")
 	projectUnshareWithGroupCmd.PersistentFlags().StringP("group_id", "g", "", "The ID of the group")
 	projectCmd.AddCommand(projectUnshareWithGroupCmd)
+}
+
+func initProjectHooksGetCmd() {
+	projectHooksGetCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
+	projectHooksGetCmd.PersistentFlags().IntP("hook_id", "", 0, "The ID of a project hook")
+	projectHooksCmd.AddCommand(projectHooksGetCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
