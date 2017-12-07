@@ -95,7 +95,7 @@ var _ = Describe("FlagMapper", func() {
 		Expect(mockCmd.Flag("flag4").Shorthand).To(Equal(""))
 	})
 
-	It("maps valid args to given struct as expected", func() {
+	It("maps valid args to given opts struct as expected", func() {
 		flags := &testFlags{}
 		opts := &testOpts{}
 		mockCmd := mockCmd()
@@ -110,6 +110,22 @@ var _ = Describe("FlagMapper", func() {
 		Expect(*opts.Flag3).To(Equal(4))
 		// TODO bug, when parsing array flags
 		Expect(*opts.Flag4).Should(ConsistOf("v1, v2, v3"))
+	})
+
+	It ("maps args to given flags struct as expected", func() {
+		flags := &testFlags{}
+		opts := &testOpts{}
+		mockCmd := mockCmd()
+		var flagMapper = New(mockCmd)
+		flagMapper.SetFlags(flags)
+
+		executeCommand(mockCmd, "mock", "--flag1", "false", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3")
+		flagMapper.Map(flags, opts)
+
+		Expect(*flags.Flag1).To(Equal(true))
+		Expect(*flags.Flag2).To(Equal("string"))
+		Expect(*flags.Flag3).To(Equal(4))
+		Expect(*flags.Flag4).Should(ConsistOf("v1, v2, v3"))
 	})
 
 	It("skips args with non-matching types as expected", func() {

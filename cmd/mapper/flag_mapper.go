@@ -44,7 +44,7 @@ func (m FlagMapper) Map(flags interface{}, opts interface{}) {
 	optsReflected := reflect.ValueOf(opts).Elem()
 
 	for i := 0; i < flagsReflected.NumField(); i++ {
-		f := flagsReflected.Field(i)
+		flag := flagsReflected.Field(i)
 		tag := flagsReflected.Type().Field(i).Tag
 
 		flagName := tag.Get("flag_name")
@@ -55,61 +55,93 @@ func (m FlagMapper) Map(flags interface{}, opts interface{}) {
 		if flagChanged {
 			fieldName := flagsReflected.Type().Field(i).Name
 			opt := optsReflected.FieldByName(fieldName)
-			if opt.IsValid() {
-				// A Value can be changed only if it is addressable and was not obtained by the use of unexported struct fields.
-				if opt.CanSet() {
-					if transform := tag.Get("transform"); transform != "" {
-						value, err := m.cmd.PersistentFlags().GetString(flagName)
-						if err != nil {
-							panic(err.Error())
-						}
-						transformAndSet(transform, opt, value)
-					} else {
-						switch f.Type().String() {
-						case "*int":
-							value, err := m.cmd.PersistentFlags().GetInt(flagName)
-							if err != nil {
-								panic(err.Error())
-							}
-							if typesMatch(opt, &value) {
-								opt.Set(reflect.ValueOf(&value))
-							}
-						case "*string":
-							value, err := m.cmd.PersistentFlags().GetString(flagName)
-							if err != nil {
-								panic(err.Error())
-							}
-							if typesMatch(opt, &value) {
-								opt.Set(reflect.ValueOf(&value))
-							}
-						case "*bool":
-							value, err := m.cmd.PersistentFlags().GetBool(flagName)
-							if err != nil {
-								panic(err.Error())
-							}
-							if typesMatch(opt, &value) {
-								opt.Set(reflect.ValueOf(&value))
-							}
-						case "*[]string":
-							value, err := m.cmd.PersistentFlags().GetStringArray(flagName)
-							if err != nil {
-								panic(err.Error())
-							}
-							if typesMatch(opt, &value) {
-								opt.Set(reflect.ValueOf(&value))
-							}
-						default:
-							panic("Unknown type " + f.Type().String())
-						}
-					}
-				} else {
-					panic(fieldName + " can not be set")
-				}
-			} else {
-				// we want to ignore flags, that are not available in opts
-				// panic(fieldName + " is not valid")
-			}
+			mapOpt(opt, tag, m, flagName, flag, fieldName)
+			mapFlag(flag, m, flagName)
+		} else {
+			// TODO what do we want to do, if flag is not changed / given by command
+			// TODO e.g. provide default value in annotation?
 		}
+	}
+}
+
+func mapFlag(value reflect.Value, mapper FlagMapper, tagName string) {
+	mapValue(value, mapper, tagName, value)
+}
+
+func mapOpt(opt reflect.Value, tag reflect.StructTag, mapper FlagMapper, flagName string, value reflect.Value, fieldName string) {
+	if opt.IsValid() {
+		// A Value can be changed only if it is addressable and was not obtained by the use of unexported struct fields.
+		if opt.CanSet() {
+			if transform := tag.Get("transform"); transform != "" {
+				value, err := mapper.cmd.PersistentFlags().GetString(flagName)
+				if err != nil {
+					panic(err.Error())
+				}
+				transformAndSet(transform, opt, value)
+			} else {
+				mapValue(value, mapper, flagName, opt)
+			}
+		} else {
+			panic(fieldName + " can not be set")
+		}
+	} else {
+		// for the moment, we want to ignore flags, that are not available in opts
+		// panic(fieldName + " is not valid")
+	}
+}
+
+func mapValue(value reflect.Value, mapper FlagMapper, flagName string, opt reflect.Value) {
+	switch value.Type().String() {
+	case "*int":
+		mapInt(mapper, flagName, opt)
+	case "*string":
+		mapString(mapper, flagName, opt)
+	case "*bool":
+		mapBool(mapper, flagName, opt)
+	case "*[]string":
+		mapStringArray(mapper, flagName, opt)
+	default:
+		panic("Unknown type " + value.Type().String())
+	}
+}
+
+func mapInt(m FlagMapper, flagName string, opt reflect.Value) {
+	value, err := m.cmd.PersistentFlags().GetInt(flagName)
+	if err != nil {
+		panic(err.Error())
+	}
+	if typesMatch(opt, &value) {
+		opt.Set(reflect.ValueOf(&value))
+	}
+}
+
+func mapString(m FlagMapper, flagName string, opt reflect.Value) {
+	value, err := m.cmd.PersistentFlags().GetString(flagName)
+	if err != nil {
+		panic(err.Error())
+	}
+	if typesMatch(opt, &value) {
+		opt.Set(reflect.ValueOf(&value))
+	}
+}
+
+func mapStringArray(m FlagMapper, flagName string, opt reflect.Value) {
+	value, err := m.cmd.PersistentFlags().GetStringArray(flagName)
+	if err != nil {
+		panic(err.Error())
+	}
+	if typesMatch(opt, &value) {
+		opt.Set(reflect.ValueOf(&value))
+	}
+}
+
+func mapBool(m FlagMapper, flagName string, opt reflect.Value) {
+	value, err := m.cmd.PersistentFlags().GetBool(flagName)
+	if err != nil {
+		panic(err.Error())
+	}
+	if typesMatch(opt, &value) {
+		opt.Set(reflect.ValueOf(&value))
 	}
 }
 
@@ -125,9 +157,15 @@ func transformAndSet(transform string, opt reflect.Value, value string) {
 }
 
 func str2Visibility(s string) *gitlab.VisibilityValue {
-	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
-	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
-	if s == "public" { return gitlab.Visibility(gitlab.PublicVisibility) }
+	if s == "private" {
+		return gitlab.Visibility(gitlab.PrivateVisibility)
+	}
+	if s == "internal" {
+		return gitlab.Visibility(gitlab.InternalVisibility)
+	}
+	if s == "public" {
+		return gitlab.Visibility(gitlab.PublicVisibility)
+	}
 	return nil
 }
 
@@ -142,18 +180,28 @@ func string2IsoTime(s string) *gitlab.ISOTime {
 }
 
 func str2AccessLevel(s string) *gitlab.AccessLevelValue {
-	if s == "10" { return gitlab.AccessLevel(gitlab.GuestPermissions) }
-	if s == "20" { return gitlab.AccessLevel(gitlab.ReporterPermissions) }
-	if s == "30" { return gitlab.AccessLevel(gitlab.DeveloperPermissions) }
-	if s == "40" { return gitlab.AccessLevel(gitlab.MasterPermissions) }
-	if s == "50" { return gitlab.AccessLevel(gitlab.OwnerPermission) }
+	if s == "10" {
+		return gitlab.AccessLevel(gitlab.GuestPermissions)
+	}
+	if s == "20" {
+		return gitlab.AccessLevel(gitlab.ReporterPermissions)
+	}
+	if s == "30" {
+		return gitlab.AccessLevel(gitlab.DeveloperPermissions)
+	}
+	if s == "40" {
+		return gitlab.AccessLevel(gitlab.MasterPermissions)
+	}
+	if s == "50" {
+		return gitlab.AccessLevel(gitlab.OwnerPermission)
+	}
 	panic("Unknown access level: " + s)
 }
 
 var funcs = map[string]interface{}{
 	"string2visibility": str2Visibility,
-	"string2IsoTime": string2IsoTime,
-	"str2AccessLevel": str2AccessLevel,
+	"string2IsoTime":    string2IsoTime,
+	"str2AccessLevel":   str2AccessLevel,
 }
 
 func call(m map[string]interface{}, name string, params ... interface{}) (result []reflect.Value, err error) {
