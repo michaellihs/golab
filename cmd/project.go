@@ -554,9 +554,9 @@ type editHookFlags struct {
 }
 
 var projectEditHookCmd = &cobra.Command{
-	Use: "edit",
+	Use:   "edit",
 	Short: "Edit project hook",
-	Long: `Edits a hook for a specified project.`,
+	Long:  `Edits a hook for a specified project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags, opts, err := projectEditHookOpts()
 		if err != nil {
@@ -578,9 +578,9 @@ func projectEditHookOpts() (*editHookFlags, *gitlab.EditProjectHookOptions, erro
 }
 
 var projectDeleteHookCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "Delete project hook",
-	Long: `Removes a hook from a project. This is an idempotent method and can be called multiple times. Either the hook is available or not.`,
+	Long:  `Removes a hook from a project. This is an idempotent method and can be called multiple times. Either the hook is available or not.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -599,18 +599,18 @@ var projectDeleteHookCmd = &cobra.Command{
 }
 
 var projectForskCmd = &cobra.Command{
-	Use: "forks",
+	Use:   "forks",
 	Short: "Admin fork relation",
-	Long: `Allows modification of the forked relationship between existing projects. Available only for admins.`,
+	Long:  `Allows modification of the forked relationship between existing projects. Available only for admins.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("cannot run this command without a sub-command")
 	},
 }
 
 var projectForksCreateCmd = &cobra.Command{
-	Use: "create",
+	Use:   "create",
 	Short: "Create a forked from/to relation between existing projects",
-	Long: `Create a forked from/to relation between existing projects (available only for admins)`,
+	Long:  `Create a forked from/to relation between existing projects (available only for admins)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetInt("id")
 		if err != nil {
@@ -630,9 +630,9 @@ var projectForksCreateCmd = &cobra.Command{
 }
 
 var projectForksDeleteCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "Delete an existing forked from relationship",
-	Long: `Delete an existing forked from relationship (available only for admins)`,
+	Long:  `Delete an existing forked from relationship (available only for admins)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pid, err := cmd.Flags().GetInt("id")
 		if err != nil {
@@ -643,6 +643,16 @@ var projectForksDeleteCmd = &cobra.Command{
 			return err
 		}
 		return nil
+	},
+}
+
+var projectHousekeepingCmd = &cobra.Command{
+	Use:   "housekeeping",
+	Short: "Start the Housekeeping task for a Project",
+	Long:  `Start the Housekeeping task for a Project`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// TODO this feature is missing in go-gitlab
+		return errors.New("this feature is not yet implemented")
 	},
 }
 
@@ -676,6 +686,7 @@ func init() {
 	initProjectDeleteHookCmd()
 	initProjectForksCreateCmd()
 	initCommandWithIntIdOnly(projectForksDeleteCmd, projectForskCmd)
+	initCommandWithIdOnly(projectHousekeepingCmd, projectCmd)
 
 	projectCmd.AddCommand(projectForskCmd)
 	projectCmd.AddCommand(projectHooksCmd)
