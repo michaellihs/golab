@@ -9,7 +9,7 @@ case $state in
   level1)
     case $words[1] in
       golab)
-        _arguments '1: :(gendoc group group-members help login project user zsh-completion)'
+        _arguments '1: :(gendoc group group-members help login merge-requests project user zsh-completion)'
       ;;
       *)
         _arguments '*: :_files'
@@ -20,6 +20,9 @@ case $state in
     case $words[2] in
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
+      ;;
+      merge-requests)
+        _arguments '2: :(ls)'
       ;;
       project)
         _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls share star unarchive unshare unstar upload-file)'

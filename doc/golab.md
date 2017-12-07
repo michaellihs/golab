@@ -21,6 +21,7 @@ This application provides a Command Line Interface for Gitlab.
 * [golab group](golab_group.md)	 - Manage Gitlab Groups
 * [golab group-members](golab_group-members.md)	 - Access group members
 * [golab login](golab_login.md)	 - Login to a Gitlab server
+* [golab merge-requests](golab_merge-requests.md)	 - Manage Merge Requests
 * [golab project](golab_project.md)	 - Manage projects
 * [golab user](golab_user.md)	 - Manage Gitlab users
 * [golab zsh-completion](golab_zsh-completion.md)	 - Generate ZSH completion file
