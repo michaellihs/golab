@@ -38,6 +38,7 @@ golab project [flags]
 * [golab project housekeeping](golab_project_housekeeping.md)	 - Start the Housekeeping task for a Project
 * [golab project list-forks](golab_project_list-forks.md)	 - List Forks of a project
 * [golab project ls](golab_project_ls.md)	 - List all projects
+* [golab project search](golab_project_search.md)	 - Search for projects by name
 * [golab project share](golab_project_share.md)	 - Share project with group
 * [golab project star](golab_project_star.md)	 - Star a project 
 * [golab project unarchive](golab_project_unarchive.md)	 - Unarchive a project

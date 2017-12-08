@@ -29,7 +29,7 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper, addHookOptsMapper, editHookOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper, addHookOptsMapper, editHookOptsMapper, projectSearchOptsMapper mapper.FlagMapper
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
@@ -204,7 +204,7 @@ type forkFlags struct {
 var projectForkCmd = &cobra.Command{
 	Use:   "fork",
 	Short: "Fork project",
-	Long:  `Forks a project into the user namespace of the authenticated user or the one provided.
+	Long: `Forks a project into the user namespace of the authenticated user or the one provided.
 
 The forking operation for a project is asynchronous and is completed in a background job. The request will return immediately. To determine whether the fork of the project has completed, query the import_status for the new project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -574,6 +574,26 @@ var projectForksDeleteCmd = &cobra.Command{
 	},
 }
 
+type projectSearchFlags struct {
+	Search  *string `flag_name:"search" short:"s" type:"string" required:"yes" description:"A string contained in the project name"`
+	OrderBy *string `flag_name:"order_by" type:"string" required:"no" description:"Return requests ordered by id, name, created_at or last_activity_at fields"`
+	Sort    *string `flag_name:"sort" type:"string" required:"no" description:"Return requests sorted in asc or desc order"`
+}
+
+var projectSearchCmd = &cobra.Command{
+	Use: "search",
+	Short: "Search for projects by name",
+	Long: `Search for projects by name which are accessible to the authenticated user. This endpoint can be accessed without authentication if the project is publicly accessible.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("currently not implemented")
+		// TODO not implemented in go-gitlab so far
+		//projectSearchOptsMapper.AutoMap()
+		//opts := projectSearchOptsMapper.MappedOpts().(*gitlab...)
+		//flags := projectSearchOptsMapper.MappedFlags().(*projectSearchFlags)
+		//gitlabClient.Projects.Search()
+	},
+}
+
 var projectHousekeepingCmd = &cobra.Command{
 	Use:   "housekeeping",
 	Short: "Start the Housekeeping task for a Project",
@@ -614,6 +634,7 @@ func init() {
 	initProjectDeleteHookCmd()
 	initProjectForksCreateCmd()
 	initCommandWithIntIdOnly(projectForksDeleteCmd, projectForskCmd)
+	initProjectSearchCmd()
 	initCommandWithIdOnly(projectHousekeepingCmd, projectCmd)
 
 	projectCmd.AddCommand(projectForskCmd)
@@ -696,6 +717,12 @@ func initProjectForksCreateCmd() {
 	projectForksCreateCmd.PersistentFlags().IntP("id", "i", 0, "(required) The ID of the project")
 	projectForksCreateCmd.PersistentFlags().IntP("forked_from_id", "f", 0, "(required) The ID of the project that was forked from")
 	projectForskCmd.AddCommand(projectForksCreateCmd)
+}
+
+func initProjectSearchCmd() {
+	// TODO we do not have the opts in go-gitlab yet
+	projectSearchOptsMapper = mapper.InitializedMapper(projectSearchCmd, &projectSearchFlags{}, &projectSearchFlags{})
+	projectCmd.AddCommand(projectSearchCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
