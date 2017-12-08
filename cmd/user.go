@@ -37,7 +37,7 @@ import (
 
 var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state, expires, scopes, name string
 var id, userId, keyId, projectsLimit, tokenId, emailId int
-var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
+var admin, canCreateGroup, skipConfirmation, external bool
 
 var userCmd = &cobra.Command{
 	Use:   "user",
@@ -122,40 +122,48 @@ var userLsCmd = &golabCommand{
 	},
 }
 
-var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new user",
-	Long:  `Allows creation of a new user`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO fix binding of parameters
-		if projectsLimit == -1 {
-			projectsLimit = 10
-		}
-		createUserOptions := &gitlab.CreateUserOptions{
-			Admin:            &admin,
-			Bio:              &bio,
-			CanCreateGroup:   &canCreateGroup,
-			SkipConfirmation: &skipConfirmation,
-			Email:            &email,
-			Linkedin:         &linkedin,
-			Name:             &name,
-			Password:         &password,
-			ProjectsLimit:    &projectsLimit,
-			Skype:            &skype,
-			Twitter:          &twitter,
-			Username:         &username,
-			WebsiteURL:       &websiteUrl,
-		}
-		if provider != "" {
-			createUserOptions.Provider = &provider
-			createUserOptions.ExternUID = &externUid
-		}
-		user, _, err := gitlabClient.Users.CreateUser(createUserOptions)
+// see https://docs.gitlab.com/ce/api/users.html#user-creation
+type userCreateFlags struct {
+	Email            *string `flag_name:"email" short:"e" type:"string" required:"yes" description:"Email"`
+	Password         *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password"`
+	ResetPassword    *bool   `flag_name:"reset_password" type:"bool" required:"no" description:"Send user password reset link - true or false(default)"`
+	Username         *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username"`
+	Name             *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"Name"`
+	Skype            *string `flag_name:"skype" type:"string" required:"no" description:"Skype ID"`
+	Linkedin         *string `flag_name:"linkedin" type:"string" required:"no" description:"LinkedIn"`
+	Twitter          *string `flag_name:"twitter" type:"string" required:"no" description:"Twitter account"`
+	WebsiteUrl       *string `flag_name:"website_url" type:"string" required:"no" description:"Website URL"`
+	Organization     *string `flag_name:"organization" type:"string" required:"no" description:"Organization name"`
+	ProjectsLimit    *int    `flag_name:"projects_limit" type:"int" required:"no" description:"Number of projects user can create"`
+	ExternUid        *string `flag_name:"extern_uid" type:"string" required:"no" description:"External UID"`
+	Provider         *string `flag_name:"provider" type:"string" required:"no" description:"External provider name"`
+	Bio              *string `flag_name:"bio" type:"string" required:"no" description:"User's biography"`
+	Location         *string `flag_name:"location" type:"string" required:"no" description:"User's location"`
+	Admin            *bool   `flag_name:"admin" type:"bool" required:"no" description:"User is admin - true or false (default)"`
+	CanCreateGroup   *bool   `flag_name:"can_create_group" type:"bool" required:"no" description:"User can create groups - true or false"`
+	SkipConfirmation *bool   `flag_name:"skip_confirmation" type:"bool" required:"no" description:"Skip confirmation - true or false (default)"`
+	External         *bool   `flag_name:"external" type:"bool" required:"no" description:"Flags the user as external - true or false(default)"`
+	// TODO currently not supported by go-gitlab
+	//Avatar           *string `flag_name:"avatar" type:"string" required:"no" description:"Image file for user's avatar"`
+}
+
+var userCreateCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userCreateFlags{},
+	Opts:   &gitlab.CreateUserOptions{},
+	Cmd: &cobra.Command{
+		Use:   "create",
+		Short: "User creation",
+		Long:  `Creates a new user. Note only administrators can create new users. Either password or reset_password should be specified (reset_password takes priority).`,
+	},
+	Run: func(cmd golabCommand) error {
+		opts := cmd.Opts.(*gitlab.CreateUserOptions)
+		OutputJson(opts)
+		user, _, err := gitlabClient.Users.CreateUser(opts)
 		if err != nil {
 			return err
 		}
-		err = OutputJson(user)
-		return err
+		return OutputJson(user)
 	},
 }
 
@@ -556,7 +564,7 @@ func getUserId(id int, username string) (int, error) {
 func init() {
 	userGetCmd.Init()
 	userLsCmd.Init()
-	initUserCreateCommand()
+	userCreateCmd.Init()
 	initUserModifyCommand()
 	initUserDeleteCommand()
 	initSshKeysCmd()
@@ -564,46 +572,6 @@ func init() {
 	initEmailsCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
-}
-
-func initUserCreateCommand() {
-	createCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "(mandatory) Email")
-	createCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "(mandatory) Password")
-	createCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "(mandatory) Username")
-	createCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(mandatory) Name")
-	createCmd.PersistentFlags().StringVarP(&skype, "skype", "", "", "(optional) Skype ID")
-	createCmd.PersistentFlags().StringVarP(&linkedin, "linkedin", "", "", "(optional) LinkedIn")
-	createCmd.PersistentFlags().StringVarP(&twitter, "twitter", "", "", "(optional) Twitter account")
-	createCmd.PersistentFlags().StringVarP(&websiteUrl, "website_url", "", "", "(optional) Website URL")
-	createCmd.PersistentFlags().StringVarP(&organization, "organization", "", "", "(optional) Organization name")
-	createCmd.PersistentFlags().IntVarP(&projectsLimit, "projects_limit", "", 10, "(optional) Number of projects user can create (10 is default)")
-	createCmd.PersistentFlags().StringVarP(&externUid, "extern_uid", "", "", "(optional) External UID")
-	createCmd.PersistentFlags().StringVarP(&provider, "provider", "", "", "(optional) External provider name")
-	createCmd.PersistentFlags().StringVarP(&bio, "bio", "", "", "(optional) User's biography")
-	createCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) User's location")
-	createCmd.PersistentFlags().BoolVarP(&admin, "admin", "a", false, "(optional) User is admin - true or false (default)")
-	createCmd.PersistentFlags().BoolVarP(&canCreateGroup, "can_create_group", "", false, "(optional) User can create groups - true or false (default)")
-	createCmd.PersistentFlags().BoolVarP(&skipConfirmation, "skipConfirmation", "", false, "(optional) Skip confirmation")
-	createCmd.PersistentFlags().BoolVarP(&external, "external", "", false, "(optional) Flags the user as external - true or false(default)")
-	viper.BindPFlag("email", createCmd.PersistentFlags().Lookup("email"))
-	viper.BindPFlag("password", createCmd.PersistentFlags().Lookup("password"))
-	viper.BindPFlag("username", createCmd.PersistentFlags().Lookup("username"))
-	viper.BindPFlag("name", createCmd.PersistentFlags().Lookup("name"))
-	viper.BindPFlag("skype", createCmd.PersistentFlags().Lookup("skype"))
-	viper.BindPFlag("linkedin", createCmd.PersistentFlags().Lookup("linkedin"))
-	viper.BindPFlag("twitter", createCmd.PersistentFlags().Lookup("twitter"))
-	viper.BindPFlag("website_url", createCmd.PersistentFlags().Lookup("website_url"))
-	viper.BindPFlag("organization", createCmd.PersistentFlags().Lookup("organization"))
-	viper.BindPFlag("projects_limit", createCmd.PersistentFlags().Lookup("projects_limit"))
-	viper.BindPFlag("extern_uid", createCmd.PersistentFlags().Lookup("extern_uid"))
-	viper.BindPFlag("provider", createCmd.PersistentFlags().Lookup("provider"))
-	viper.BindPFlag("bio", createCmd.PersistentFlags().Lookup("bio"))
-	viper.BindPFlag("location", createCmd.PersistentFlags().Lookup("location"))
-	viper.BindPFlag("admin", createCmd.PersistentFlags().Lookup("admin"))
-	viper.BindPFlag("can_create_group", createCmd.PersistentFlags().Lookup("can_create_group"))
-	viper.BindPFlag("skipConfirmation", createCmd.PersistentFlags().Lookup("skipConfirmation"))
-	viper.BindPFlag("external", createCmd.PersistentFlags().Lookup("external"))
-	userCmd.AddCommand(createCmd)
 }
 
 func initUserModifyCommand() {

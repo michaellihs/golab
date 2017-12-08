@@ -50,7 +50,7 @@ func TestUserLs(t *testing.T) {
 
 func TestUserCreateGetDelete(t *testing.T) {
 	// create a user
-	args :=  []string{"user", "create", "-u", "root10", "-p", "12341234", "-e", "test10@test.de",  "-n", "root10", "--skipConfirmation"}
+	args :=  []string{"user", "create", "-u", "root10", "-p", "12341234", "-e", "test10@test.de",  "-n", "root10", "--skip_confirmation"}
 	cmd := exec.Command(golabBinary, args...)
 	out, err := cmd.CombinedOutput()
 	fatalOnErr(err, out, t)

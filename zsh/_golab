@@ -40,12 +40,6 @@ case $state in
   ;;
   level3)
     case $words[3] in
-      forks)
-        _arguments '3: :(create delete)'
-      ;;
-      hooks)
-        _arguments '3: :(add delete edit get ls)'
-      ;;
       emails)
         _arguments '3: :(add delete ls)'
       ;;
@@ -54,6 +48,12 @@ case $state in
       ;;
       ssh-keys)
         _arguments '3: :(add delete get)'
+      ;;
+      forks)
+        _arguments '3: :(create delete)'
+      ;;
+      hooks)
+        _arguments '3: :(add delete edit get ls)'
       ;;
       *)
         _arguments '*: :_files'
