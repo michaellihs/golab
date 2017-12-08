@@ -30,7 +30,7 @@ import (
 
 var name, newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString, search string
 
-var statistics, lfsEnabled, requestAccessEnabled bool
+var lfsEnabled, requestAccessEnabled bool
 
 var id, projectId int
 
@@ -43,6 +43,7 @@ var groupCmd = &cobra.Command{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/groups.html#list-groups
 type groupLsFlags struct {
 	SkipGroups   *[]string `flag_name:"skip_groups" type:"array" required:"no" description:"Skip the group IDs passed"`
 	AllAvailable *bool     `flag_name:"all_available" type:"bool" required:"no" description:"Show all the groups you have access to (defaults to false for authenticated users)"`
@@ -55,8 +56,8 @@ type groupLsFlags struct {
 
 var groupLsCmd = &golabCommand{
 	Parent: groupCmd,
-	Flags: &groupLsFlags{},
-	Opts: &gitlab.ListGroupsOptions{},
+	Flags:  &groupLsFlags{},
+	Opts:   &gitlab.ListGroupsOptions{},
 	Cmd: &cobra.Command{
 		Use:   "ls",
 		Short: "List groups",
@@ -71,16 +72,31 @@ var groupLsCmd = &golabCommand{
 	},
 }
 
-var groupProjectsCmd = &cobra.Command{
-	Use:   "projects",
-	Short: "List a group's projects",
-	Long:  `Get a list of projects in this group. When accessed without authentication, only public projects are returned.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == 0 {
-			return errors.New("required parameter `-i` or `--id`not given - exiting")
-		}
-		opts := &gitlab.ListGroupProjectsOptions{}
-		projects, _, err := gitlabClient.Groups.ListGroupProjects(id, opts)
+// see https://docs.gitlab.com/ce/api/groups.html#list-a-group-39-s-projects
+type listGroupProjectsFlags struct {
+	Id         *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the group owned by the authenticated user"`
+	Archived   *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
+	Visibility *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
+	OrderBy    *string `flag_name:"order_by" type:"string" required:"no" description:"Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at"`
+	Sort       *string `flag_name:"sort" type:"string" required:"no" description:"Return projects sorted in asc or desc order. Default is desc"`
+	Search     *string `flag_name:"search" type:"string" required:"no" description:"Return list of authorized projects matching the search criteria"`
+	Simple     *bool   `flag_name:"simple" type:"bool" required:"no" description:"Return only the ID, URL, name, and path of each project"`
+	Owned      *bool   `flag_name:"owned" type:"bool" required:"no" description:"Limit by projects owned by the current user"`
+	Starred    *bool   `flag_name:"starred" type:"bool" required:"no" description:"Limit by projects starred by the current user"`
+}
+
+var groupProjectsCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &listGroupProjectsFlags{},
+	Opts:   &gitlab.ListGroupProjectsOptions{},
+	Cmd: &cobra.Command{
+		Use:   "projects",
+		Short: "List a group's projects",
+		Long:  `Get a list of projects in this group. When accessed without authentication, only public projects are returned.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*listGroupProjectsFlags)
+		projects, _, err := gitlabClient.Groups.ListGroupProjects(*flags.Id, cmd.Opts.(*gitlab.ListGroupProjectsOptions))
 		if err != nil {
 			return err
 		}
@@ -256,9 +272,9 @@ func str2Visibility(s string) *gitlab.VisibilityValue {
 
 func init() {
 	groupLsCmd.Init()
+	groupProjectsCmd.Init()
 	initGroupGetCommand()
 	initGroupCreateCommand()
-	initGroupProjectsCommand()
 	initTransferProjectCmd()
 	initGroupUpdateCommand()
 	initGroupDeleteCommand()
@@ -266,11 +282,6 @@ func init() {
 	RootCmd.AddCommand(groupCmd)
 }
 
-func initGroupProjectsCommand() {
-	groupProjectsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to list projects for")
-	viper.BindPFlag("id", groupProjectsCmd.PersistentFlags().Lookup("id"))
-	groupCmd.AddCommand(groupProjectsCmd)
-}
 
 func initGroupGetCommand() {
 	groupGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) either ID or namespace of group")

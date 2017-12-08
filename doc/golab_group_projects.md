@@ -14,8 +14,16 @@ golab group projects [flags]
 ### Options
 
 ```
-  -h, --help     help for projects
-  -i, --id int   (required) id of group to list projects for
+      --archived            (optional) Limit by archived status
+  -h, --help                help for projects
+      --id string           (required) The ID or URL-encoded path of the group owned by the authenticated user
+      --order_by string     (optional) Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at
+      --owned               (optional) Limit by projects owned by the current user
+      --search string       (optional) Return list of authorized projects matching the search criteria
+      --simple              (optional) Return only the ID, URL, name, and path of each project
+      --sort string         (optional) Return projects sorted in asc or desc order. Default is desc
+      --starred             (optional) Limit by projects starred by the current user
+      --visibility string   (optional) Limit by visibility public, internal, or private
 ```
 
 ### Options inherited from parent commands
