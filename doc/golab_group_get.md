@@ -14,8 +14,8 @@ golab group get [flags]
 ### Options
 
 ```
-  -h, --help     help for get
-  -i, --id int   (required) either ID or namespace of group
+  -h, --help        help for get
+      --id string   (required) The ID or URL-encoded path of the group owned by the authenticated user
 ```
 
 ### Options inherited from parent commands

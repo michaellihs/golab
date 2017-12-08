@@ -24,7 +24,6 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -104,15 +103,22 @@ var groupProjectsCmd = &golabCommand{
 	},
 }
 
-var groupGetCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Details of a group",
-	Long:  `Get all details of a group. This command can be accessed without authentication if the group is publicly accessible.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == 0 {
-			return errors.New("required parameter `-i` or `--id` not given - exiting")
-		}
-		group, _, err := gitlabClient.Groups.GetGroup(id)
+// see https://docs.gitlab.com/ce/api/groups.html#details-of-a-group
+type groupGetFlags struct {
+	Id *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the group owned by the authenticated user"`
+}
+
+var groupGetCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &groupGetFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Details of a group",
+		Long:  `Get all details of a group. This command can be accessed without authentication if the group is publicly accessible.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*groupGetFlags)
+		group, _, err := gitlabClient.Groups.GetGroup(*flags.Id)
 		if err != nil {
 			return err
 		}
@@ -273,20 +279,13 @@ func str2Visibility(s string) *gitlab.VisibilityValue {
 func init() {
 	groupLsCmd.Init()
 	groupProjectsCmd.Init()
-	initGroupGetCommand()
+	groupGetCmd.Init()
 	initGroupCreateCommand()
 	initTransferProjectCmd()
 	initGroupUpdateCommand()
 	initGroupDeleteCommand()
 	initGroupSearchCommand()
 	RootCmd.AddCommand(groupCmd)
-}
-
-
-func initGroupGetCommand() {
-	groupGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) either ID or namespace of group")
-	viper.BindPFlag("id", groupGetCmd.PersistentFlags().Lookup("id"))
-	groupCmd.AddCommand(groupGetCmd)
 }
 
 func initTransferProjectCmd() {
