@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/cobra"
 	"errors"
-	"github.com/spf13/viper"
 )
 
 var docPath string
@@ -31,5 +30,4 @@ func init() {
 
 func initGendocCommand() {
 	gendocCmd.PersistentFlags().StringVarP(&docPath, "path", "p", "", "(required) Path into which to render Markdown documentation")
-	viper.BindPFlag("path", groupGetCmd.PersistentFlags().Lookup("path"))
 }
