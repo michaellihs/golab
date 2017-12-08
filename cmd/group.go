@@ -37,7 +37,7 @@ var id, projectId int
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Gitlab Groups",
-	Long: `Show, create, update and delete Gitlab groups.`,
+	Long:  `Show, create, update and delete Gitlab groups.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("check usage of group with `golab group -h`")
 	},
@@ -59,24 +59,26 @@ var groupLsCmd = &cobra.Command{
 }
 
 var groupProjectsCmd = &cobra.Command{
-	Use: "projects",
+	Use:   "projects",
 	Short: "List a group's projects",
-	Long: `Get a list of projects in this group. When accessed without authentication, only public projects are returned.`,
+	Long:  `Get a list of projects in this group. When accessed without authentication, only public projects are returned.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id`not given - exiting")
 		}
 		opts := &gitlab.ListGroupProjectsOptions{}
 		projects, _, err := gitlabClient.Groups.ListGroupProjects(id, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(projects)
 	},
 }
 
 var groupGetCmd = &cobra.Command{
-	Use: "get",
+	Use:   "get",
 	Short: "Details of a group",
-	Long: `Get all details of a group. This command can be accessed without authentication if the group is publicly accessible.`,
+	Long:  `Get all details of a group. This command can be accessed without authentication if the group is publicly accessible.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id` not given - exiting")
@@ -90,9 +92,9 @@ var groupGetCmd = &cobra.Command{
 }
 
 var groupCreateCommand = &cobra.Command{
-	Use: "create",
+	Use:   "create",
 	Short: "New group",
-	Long: `Creates a new project group. Available only for users who can create groups.`,
+	Long:  `Creates a new project group. Available only for users who can create groups.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if name == "" {
 			return errors.New("required parameter `-n` or `--name` not given - exiting")
@@ -101,11 +103,11 @@ var groupCreateCommand = &cobra.Command{
 			return errors.New("required parameter `-p` or `--path` not given - exiting")
 		}
 		opts := &gitlab.CreateGroupOptions{
-			Name: &name,
-			Path: &path,
-			Description: &description,
-			Visibility: str2Visibility(visibility),
-			LFSEnabled: &lfsEnabled,
+			Name:                 &name,
+			Path:                 &path,
+			Description:          &description,
+			Visibility:           str2Visibility(visibility),
+			LFSEnabled:           &lfsEnabled,
 			RequestAccessEnabled: &requestAccessEnabled,
 		}
 		group, _, err := gitlabClient.Groups.CreateGroup(opts)
@@ -118,9 +120,9 @@ var groupCreateCommand = &cobra.Command{
 }
 
 var transferProjectCmd = &cobra.Command{
-	Use: "transfer-project",
+	Use:   "transfer-project",
 	Short: "Transfer project to group",
-	Long: `Transfer a project to the Group namespace. Available only for admin`,
+	Long:  `Transfer a project to the Group namespace. Available only for admin`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id` not given - exiting")
@@ -129,51 +131,78 @@ var transferProjectCmd = &cobra.Command{
 			return errors.New("required parameter `-p` or `--project_id` not given - exiting")
 		}
 		group, _, err := gitlabClient.Groups.TransferGroup(id, projectId)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(group)
 	},
 }
 
 var groupUpdateCmd = &cobra.Command{
-	Use: "update",
+	Use:   "update",
 	Short: "Update group",
-	Long: `Updates the project group. Only available to group owners and administrators.`,
+	Long:  `Updates the project group. Only available to group owners and administrators.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id` not given - exiting")
 		}
 
-		trueVal := true; falseVal := false
+		trueVal := true;
+		falseVal := false
 
 		// we have to provide name and path, even if not set in command
 		// therefore we read those values from current group
 		currGroup, _, err := gitlabClient.Groups.GetGroup(id)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
 		opts := &gitlab.UpdateGroupOptions{}
-		if newName != "NIL" { opts.Name = &newName } else { opts.Name = &currGroup.Name }
-		if path != "NIL" { opts.Path = &path } else { opts.Path = &currGroup.Path }
-		if description != "NIL" { opts.Description = &description }
-		if visibility != "NIL" { opts.Visibility = str2Visibility(visibility) }
+		if newName != "NIL" {
+			opts.Name = &newName
+		} else {
+			opts.Name = &currGroup.Name
+		}
+		if path != "NIL" {
+			opts.Path = &path
+		} else {
+			opts.Path = &currGroup.Path
+		}
+		if description != "NIL" {
+			opts.Description = &description
+		}
+		if visibility != "NIL" {
+			opts.Visibility = str2Visibility(visibility)
+		}
 		if lfsEnabledString != "NIL" {
-			if lfsEnabledString == "true" || lfsEnabledString == "1" { opts.LFSEnabled = &trueVal }
-			if lfsEnabledString == "false" || lfsEnabledString == "0" { opts.LFSEnabled = &falseVal }
+			if lfsEnabledString == "true" || lfsEnabledString == "1" {
+				opts.LFSEnabled = &trueVal
+			}
+			if lfsEnabledString == "false" || lfsEnabledString == "0" {
+				opts.LFSEnabled = &falseVal
+			}
 		}
 		if requestAccessEnabledString != "NIL" {
-			if requestAccessEnabledString == "true" || requestAccessEnabledString == "1" { opts.RequestAccessEnabled = &trueVal }
-			if requestAccessEnabledString == "false" ||requestAccessEnabledString == "0" { opts.RequestAccessEnabled = &falseVal }
+			if requestAccessEnabledString == "true" || requestAccessEnabledString == "1" {
+				opts.RequestAccessEnabled = &trueVal
+			}
+			if requestAccessEnabledString == "false" || requestAccessEnabledString == "0" {
+				opts.RequestAccessEnabled = &falseVal
+			}
 		}
 
 		group, _, err := gitlabClient.Groups.UpdateGroup(id, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(group)
 	},
 }
 
 var groupDeleteCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "Remove group",
-	Long: `Removes group with all projects inside.`,
+	Long:  `Removes group with all projects inside.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id` not given - exiting")
@@ -184,28 +213,36 @@ var groupDeleteCmd = &cobra.Command{
 }
 
 var groupSearchCmd = &cobra.Command{
-	Use: "search",
+	Use:   "search",
 	Short: "Search for group",
-	Long: `Get all groups that match your string in their name or path.`,
+	Long:  `Get all groups that match your string in their name or path.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if search == "" {
 			return errors.New("required paramter `-s` or `--search` not given - exiting")
 		}
 		groups, _, err := gitlabClient.Groups.SearchGroup(search)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(groups)
 	},
 }
 
 func str2Visibility(s string) *gitlab.VisibilityValue {
-	if s == "private" { return gitlab.Visibility(gitlab.PrivateVisibility) }
-	if s == "internal" { return gitlab.Visibility(gitlab.InternalVisibility) }
-	if s == "public" { return gitlab.Visibility(gitlab.PublicVisibility) }
+	if s == "private" {
+		return gitlab.Visibility(gitlab.PrivateVisibility)
+	}
+	if s == "internal" {
+		return gitlab.Visibility(gitlab.InternalVisibility)
+	}
+	if s == "public" {
+		return gitlab.Visibility(gitlab.PublicVisibility)
+	}
 	return nil
 }
 
 func init() {
-	initGroupLsCommand()
+	groupLsCmd.Init()
 	initGroupGetCommand()
 	initGroupCreateCommand()
 	initGroupProjectsCommand()
