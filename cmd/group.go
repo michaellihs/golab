@@ -27,12 +27,6 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-var name, newName, path, visibility, description, lfsEnabledString, requestAccessEnabledString, search string
-
-var lfsEnabled, requestAccessEnabled bool
-
-var id, projectId int
-
 var groupCmd = &cobra.Command{
 	Use:   "group",
 	Short: "Manage Gitlab Groups",
@@ -75,7 +69,7 @@ var groupLsCmd = &golabCommand{
 type listGroupProjectsFlags struct {
 	Id         *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the group owned by the authenticated user"`
 	Archived   *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
-	Visibility *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
+	Visibility *string `flag_name:"visibility" type:"string" transform:"str2Visibility" required:"no" description:"Limit by visibility public, internal, or private"`
 	OrderBy    *string `flag_name:"order_by" type:"string" required:"no" description:"Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at"`
 	Sort       *string `flag_name:"sort" type:"string" required:"no" description:"Return projects sorted in asc or desc order. Default is desc"`
 	Search     *string `flag_name:"search" type:"string" required:"no" description:"Return list of authorized projects matching the search criteria"`
@@ -126,46 +120,56 @@ var groupGetCmd = &golabCommand{
 	},
 }
 
-var groupCreateCommand = &cobra.Command{
-	Use:   "create",
-	Short: "New group",
-	Long:  `Creates a new project group. Available only for users who can create groups.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if name == "" {
-			return errors.New("required parameter `-n` or `--name` not given - exiting")
-		}
-		if path == "" {
-			return errors.New("required parameter `-p` or `--path` not given - exiting")
-		}
-		opts := &gitlab.CreateGroupOptions{
-			Name:                 &name,
-			Path:                 &path,
-			Description:          &description,
-			Visibility:           str2Visibility(visibility),
-			LFSEnabled:           &lfsEnabled,
-			RequestAccessEnabled: &requestAccessEnabled,
-		}
+// see https://docs.gitlab.com/ce/api/groups.html#new-group
+type groupCreateFlags struct {
+	Name                 *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the group"`
+	Path                 *string `flag_name:"path" short:"p" type:"string" required:"yes" description:"The path of the group"`
+	Description          *string `flag_name:"description" type:"string" required:"no" description:"The group's description"`
+	Visibility           *string `flag_name:"visibility" type:"string" transform:"str2Visibility" required:"no" description:"The group's visibility. Can be private, internal, or public."`
+	LfsEnabled           *bool   `flag_name:"lfs_enabled" type:"bool" required:"no" description:"Enable/disable Large File Storage (LFS) for the projects in this group"`
+	RequestAccessEnabled *bool   `flag_name:"request_access_enabled" type:"bool" required:"no" description:"- Allow users to request member access."`
+	ParentId             *int    `flag_name:"parent_id" type:"int" required:"no" description:"The parent group id for creating nested group."`
+}
+
+var groupCreateCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &groupCreateFlags{},
+	Opts:   &gitlab.CreateGroupOptions{},
+	Cmd: &cobra.Command{
+		Use:   "create",
+		Short: "New group",
+		Long:  `Creates a new project group. Available only for users who can create groups.`,
+	},
+	Run: func(cmd golabCommand) error {
+		opts := cmd.Opts.(*gitlab.CreateGroupOptions)
 		group, _, err := gitlabClient.Groups.CreateGroup(opts)
 		if err != nil {
 			return err
 		}
-		err = OutputJson(group)
-		return err
+		return OutputJson(group)
 	},
 }
 
-var transferProjectCmd = &cobra.Command{
-	Use:   "transfer-project",
-	Short: "Transfer project to group",
-	Long:  `Transfer a project to the Group namespace. Available only for admin`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == 0 {
-			return errors.New("required parameter `-i` or `--id` not given - exiting")
-		}
-		if projectId == 0 {
-			return errors.New("required parameter `-p` or `--project_id` not given - exiting")
-		}
-		group, _, err := gitlabClient.Groups.TransferGroup(id, projectId)
+// see https://docs.gitlab.com/ce/api/groups.html#transfer-project-to-group
+type transferProjectFlags struct {
+	Id        *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the group owned by the authenticated user"`
+	ProjectId *int    `flag_name:"project_id" short:"p" type:"string" required:"yes" description:"The ID or URL-encoded path of a project"`
+	// TODO go-gitlab does not support ID or URL-encoded path here
+	// ProjectId *string `flag_name:"project_id" short:"p" type:"string" required:"yes" description:"The ID or URL-encoded path of a project"`
+}
+
+var transferProjectCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &transferProjectFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "transfer-project",
+		Short: "Transfer project to group",
+		Long:  `Transfer a project to the Group namespace. Available only for admin.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*transferProjectFlags)
+		group, _, err := gitlabClient.Groups.TransferGroup(*flags.Id, *flags.ProjectId)
 		if err != nil {
 			return err
 		}
@@ -173,60 +177,30 @@ var transferProjectCmd = &cobra.Command{
 	},
 }
 
-var groupUpdateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Update group",
-	Long:  `Updates the project group. Only available to group owners and administrators.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == 0 {
-			return errors.New("required parameter `-i` or `--id` not given - exiting")
-		}
+// see https://docs.gitlab.com/ce/api/groups.html#update-group
+type groupUpdateFlags struct {
+	Id                   *int    `flag_name:"id" type:"integer" required:"yes" description:"The ID of the group"`
+	Name                 *string `flag_name:"name" type:"string" required:"no" description:"The name of the group"`
+	Path                 *string `flag_name:"path" type:"string" required:"no" description:"The path of the group"`
+	Description          *string `flag_name:"description" type:"string" required:"no" description:"The description of the group"`
+	Visibility           *string `flag_name:"visibility" type:"string" transform:"str2Visibility" required:"no" description:"The visibility level of the group. Can be private, internal, or public."`
+	LfsEnabled           *bool   `flag_name:"lfs_enabled" type:"boolean" required:"no" description:"Enable/disable Large File Storage (LFS) for the projects in this group"`
+	RequestAccessEnabled *bool   `flag_name:"request_access_enabled" type:"boolean" required:"no" description:"Allow users to request member access."`
+}
 
-		trueVal := true;
-		falseVal := false
-
-		// we have to provide name and path, even if not set in command
-		// therefore we read those values from current group
-		currGroup, _, err := gitlabClient.Groups.GetGroup(id)
-		if err != nil {
-			return err
-		}
-
-		opts := &gitlab.UpdateGroupOptions{}
-		if newName != "NIL" {
-			opts.Name = &newName
-		} else {
-			opts.Name = &currGroup.Name
-		}
-		if path != "NIL" {
-			opts.Path = &path
-		} else {
-			opts.Path = &currGroup.Path
-		}
-		if description != "NIL" {
-			opts.Description = &description
-		}
-		if visibility != "NIL" {
-			opts.Visibility = str2Visibility(visibility)
-		}
-		if lfsEnabledString != "NIL" {
-			if lfsEnabledString == "true" || lfsEnabledString == "1" {
-				opts.LFSEnabled = &trueVal
-			}
-			if lfsEnabledString == "false" || lfsEnabledString == "0" {
-				opts.LFSEnabled = &falseVal
-			}
-		}
-		if requestAccessEnabledString != "NIL" {
-			if requestAccessEnabledString == "true" || requestAccessEnabledString == "1" {
-				opts.RequestAccessEnabled = &trueVal
-			}
-			if requestAccessEnabledString == "false" || requestAccessEnabledString == "0" {
-				opts.RequestAccessEnabled = &falseVal
-			}
-		}
-
-		group, _, err := gitlabClient.Groups.UpdateGroup(id, opts)
+var groupUpdateCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &groupUpdateFlags{},
+	Opts:   &gitlab.UpdateGroupOptions{},
+	Cmd: &cobra.Command{
+		Use:   "update",
+		Short: "Update group",
+		Long:  `Updates the project group. Only available to group owners and administrators.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*groupUpdateFlags)
+		opts := cmd.Opts.(*gitlab.UpdateGroupOptions)
+		group, _, err := gitlabClient.Groups.UpdateGroup(*flags.Id, opts)
 		if err != nil {
 			return err
 		}
@@ -234,28 +208,44 @@ var groupUpdateCmd = &cobra.Command{
 	},
 }
 
-var groupDeleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Remove group",
-	Long:  `Removes group with all projects inside.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if id == 0 {
-			return errors.New("required parameter `-i` or `--id` not given - exiting")
-		}
-		_, err := gitlabClient.Groups.DeleteGroup(id)
+// see https://docs.gitlab.com/ce/api/groups.html#remove-group
+type groupDeleteFlags struct {
+	Id *string `flag_name:"id" type:"string" required:"yes" description:"The ID or URL encoded path of a user group"`
+}
+
+var groupDeleteCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &groupDeleteFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "delete",
+		Short: "Remove group",
+		Long:  `Removes group with all projects inside.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*groupDeleteFlags)
+		_, err := gitlabClient.Groups.DeleteGroup(*flags.Id)
 		return err
 	},
 }
 
-var groupSearchCmd = &cobra.Command{
-	Use:   "search",
-	Short: "Search for group",
-	Long:  `Get all groups that match your string in their name or path.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if search == "" {
-			return errors.New("required paramter `-s` or `--search` not given - exiting")
-		}
-		groups, _, err := gitlabClient.Groups.SearchGroup(search)
+// see https://docs.gitlab.com/ce/api/groups.html#search-for-group
+type groupSearchFlags struct {
+	Search *string `flag_name:"search" short:"s" type:"string" required:"yes" description:"Search phrase"`
+}
+
+var groupSearchCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags:  &groupSearchFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "search",
+		Short: "Search for group",
+		Long:  `Get all groups that match your string in their name or path.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*groupSearchFlags)
+		groups, _, err := gitlabClient.Groups.SearchGroup(*flags.Search)
 		if err != nil {
 			return err
 		}
@@ -263,64 +253,14 @@ var groupSearchCmd = &cobra.Command{
 	},
 }
 
-func str2Visibility(s string) *gitlab.VisibilityValue {
-	if s == "private" {
-		return gitlab.Visibility(gitlab.PrivateVisibility)
-	}
-	if s == "internal" {
-		return gitlab.Visibility(gitlab.InternalVisibility)
-	}
-	if s == "public" {
-		return gitlab.Visibility(gitlab.PublicVisibility)
-	}
-	return nil
-}
-
 func init() {
 	groupLsCmd.Init()
 	groupProjectsCmd.Init()
 	groupGetCmd.Init()
-	initGroupCreateCommand()
-	initTransferProjectCmd()
-	initGroupUpdateCommand()
-	initGroupDeleteCommand()
-	initGroupSearchCommand()
+	groupCreateCmd.Init()
+	transferProjectCmd.Init()
+	groupUpdateCmd.Init()
+	groupDeleteCmd.Init()
+	groupSearchCmd.Init()
 	RootCmd.AddCommand(groupCmd)
-}
-
-func initTransferProjectCmd() {
-	transferProjectCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to transfer project to")
-	transferProjectCmd.PersistentFlags().IntVarP(&projectId, "project_id", "p", 0, "(required) id of project to be transferred")
-	groupCmd.AddCommand(transferProjectCmd)
-}
-
-func initGroupCreateCommand() {
-	groupCreateCommand.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) the name of the group")
-	groupCreateCommand.PersistentFlags().StringVarP(&path, "path", "p", "", "(required) the path of the group")
-	groupCreateCommand.PersistentFlags().StringVarP(&description, "description", "d", "", "(optional) the description of the group")
-	groupCreateCommand.PersistentFlags().StringVarP(&visibility, "visibility", "v", "private", "(optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'.")
-	groupCreateCommand.PersistentFlags().BoolVarP(&lfsEnabled, "lfs_enabled", "l", false, "(optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group")
-	groupCreateCommand.PersistentFlags().BoolVarP(&requestAccessEnabled, "request_access_enabled", "r", false, "(optional) Allow users to request member access.")
-	groupCmd.AddCommand(groupCreateCommand)
-}
-
-func initGroupUpdateCommand() {
-	groupUpdateCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) the id of the group to be updated")
-	groupUpdateCmd.PersistentFlags().StringVarP(&newName, "name", "n", "NIL", "(optional) the name of the group")
-	groupUpdateCmd.PersistentFlags().StringVarP(&path, "path", "p", "NIL", "(optional) the path of the group")
-	groupUpdateCmd.PersistentFlags().StringVarP(&description, "description", "d", "NIL", "(optional) the description of the group")
-	groupUpdateCmd.PersistentFlags().StringVarP(&visibility, "visibility", "v", "NIL", "(optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'.")
-	groupUpdateCmd.PersistentFlags().StringVarP(&lfsEnabledString, "lfs_enabled", "l", "NIL", "(optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group")
-	groupUpdateCmd.PersistentFlags().StringVarP(&requestAccessEnabledString, "request_access_enabled", "r", "NIL", "(optional) Allow users to request member access.")
-	groupCmd.AddCommand(groupUpdateCmd)
-}
-
-func initGroupDeleteCommand() {
-	groupDeleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to be deleted")
-	groupCmd.AddCommand(groupDeleteCmd)
-}
-
-func initGroupSearchCommand() {
-	groupSearchCmd.PersistentFlags().StringVarP(&search, "search", "s", "", "(required) search phrase")
-	groupCmd.AddCommand(groupSearchCmd)
 }

@@ -14,8 +14,8 @@ golab group delete [flags]
 ### Options
 
 ```
-  -h, --help     help for delete
-  -i, --id int   (required) id of group to be deleted
+  -h, --help        help for delete
+      --id string   (required) The ID or URL encoded path of a user group
 ```
 
 ### Options inherited from parent commands

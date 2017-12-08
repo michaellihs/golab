@@ -14,13 +14,14 @@ golab group create [flags]
 ### Options
 
 ```
-  -d, --description string       (optional) the description of the group
+      --description string       (optional) The group's description
   -h, --help                     help for create
-  -l, --lfs_enabled              (optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group
-  -n, --name string              (required) the name of the group
-  -p, --path string              (required) the path of the group
-  -r, --request_access_enabled   (optional) Allow users to request member access.
-  -v, --visibility string        (optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'. (default "private")
+      --lfs_enabled              (optional) Enable/disable Large File Storage (LFS) for the projects in this group
+  -n, --name string              (required) The name of the group
+      --parent_id int            (optional) The parent group id for creating nested group.
+  -p, --path string              (required) The path of the group
+      --request_access_enabled   (optional) - Allow users to request member access.
+      --visibility string        (optional) The group's visibility. Can be private, internal, or public.
 ```
 
 ### Options inherited from parent commands

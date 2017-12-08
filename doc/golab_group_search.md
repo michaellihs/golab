@@ -15,7 +15,7 @@ golab group search [flags]
 
 ```
   -h, --help            help for search
-  -s, --search string   (required) search phrase
+  -s, --search string   (required) Search phrase
 ```
 
 ### Options inherited from parent commands

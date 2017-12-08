@@ -5,7 +5,7 @@ Transfer project to group
 ### Synopsis
 
 
-Transfer a project to the Group namespace. Available only for admin
+Transfer a project to the Group namespace. Available only for admin.
 
 ```
 golab group transfer-project [flags]
@@ -15,8 +15,8 @@ golab group transfer-project [flags]
 
 ```
   -h, --help             help for transfer-project
-  -i, --id int           (required) id of group to transfer project to
-  -p, --project_id int   (required) id of project to be transferred
+  -i, --id string        (required) The ID or URL-encoded path of the group owned by the authenticated user
+  -p, --project_id int   (required) The ID or URL-encoded path of a project
 ```
 
 ### Options inherited from parent commands

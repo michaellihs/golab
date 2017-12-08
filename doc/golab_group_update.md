@@ -14,14 +14,14 @@ golab group update [flags]
 ### Options
 
 ```
-  -d, --description string              (optional) the description of the group (default "NIL")
-  -h, --help                            help for update
-  -i, --id int                          (required) the id of the group to be updated
-  -l, --lfs_enabled string              (optional) Enable/disable (default) Large File Storage (LFS) for the projects in this group (default "NIL")
-  -n, --name string                     (optional) the name of the group (default "NIL")
-  -p, --path string                     (optional) the path of the group (default "NIL")
-  -r, --request_access_enabled string   (optional) Allow users to request member access. (default "NIL")
-  -v, --visibility string               (optional) The visibility level of the group. Can be 'private' (default), 'internal', or 'public'. (default "NIL")
+      --description string       (optional) The description of the group
+  -h, --help                     help for update
+      --id int                   (required) The ID of the group
+      --lfs_enabled              (optional) Enable/disable Large File Storage (LFS) for the projects in this group
+      --name string              (optional) The name of the group
+      --path string              (optional) The path of the group
+      --request_access_enabled   (optional) Allow users to request member access.
+      --visibility string        (optional) The visibility level of the group. Can be private, internal, or public.
 ```
 
 ### Options inherited from parent commands

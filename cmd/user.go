@@ -35,8 +35,8 @@ import (
 	"time"
 )
 
-var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state , expires, scopes string
-var userId, keyId, projectsLimit, tokenId, emailId int
+var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state , expires, scopes, name string
+var id, userId, keyId, projectsLimit, tokenId, emailId int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
 // userCmd represents the user command
