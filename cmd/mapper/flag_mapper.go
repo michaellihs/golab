@@ -84,8 +84,8 @@ func flagUsage(tag reflect.StructTag) string {
 }
 
 func (m FlagMapper) AutoMap() (interface{}, interface{}, error) {
-	m.Map(m.flags, m.opts)
-	return m.flags, m.opts, nil
+	err := m.Map(m.flags, m.opts)
+	return m.flags, m.opts, err
 }
 
 func (m FlagMapper) MappedOpts() interface{} {
@@ -96,9 +96,12 @@ func (m FlagMapper) MappedFlags() interface{} {
 	return m.flags
 }
 
-func (m FlagMapper) Map(flags interface{}, opts interface{}) {
+func (m FlagMapper) Map(flags interface{}, opts interface{}) error {
+	var optsReflected reflect.Value
 	flagsReflected := reflect.ValueOf(flags).Elem()
-	optsReflected := reflect.ValueOf(opts).Elem()
+	if opts != nil {
+		optsReflected = reflect.ValueOf(opts).Elem()
+	}
 
 	for i := 0; i < flagsReflected.NumField(); i++ {
 		flag := flagsReflected.Field(i)
@@ -111,14 +114,18 @@ func (m FlagMapper) Map(flags interface{}, opts interface{}) {
 		// see https://stackoverflow.com/questions/40060131/reflect-assign-a-pointer-struct-value
 		if flagChanged {
 			fieldName := flagsReflected.Type().Field(i).Name
-			opt := optsReflected.FieldByName(fieldName)
-			mapOpt(opt, tag, m, flagName, flag, fieldName)
+			if opts != nil {
+				opt := optsReflected.FieldByName(fieldName)
+				mapOpt(opt, tag, m, flagName, flag, fieldName)
+			}
 			mapFlag(flag, m, flagName)
 		} else {
-			// TODO what do we want to do, if flag is not changed / given by command
-			// TODO e.g. provide default value in annotation?
+			if required := tag.Get("required"); required == "yes" {
+				return errors.New("required flag --" + flagName + " was empty")
+			}
 		}
 	}
+	return nil
 }
 
 func mapFlag(value reflect.Value, mapper FlagMapper, tagName string) {

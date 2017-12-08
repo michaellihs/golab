@@ -197,13 +197,50 @@ var _ = Describe("FlagMapper", func() {
 		flags := &testFlagsWithPropertyNotInOpts{}
 		opts := &testOptsWithMissingProperty{}
 		mockCmd := mockCmd()
-		var flagMapper = New(mockCmd)
-		flagMapper.SetFlags(flags)
+		var mapper = New(mockCmd)
+		mapper.SetFlags(flags)
 
 		executeCommand(mockCmd, "mock", "-i", "34", "-n", "name")
-		flagMapper.Map(flags, opts)
+		mapper.Map(flags, opts)
 
 		Expect(*opts.Name).To(Equal("name"))
+	})
+
+	It("can handle nil opts", func() {
+		flags := &testFlagsWithPropertyNotInOpts{}
+		mockCmd := mockCmd()
+		var mapper = New(mockCmd)
+		mapper.SetFlags(flags)
+
+		executeCommand(mockCmd, "mock", "-i", "34", "-n", "name")
+		mapper.Map(flags, nil)
+
+		Expect(*flags.Name).To(Equal("name"))
+	})
+
+	It("returns an error during mapping, if required flag is not set in mapping", func() {
+		flags := &testFlags{}
+		mockCmd := mockCmd()
+		var mapper = New(mockCmd)
+		mapper.SetFlags(flags)
+
+		executeCommand(mockCmd, "mock", "-n", "name")
+		err := mapper.Map(flags, nil)
+
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(Equal("required flag --flag1 was empty"))
+	})
+
+	It("returns an error during mapping, if required flag is not set in auto-mapping", func() {
+		flags := &testFlags{}
+		mockCmd := mockCmd()
+		var mapper = InitializedMapper(mockCmd, flags, nil)
+
+		executeCommand(mockCmd, "mock", "-n", "name")
+		_,_,err := mapper.AutoMap()
+
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(Equal("required flag --flag1 was empty"))
 	})
 
 })
