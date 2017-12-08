@@ -33,11 +33,40 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"github.com/hashicorp/go-rootcerts"
 	"github.com/hashicorp/go-cleanhttp"
+	"github.com/michaellihs/golab/cmd/mapper"
 )
 
 var cfgFile, caFile, caPath string
 
 var gitlabClient *gitlab.Client
+
+type golabCommand struct {
+	Parent *cobra.Command
+	Flags  interface{}
+	Opts   interface{}
+	Run    func(cmd golabCommand) error
+	Mapper mapper.FlagMapper
+	Cmd    *cobra.Command
+}
+
+func (c golabCommand) Execute() error {
+	_,_,err := c.Mapper.AutoMap()
+	if err != nil {
+		return err
+	}
+	c.Flags = c.Mapper.MappedFlags()
+	c.Opts = c.Mapper.MappedOpts()
+	return c.Run(c)
+}
+
+func (c golabCommand) Init() error {
+	c.Cmd.RunE = func(cmd *cobra.Command, args []string) error {
+		return c.Execute()
+	}
+	c.Mapper = mapper.InitializedMapper(c.Cmd, c.Flags, c.Opts)
+	c.Parent.AddCommand(c.Cmd)
+	return nil  // TODO do something useful with the error return
+}
 
 var RootCmd = &cobra.Command{
 	Use:   "golab",
@@ -81,7 +110,7 @@ func initConfig() {
 	viper.SetConfigName(".golab") // name of config file (without extension)
 	viper.AddConfigPath("$HOME")  // adding home directory as first search path
 	viper.AddConfigPath(".")      // adding current directory as first search path
- 	viper.AutomaticEnv()              // read in environment variables that match
+	viper.AutomaticEnv()          // read in environment variables that match
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println(err)

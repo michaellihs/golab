@@ -43,17 +43,30 @@ var groupCmd = &cobra.Command{
 	},
 }
 
-var groupLsCmd = &cobra.Command{
-	Use: "ls",
-	Short: "List groups",
-	Long: `Get a list of visible groups for the authenticated user.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		opts := &gitlab.ListGroupsOptions{}
-		if statistics == true {
-			opts.Statistics = &statistics
+type groupLsFlags struct {
+	SkipGroups   *[]string `flag_name:"skip_groups" type:"array" required:"no" description:"Skip the group IDs passed"`
+	AllAvailable *bool     `flag_name:"all_available" type:"bool" required:"no" description:"Show all the groups you have access to (defaults to false for authenticated users)"`
+	Search       *string   `flag_name:"search" type:"string" required:"no" description:"Return the list of authorized groups matching the search criteria"`
+	OrderBy      *string   `flag_name:"order_by" type:"string" required:"no" description:"Order groups by name or path. Default is name"`
+	Sort         *string   `flag_name:"sort" type:"string" required:"no" description:"Order groups in asc or desc order. Default is asc"`
+	Statistics   *bool     `flag_name:"statistics" type:"bool" required:"no" description:"Include group statistics (admins only)"`
+	Owned        *bool     `flag_name:"owned" type:"boolean" required:"no" description:"Limit to groups owned by the current user"`
+}
+
+var groupLsCmd = &golabCommand{
+	Parent: groupCmd,
+	Flags: &groupLsFlags{},
+	Opts: &gitlab.ListGroupsOptions{},
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List groups",
+		Long:  `Get a list of visible groups for the authenticated user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		groups, _, err := gitlabClient.Groups.ListGroups(cmd.Opts.(*gitlab.ListGroupsOptions))
+		if err != nil {
+			return err
 		}
-		groups, _, err := gitlabClient.Groups.ListGroups(opts)
-		if err != nil { return err }
 		return OutputJson(groups)
 	},
 }
@@ -252,11 +265,7 @@ func init() {
 	initGroupSearchCommand()
 	RootCmd.AddCommand(groupCmd)
 }
-func initGroupLsCommand() {
-	groupLsCmd.PersistentFlags().BoolVarP(&statistics, "statistics", "s", false, "(optional) if set to true, additional statistics are shown (admin only)")
-	viper.BindPFlag("statistics", groupLsCmd.PersistentFlags().Lookup("statistics"))
-	groupCmd.AddCommand(groupLsCmd)
-}
+
 func initGroupProjectsCommand() {
 	groupProjectsCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to list projects for")
 	viper.BindPFlag("id", groupProjectsCmd.PersistentFlags().Lookup("id"))

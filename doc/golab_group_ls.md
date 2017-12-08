@@ -14,8 +14,14 @@ golab group ls [flags]
 ### Options
 
 ```
-  -h, --help         help for ls
-  -s, --statistics   (optional) if set to true, additional statistics are shown (admin only)
+      --all_available             (optional) Show all the groups you have access to (defaults to false for authenticated users)
+  -h, --help                      help for ls
+      --order_by string           (optional) Order groups by name or path. Default is name
+      --owned                     (optional) Limit to groups owned by the current user
+      --search string             (optional) Return the list of authorized groups matching the search criteria
+      --skip_groups stringArray   (optional) Skip the group IDs passed
+      --sort string               (optional) Order groups in asc or desc order. Default is asc
+      --statistics                (optional) Include group statistics (admins only)
 ```
 
 ### Options inherited from parent commands
