@@ -35,46 +35,89 @@ import (
 	"time"
 )
 
-var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state , expires, scopes, name string
+var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state, expires, scopes, name string
 var id, userId, keyId, projectsLimit, tokenId, emailId int
 var admin, canCreateGroup, skipConfirmation, external, active, blocked bool
 
-// userCmd represents the user command
 var userCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Manage Gitlab users",
-	Long: `Allows create, update and deletion of a user`,
+	Long:  `Allows create, update and deletion of a user`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Use one of the subcommands, see `golab user -h`")
 	},
 }
 
-var getCmd = &cobra.Command{
-	Use: "get",
-	Short: "Get user details",
-	Long: `Get detailed information for given user`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		id, err := getUserId(id, username)
+// see https://docs.gitlab.com/ce/api/users.html#single-user
+type userGetFlags struct {
+	Id       *int    `flag_name:"id" short:"i" type:"int" required:"no" description:"The ID of a user"`
+	Username *string `flag_name:"username" short:"u" type:"string" required:"no" description:"Username of a user"`
+}
+
+var userGetCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userGetFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Single user.",
+		Long:  `Get a single user. You can either provide --id or --username.`,
+	},
+	Run: func(cmd golabCommand) error {
+		id, err := getUserId(getIdOrUsername(cmd.Flags.(*userGetFlags)))
+		if err != nil {
+			return err
+		}
 		user, _, err := gitlabClient.Users.GetUser(id)
-		if err != nil {	return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(user)
 	},
 }
 
-var lsCmd = &cobra.Command{
-	Use: "ls",
-	Short: "Get list of all users",
-	Long: `Get a list of all users on the Gitlab server`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		listUserOptions := &gitlab.ListUsersOptions{}
-		if active {
-			listUserOptions.Active = &active
+func getIdOrUsername(flags *userGetFlags) (int, string) {
+	id := 0
+	if flags.Id != nil {
+		id = *flags.Id
+	}
+	username := ""
+	if flags.Username != nil {
+		username = *flags.Username
+	}
+	return id, username
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#list-users
+type listUsersFlags struct {
+	Active               *bool   `flag_name:"active" type:"bool" required:"no" description:"Filter users based on state active"`
+	Blocked              *bool   `flag_name:"blocked" type:"bool" required:"no" description:"Filter users based on state blocked"`
+	Search               *string `flag_name:"search" type:"string" required:"no" description:"Search for users by email or username (admin only)"`
+	Username             *string `flag_name:"username" type:"string" required:"no" description:"Lookup users by username (admin only)"`
+	ExternUid            *string `flag_name:"extern_uid" type:"string" required:"no" description:"Lookup users by external UID and provider (admin only)"`
+	Provider             *string `flag_name:"provider" type:"string" required:"no" description:"Lookup users by external UID and provider (admin only)"`
+	External             *bool   `flag_name:"external" type:"bool" required:"no" description:"Search for users who are external (admin only)"`
+	CreatedBefore        *string `flag_name:"created_before" type:"string" required:"no" description:"Search users by creation date time range, e.g. 2001-01-02T00:00:00.060Z (admin only)"`
+	CreatedAfter         *string `flag_name:"created_after" type:"string" required:"no" description:"Search users by creation date time range, e.g. 2001-01-02T00:00:00.060Z (admin only)"`
+	CustomAttributeKey   *string `flag_name:"custom_attribute_key" type:"string" required:"no" description:"Filter by custom attribute key (admin only)"`
+	CustomAttributeValue *string `flag_name:"custom_attribute_value" type:"string" required:"no" description:"Filter by custom attribute value (admin only)"`
+}
+
+var userLsCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &listUsersFlags{},
+	Opts:   &gitlab.ListUsersOptions{},
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List users",
+		Long:  `Get a list of users.`,
+	},
+	Run: func(cmd golabCommand) error {
+		opts := cmd.Opts.(*gitlab.ListUsersOptions)
+		users, _, err := gitlabClient.Users.ListUsers(opts)
+		if err != nil {
+			return err
 		}
-		if blocked {
-			listUserOptions.Blocked = &blocked
-		}
-		users, _, err := gitlabClient.Users.ListUsers(listUserOptions)
-		if err != nil {	return err }
 		return OutputJson(users)
 	},
 }
@@ -82,31 +125,35 @@ var lsCmd = &cobra.Command{
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a new user",
-	Long: `Allows creation of a new user`,
+	Long:  `Allows creation of a new user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO fix binding of parameters
-		if projectsLimit == -1 { projectsLimit = 10 }
+		if projectsLimit == -1 {
+			projectsLimit = 10
+		}
 		createUserOptions := &gitlab.CreateUserOptions{
-			Admin: &admin,
-			Bio: &bio,
-			CanCreateGroup: &canCreateGroup,
+			Admin:            &admin,
+			Bio:              &bio,
+			CanCreateGroup:   &canCreateGroup,
 			SkipConfirmation: &skipConfirmation,
-			Email: &email,
-			Linkedin: &linkedin,
-			Name: &name,
-			Password: &password,
-			ProjectsLimit: &projectsLimit,
-			Skype: &skype,
-			Twitter: &twitter,
-			Username: &username,
-			WebsiteURL: &websiteUrl,
+			Email:            &email,
+			Linkedin:         &linkedin,
+			Name:             &name,
+			Password:         &password,
+			ProjectsLimit:    &projectsLimit,
+			Skype:            &skype,
+			Twitter:          &twitter,
+			Username:         &username,
+			WebsiteURL:       &websiteUrl,
 		}
 		if provider != "" {
 			createUserOptions.Provider = &provider
 			createUserOptions.ExternUID = &externUid
 		}
 		user, _, err := gitlabClient.Users.CreateUser(createUserOptions)
-		if err != nil {	return err }
+		if err != nil {
+			return err
+		}
 		err = OutputJson(user)
 		return err
 	},
@@ -115,11 +162,13 @@ var createCmd = &cobra.Command{
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a user",
-	Long: `Delete a user`,
+	Long:  `Delete a user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := getUserId(id, user)
-		if err != nil {	return err }
-		resp , err := gitlabClient.Users.DeleteUser(id)
+		if err != nil {
+			return err
+		}
+		resp, err := gitlabClient.Users.DeleteUser(id)
 		// TODO following the documentation, the user's data should be returned, but {} is returned...
 		// TODO see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#user-deletion
 		return OutputJson(resp.Body)
@@ -139,30 +188,62 @@ Currently there are some restrictions:
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := getUserId(id, user)
-		if err != nil {	return err }
+		if err != nil {
+			return err
+		}
 		currUser, _, err := gitlabClient.Users.GetUser(id)
-		if err != nil {	return err }
+		if err != nil {
+			return err
+		}
 		modifyUserOptions := &gitlab.ModifyUserOptions{}
 		modifyUserOptions.Admin = boolFromParamAndCurrSetting(adminString, currUser.IsAdmin)
 		// TODO changing email has no effect at the moment...
-		if email != "" { modifyUserOptions.Email = &email }
-		if username != "" { modifyUserOptions.Username = &username }
+		if email != "" {
+			modifyUserOptions.Email = &email
+		}
+		if username != "" {
+			modifyUserOptions.Username = &username
+		}
 		if provider != "" {
 			modifyUserOptions.Provider = &provider
 			modifyUserOptions.ExternUID = &externUid
 		}
-		if name != "" { modifyUserOptions.Name = &name}
-		if password != "" { modifyUserOptions.Password = &password }
-		if skype != "" { modifyUserOptions.Skype = &skype }
-		if twitter != "" { modifyUserOptions.Twitter = &twitter }
-		if linkedin != "" { modifyUserOptions.Linkedin = &linkedin }
-		if websiteUrl != "" { modifyUserOptions.WebsiteURL = &websiteUrl }
-		if organization != "" { modifyUserOptions.Organization = &organization }
-		if projectsLimit != -1 { modifyUserOptions.ProjectsLimit = &projectsLimit }
-		if externUid != "" { modifyUserOptions.ExternUID = &externUid }
-		if provider != "" { modifyUserOptions.Provider = &provider }
-		if bio != "" { modifyUserOptions.Bio = &bio }
-		if location != "" { modifyUserOptions.Location = &location }
+		if name != "" {
+			modifyUserOptions.Name = &name
+		}
+		if password != "" {
+			modifyUserOptions.Password = &password
+		}
+		if skype != "" {
+			modifyUserOptions.Skype = &skype
+		}
+		if twitter != "" {
+			modifyUserOptions.Twitter = &twitter
+		}
+		if linkedin != "" {
+			modifyUserOptions.Linkedin = &linkedin
+		}
+		if websiteUrl != "" {
+			modifyUserOptions.WebsiteURL = &websiteUrl
+		}
+		if organization != "" {
+			modifyUserOptions.Organization = &organization
+		}
+		if projectsLimit != -1 {
+			modifyUserOptions.ProjectsLimit = &projectsLimit
+		}
+		if externUid != "" {
+			modifyUserOptions.ExternUID = &externUid
+		}
+		if provider != "" {
+			modifyUserOptions.Provider = &provider
+		}
+		if bio != "" {
+			modifyUserOptions.Bio = &bio
+		}
+		if location != "" {
+			modifyUserOptions.Location = &location
+		}
 		modifyUserOptions.CanCreateGroup = boolFromParamAndCurrSetting(canCreateGroupString, currUser.CanCreateGroup)
 		if externalString == "true" {
 			external = true
@@ -174,7 +255,9 @@ Currently there are some restrictions:
 		}
 
 		user, _, err := gitlabClient.Users.ModifyUser(id, modifyUserOptions)
-		if err != nil {	return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(user)
 	},
 }
@@ -186,24 +269,30 @@ var listSshKeysCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id != 0 {
 			sshKeys, _, err := gitlabClient.Users.ListSSHKeysForUser(id)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(sshKeys)
 		} else {
 			sshKeys, _, err := gitlabClient.Users.ListSSHKeys()
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(sshKeys)
 		}
 	},
 }
 
 var getSshKeyCmd = &cobra.Command{
-	Use: "get",
+	Use:   "get",
 	Short: "Single SSH key",
-	Long: `Get a single ssh key`,
+	Long:  `Get a single ssh key`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if keyId != 0 {
 			sshKey, _, err := gitlabClient.Users.GetSSHKey(keyId)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(sshKey)
 		}
 		return errors.New("you have to provide an id for a ssh key")
@@ -211,33 +300,37 @@ var getSshKeyCmd = &cobra.Command{
 }
 
 var addSshKeyCmd = &cobra.Command{
-	Use: "add",
+	Use:   "add",
 	Short: "Add SSH key",
-	Long: `Creates a new key (owned by the currently authenticated user, if no user id was given)`,
+	Long:  `Creates a new key (owned by the currently authenticated user, if no user id was given)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if key == "" || title == "" {
 			return errors.New("you have to provide a key and a title")
 		}
 		sshKeyOps := &gitlab.AddSSHKeyOptions{
-			Key: &key,
+			Key:   &key,
 			Title: &title,
 		}
 		if userId != 0 {
 			sshKey, _, err := gitlabClient.Users.AddSSHKeyForUser(userId, sshKeyOps)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(sshKey)
 		} else {
 			sshKey, _, err := gitlabClient.Users.AddSSHKey(sshKeyOps)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(sshKey)
 		}
 	},
 }
 
 var deleteSshKeyCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "Delete SSH key",
-	Long: `If no user id is given, deletes key owned by currently authenticated user. If a user id is given, deletes key owned by specified user. Available only for admins.`,
+	Long:  `If no user id is given, deletes key owned by currently authenticated user. If a user id is given, deletes key owned by specified user. Available only for admins.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if userId == 0 {
 			_, err := gitlabClient.Users.DeleteSSHKey(keyId)
@@ -250,7 +343,7 @@ var deleteSshKeyCmd = &cobra.Command{
 }
 
 var activitiesCmd = &cobra.Command{
-	Use: "activities",
+	Use:   "activities",
 	Short: "Get the last activity date for all users, sorted from oldest to newest.",
 	Long: `The activities that update the timestamp are:
 
@@ -268,7 +361,7 @@ By default, it shows the activity for all users in the last 6 months, but this c
 }
 
 var impersinationTokenCmd = &cobra.Command{
-	Use: "impersonation-token",
+	Use:   "impersonation-token",
 	Short: "Manage impersonation tokens",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("you cannot use this command without one of its sub-commands")
@@ -276,55 +369,65 @@ var impersinationTokenCmd = &cobra.Command{
 }
 
 var getImpersonationTokenCmd = &cobra.Command{
-	Use: "get",
+	Use:   "get",
 	Short: "Get all impersonation tokens of a user",
-	Long: `It retrieves every impersonation token of the user. Use the pagination parameters page and per_page to restrict the list of impersonation tokens.`,
+	Long:  `It retrieves every impersonation token of the user. Use the pagination parameters page and per_page to restrict the list of impersonation tokens.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if userId == 0 {
 			return errors.New("required parameter `user` is missing")
 		}
 		if tokenId == 0 {
 			opts := &gitlab.GetAllImpersonationTokensOptions{}
-			if state != "" { opts.State = &state }
+			if state != "" {
+				opts.State = &state
+			}
 			token, _, err := gitlabClient.Users.GetAllImpersonationTokens(userId, opts)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(token)
 		} else {
 			tokens, _, err := gitlabClient.Users.GetImpersonationToken(userId, tokenId)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(tokens)
 		}
 	},
 }
 
 var createImpersonationTokenCmd = &cobra.Command{
-	Use: "create",
+	Use:   "create",
 	Short: "Create an impersonation token",
-	Long: `It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page.`,
+	Long:  `It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if userId == 0 {
 			return errors.New("required parameter `user` is missing")
 		}
 		parsedScopes := strings.Split(scopes, ",")
 		opts := &gitlab.CreateImpersonationTokenOptions{
-			Name: &name,
+			Name:   &name,
 			Scopes: &parsedScopes,
 		}
 		if expires != "" {
 			parsedExpires, err := time.Parse("2006-01-02", expires)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			opts.ExpiresAt = &parsedExpires
 		}
 		token, _, err := gitlabClient.Users.CreateImpersonationToken(userId, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(token)
 	},
 }
 
 var revokeImpersonationTokenCmd = &cobra.Command{
-	Use: "revoke",
+	Use:   "revoke",
 	Short: "Revoke an impersonation token",
-	Long: `It revokes an impersonation token.`,
+	Long:  `It revokes an impersonation token.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if userId == 0 || tokenId == 0 {
 			return errors.New("both, user_id and impersonation_token_id have to be given as parameters")
@@ -335,45 +438,51 @@ var revokeImpersonationTokenCmd = &cobra.Command{
 }
 
 var emailsCmd = &cobra.Command{
-	Use: "emails",
+	Use:   "emails",
 	Short: "Manage emails for users",
-	Long: `List, add and delete emails for users`,
+	Long:  `List, add and delete emails for users`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("use one of the sub-commands, see `golab user emails -h`")
 	},
 }
 
 var emailsListCmd = &cobra.Command{
-	Use: "ls",
+	Use:   "ls",
 	Short: "List emails (for user)",
 	Long: `If no user_id is given: get a list of currently authenticated user's emails.
 If a user_id is given: Get a list of a specified user's emails. Available only for admin`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if userId == 0 {
 			emails, _, err := gitlabClient.Users.ListEmails()
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(emails)
 		} else {
 			emails, _, err := gitlabClient.Users.ListEmailsForUser(userId)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(emails)
 		}
 	},
 }
 
 var emailsGetCmd = &cobra.Command{
-	Use: "get",
+	Use:   "get",
 	Short: "Get a single email",
-	Long: `Get a single email for given email_id`,
+	Long:  `Get a single email for given email_id`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		email, _, err := gitlabClient.Users.GetEmail(emailId)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(email)
 	},
 }
 
 var emailsAddCmd = &cobra.Command{
-	Use: "add",
+	Use:   "add",
 	Short: "Add email (for user)",
 	Long: `If no user_id is given: Creates a new email owned by the currently authenticated user.
 If a user_id is given: Create new email owned by specified user. Available only for admin
@@ -385,18 +494,22 @@ Will return created email on success.`,
 		}
 		if userId == 0 {
 			resp, _, err := gitlabClient.Users.AddEmail(opts)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(resp)
 		} else {
 			resp, _, err := gitlabClient.Users.AddEmailForUser(userId, opts)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 			return OutputJson(resp)
 		}
 	},
 }
 
 var emailsDeleteCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "Delete email for current / given user",
 	Long: `If no user_id is given: Deletes email owned by currently authenticated user.
 If a user_id is given: Deletes email owned by a specified user. Available only for admin.`,
@@ -410,7 +523,6 @@ If a user_id is given: Deletes email owned by a specified user. Available only f
 		}
 	},
 }
-
 
 func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
 	var result bool
@@ -442,8 +554,8 @@ func getUserId(id int, username string) (int, error) {
 }
 
 func init() {
-	initUserGetCommand()
-	initUserLsCommand()
+	userGetCmd.Init()
+	userLsCmd.Init()
 	initUserCreateCommand()
 	initUserModifyCommand()
 	initUserDeleteCommand()
@@ -452,20 +564,6 @@ func init() {
 	initEmailsCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
-}
-
-func initUserGetCommand() {
-	getCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "(mandatory if id is unset) username of the user to look up")
-	getCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory if username is unset) id of the user to look up")
-	viper.BindPFlag("username", getCmd.PersistentFlags().Lookup("username"))
-	viper.BindPFlag("id", getCmd.PersistentFlags().Lookup("id"))
-	userCmd.AddCommand(getCmd)
-}
-
-func initUserLsCommand() {
-	lsCmd.PersistentFlags().BoolVarP(&active, "active", "a", false, "(optional) show only active users")
-	lsCmd.PersistentFlags().BoolVarP(&blocked,"blocked", "b", false, "(optional) show only blocked users")
-	userCmd.AddCommand(lsCmd)
 }
 
 func initUserCreateCommand() {

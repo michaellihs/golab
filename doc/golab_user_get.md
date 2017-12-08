@@ -1,11 +1,11 @@
 ## golab user get
 
-Get user details
+Single user.
 
 ### Synopsis
 
 
-Get detailed information for given user
+Get a single user. You can either provide --id or --username.
 
 ```
 golab user get [flags]
@@ -15,8 +15,8 @@ golab user get [flags]
 
 ```
   -h, --help              help for get
-  -i, --id int            (mandatory if username is unset) id of the user to look up
-  -u, --username string   (mandatory if id is unset) username of the user to look up
+  -i, --id int            (optional) The ID of a user
+  -u, --username string   (optional) Username of a user
 ```
 
 ### Options inherited from parent commands
