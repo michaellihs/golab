@@ -167,7 +167,7 @@ var userCreateCmd = &golabCommand{
 	},
 }
 
-// see 
+// see https://docs.gitlab.com/ce/api/users.html#user-deletion
 type userDeleteFlags struct {
 	Id         *string `flag_name:"id" short:"i" type:"int" required:"yes" description:"User ID or user name of user to be deleted"`
 	HardDelete *bool   `flag_name:"hard_delete" short:"d" type:"bool" required:"no" description:"If true, contributions that would usually be moved to the ghost user will be deleted instead, as well as groups owned solely by this user."`
@@ -205,86 +205,48 @@ func userIdFromFlag(intStrId string) (int, error) {
 	return getUserId(idInt, username)
 }
 
-var modifyCmd = &cobra.Command{
-	Use:   "modify",
-	Short: "Modify a user",
-	Long: `Allows modification of a user's properties
+// see https://docs.gitlab.com/ce/api/users.html#user-modification
+type userModifyFlags struct {
+	Id               *string `flag_name:"id" short:"i" type:"int" required:"yes" description:"User ID or user name of user to be deleted"`
+	Email            *string `flag_name:"email" short:"e" type:"string" required:"no" description:"Email"`
+	Password         *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password"`
+	Username         *string `flag_name:"username" short:"u" type:"string" required:"no" description:"Username"`
+	Name             *string `flag_name:"name" short:"n" type:"string" required:"no" description:"Name"`
+	Skype            *string `flag_name:"skype" type:"string" required:"no" description:"Skype ID"`
+	Linkedin         *string `flag_name:"linkedin" type:"string" required:"no" description:"LinkedIn"`
+	Twitter          *string `flag_name:"twitter" type:"string" required:"no" description:"Twitter account"`
+	WebsiteUrl       *string `flag_name:"website_url" type:"string" required:"no" description:"Website URL"`
+	Organization     *string `flag_name:"organization" type:"string" required:"no" description:"Organization name"`
+	ProjectsLimit    *int    `flag_name:"projects_limit" type:"int" required:"no" description:"Number of projects user can create"`
+	ExternUid        *string `flag_name:"extern_uid" type:"string" required:"no" description:"External UID"`
+	Provider         *string `flag_name:"provider" type:"string" required:"no" description:"External provider name"`
+	Bio              *string `flag_name:"bio" type:"string" required:"no" description:"User's biography"`
+	Location         *string `flag_name:"location" type:"string" required:"no" description:"User's location"`
+	Admin            *bool   `flag_name:"admin" type:"bool" required:"no" description:"User is admin - true or false (default)"`
+	CanCreateGroup   *bool   `flag_name:"can_create_group" type:"bool" required:"no" description:"User can create groups - true or false"`
+	SkipConfirmation *bool   `flag_name:"skip_confirmation" type:"bool" required:"no" description:"Skip confirmation - true or false (default)"`
+	External         *bool   `flag_name:"external" type:"bool" required:"no" description:"Flags the user as external - true or false(default)"`
+	// TODO currently not supported by go-gitlab
+	//Avatar           *string `flag_name:"avatar" type:"string" required:"no" description:"Image file for user's avatar"`
+}
 
-Currently there are some restrictions:
-* the email address cannot be modified
-* the organization cannot be modified
-* projects limit cannot be modified
-* location cannot be modified
-`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		id, err := getUserId(id, user)
+var userModifyCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userModifyFlags{},
+	Opts:   &gitlab.ModifyUserOptions{},
+	Cmd: &cobra.Command{
+		Use:   "modify",
+		Short: "User modification",
+		Long:  `Modifies an existing user. Only administrators can change attributes of a user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userModifyFlags)
+		opts := cmd.Opts.(*gitlab.ModifyUserOptions)
+		id, err := userIdFromFlag(*flags.Id)
 		if err != nil {
 			return err
 		}
-		currUser, _, err := gitlabClient.Users.GetUser(id)
-		if err != nil {
-			return err
-		}
-		modifyUserOptions := &gitlab.ModifyUserOptions{}
-		modifyUserOptions.Admin = boolFromParamAndCurrSetting(adminString, currUser.IsAdmin)
-		// TODO changing email has no effect at the moment...
-		if email != "" {
-			modifyUserOptions.Email = &email
-		}
-		if username != "" {
-			modifyUserOptions.Username = &username
-		}
-		if provider != "" {
-			modifyUserOptions.Provider = &provider
-			modifyUserOptions.ExternUID = &externUid
-		}
-		if name != "" {
-			modifyUserOptions.Name = &name
-		}
-		if password != "" {
-			modifyUserOptions.Password = &password
-		}
-		if skype != "" {
-			modifyUserOptions.Skype = &skype
-		}
-		if twitter != "" {
-			modifyUserOptions.Twitter = &twitter
-		}
-		if linkedin != "" {
-			modifyUserOptions.Linkedin = &linkedin
-		}
-		if websiteUrl != "" {
-			modifyUserOptions.WebsiteURL = &websiteUrl
-		}
-		if organization != "" {
-			modifyUserOptions.Organization = &organization
-		}
-		if projectsLimit != -1 {
-			modifyUserOptions.ProjectsLimit = &projectsLimit
-		}
-		if externUid != "" {
-			modifyUserOptions.ExternUID = &externUid
-		}
-		if provider != "" {
-			modifyUserOptions.Provider = &provider
-		}
-		if bio != "" {
-			modifyUserOptions.Bio = &bio
-		}
-		if location != "" {
-			modifyUserOptions.Location = &location
-		}
-		modifyUserOptions.CanCreateGroup = boolFromParamAndCurrSetting(canCreateGroupString, currUser.CanCreateGroup)
-		if externalString == "true" {
-			external = true
-			modifyUserOptions.External = &external
-		}
-		if externalString == "false" {
-			external = false
-			modifyUserOptions.External = &external
-		}
-
-		user, _, err := gitlabClient.Users.ModifyUser(id, modifyUserOptions)
+		user, _, err := gitlabClient.Users.ModifyUser(id, opts)
 		if err != nil {
 			return err
 		}
@@ -587,53 +549,13 @@ func init() {
 	userGetCmd.Init()
 	userLsCmd.Init()
 	userCreateCmd.Init()
-	initUserModifyCommand()
+	userModifyCmd.Init()
 	userDeleteCmd.Init()
 	initSshKeysCmd()
 	initImpersonationTokenCmd()
 	initEmailsCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
-}
-
-func initUserModifyCommand() {
-	modifyCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory) id of the user to be modified")
-	modifyCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "(optional) user's new email address")
-	modifyCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "(optional) user's new password")
-	modifyCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "(optional) user's new username")
-	modifyCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(optional) user's new name")
-	modifyCmd.PersistentFlags().StringVarP(&skype, "skype", "", "", "(optional) user's new Skype ID")
-	modifyCmd.PersistentFlags().StringVarP(&linkedin, "linkedin", "", "", "(optional) user's new LinkedIn account")
-	modifyCmd.PersistentFlags().StringVarP(&twitter, "twitter", "", "", "(optional) user's new Twitter account")
-	modifyCmd.PersistentFlags().StringVarP(&websiteUrl, "website_url", "", "", "(optional) user's new website URL")
-	modifyCmd.PersistentFlags().StringVarP(&organization, "organization", "", "", "(optional) user's new organization name")
-	modifyCmd.PersistentFlags().IntVarP(&projectsLimit, "projects_limit", "", -1, "(optional) user's new projects limit")
-	modifyCmd.PersistentFlags().StringVarP(&externUid, "extern_uid", "", "", "(optional) user's new external UID")
-	modifyCmd.PersistentFlags().StringVarP(&provider, "provider", "", "", "(optional) user's new external provider name")
-	modifyCmd.PersistentFlags().StringVarP(&bio, "bio", "", "", "(optional) user's new biography")
-	modifyCmd.PersistentFlags().StringVarP(&location, "location", "", "", "(optional) user's new location")
-	modifyCmd.PersistentFlags().StringVarP(&adminString, "admin", "a", "", "(optional) user is admin - true or false")
-	modifyCmd.PersistentFlags().StringVarP(&canCreateGroupString, "can_create_group", "", "", "(optional) user can create groups - true or false")
-	modifyCmd.PersistentFlags().StringVarP(&externalString, "external", "", "", "(optional) flags the user as external - true or false")
-	viper.BindPFlag("id", modifyCmd.PersistentFlags().Lookup("id"))
-	viper.BindPFlag("email", modifyCmd.PersistentFlags().Lookup("email"))
-	viper.BindPFlag("password", modifyCmd.PersistentFlags().Lookup("password"))
-	viper.BindPFlag("username", modifyCmd.PersistentFlags().Lookup("username"))
-	viper.BindPFlag("name", modifyCmd.PersistentFlags().Lookup("name"))
-	viper.BindPFlag("skype", modifyCmd.PersistentFlags().Lookup("skype"))
-	viper.BindPFlag("linkedin", modifyCmd.PersistentFlags().Lookup("linkedin"))
-	viper.BindPFlag("twitter", modifyCmd.PersistentFlags().Lookup("twitter"))
-	viper.BindPFlag("website_url", modifyCmd.PersistentFlags().Lookup("website_url"))
-	viper.BindPFlag("organization", modifyCmd.PersistentFlags().Lookup("organization"))
-	viper.BindPFlag("projects_limit", modifyCmd.PersistentFlags().Lookup("projects_limit"))
-	viper.BindPFlag("extern_uid", modifyCmd.PersistentFlags().Lookup("extern_uid"))
-	viper.BindPFlag("provider", modifyCmd.PersistentFlags().Lookup("provider"))
-	viper.BindPFlag("bio", modifyCmd.PersistentFlags().Lookup("bio"))
-	viper.BindPFlag("location", modifyCmd.PersistentFlags().Lookup("location"))
-	viper.BindPFlag("admin", modifyCmd.PersistentFlags().Lookup("admin"))
-	viper.BindPFlag("can_create_group", modifyCmd.PersistentFlags().Lookup("can_create_group"))
-	viper.BindPFlag("external", modifyCmd.PersistentFlags().Lookup("external"))
-	userCmd.AddCommand(modifyCmd)
 }
 
 func initSshKeysCmd() {

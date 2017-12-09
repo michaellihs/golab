@@ -1,18 +1,11 @@
 ## golab user modify
 
-Modify a user
+User modification
 
 ### Synopsis
 
 
-Allows modification of a user's properties
-
-Currently there are some restrictions:
-* the email address cannot be modified
-* the organization cannot be modified
-* projects limit cannot be modified
-* location cannot be modified
-
+Modifies an existing user. Only administrators can change attributes of a user.
 
 ```
 golab user modify [flags]
@@ -21,25 +14,26 @@ golab user modify [flags]
 ### Options
 
 ```
-  -a, --admin string              (optional) user is admin - true or false
-      --bio string                (optional) user's new biography
-      --can_create_group string   (optional) user can create groups - true or false
-  -e, --email string              (optional) user's new email address
-      --extern_uid string         (optional) user's new external UID
-      --external string           (optional) flags the user as external - true or false
-  -h, --help                      help for modify
-  -i, --id int                    (mandatory) id of the user to be modified
-      --linkedin string           (optional) user's new LinkedIn account
-      --location string           (optional) user's new location
-  -n, --name string               (optional) user's new name
-      --organization string       (optional) user's new organization name
-  -p, --password string           (optional) user's new password
-      --projects_limit int        (optional) user's new projects limit (default -1)
-      --provider string           (optional) user's new external provider name
-      --skype string              (optional) user's new Skype ID
-      --twitter string            (optional) user's new Twitter account
-  -u, --username string           (optional) user's new username
-      --website_url string        (optional) user's new website URL
+      --admin                 (optional) User is admin - true or false (default)
+      --bio string            (optional) User's biography
+      --can_create_group      (optional) User can create groups - true or false
+  -e, --email string          (optional) Email
+      --extern_uid string     (optional) External UID
+      --external              (optional) Flags the user as external - true or false(default)
+  -h, --help                  help for modify
+  -i, --id string             (required) User ID or user name of user to be deleted
+      --linkedin string       (optional) LinkedIn
+      --location string       (optional) User's location
+  -n, --name string           (optional) Name
+      --organization string   (optional) Organization name
+  -p, --password string       (optional) Password
+      --projects_limit int    (optional) Number of projects user can create
+      --provider string       (optional) External provider name
+      --skip_confirmation     (optional) Skip confirmation - true or false (default)
+      --skype string          (optional) Skype ID
+      --twitter string        (optional) Twitter account
+  -u, --username string       (optional) Username
+      --website_url string    (optional) Website URL
 ```
 
 ### Options inherited from parent commands
