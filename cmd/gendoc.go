@@ -14,7 +14,7 @@ var gendocCmd = &cobra.Command{
 	Long: `Renders the Markdown Documentation for golab into <PATH>`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if docPath == "" {
-			return errors.New("Required parameter `-p` or `--path` not given. Exiting.")
+			return errors.New("required parameter `-p` or `--path` not given")
 		}
 
 		err := doc.GenMarkdownTree(RootCmd, docPath)
