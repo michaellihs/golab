@@ -119,6 +119,12 @@ var _ = Describe("FlagMapper", func() {
 		Expect(mockCmd.Flag("flag4").Shorthand).To(Equal(""))
 	})
 
+	It("sets no flags if given flags are nil", func() {
+		mockCmd := mockCmd()
+		mapper := New(mockCmd)
+		mapper.SetFlags(nil)
+	})
+
 	It("maps flags and opts as expected with AutoMap", func() {
 		mockCmd := mockCmd()
 		var mapper = InitializedMapper(mockCmd, &testFlags{}, &testOpts{})
@@ -164,6 +170,15 @@ var _ = Describe("FlagMapper", func() {
 		Expect(*flags.Flag2).To(Equal("string"))
 		Expect(*flags.Flag3).To(Equal(4))
 		Expect(*flags.Flag4).Should(ConsistOf("v1, v2, v3"))
+	})
+
+	It ("maps nil flags as expected", func() {
+		cmd := mockCmd()
+		mapper := InitializedMapper(cmd, nil, nil)
+		opts, flags, err := mapper.AutoMap()
+		Expect(opts).To(BeNil())
+		Expect(flags).To(BeNil())
+		Expect(err).To(BeNil())
 	})
 
 	It("skips args with non-matching types as expected", func() {

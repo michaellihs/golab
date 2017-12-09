@@ -49,24 +49,26 @@ func InitializedMapper(cmd *cobra.Command, flags interface{}, opts interface{}) 
 }
 
 func (m FlagMapper) SetFlags(flags interface{}) {
-	v := reflect.ValueOf(flags).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		tag := v.Type().Field(i).Tag
-		f := v.Field(i)
-		flagName := tag.Get("flag_name")
-		shortHand := tag.Get("short")
+	if flags != nil {
+		v := reflect.ValueOf(flags).Elem()
+		for i := 0; i < v.NumField(); i++ {
+			tag := v.Type().Field(i).Tag
+			f := v.Field(i)
+			flagName := tag.Get("flag_name")
+			shortHand := tag.Get("short")
 
-		switch f.Type().String() {
-		case "*int":
-			m.cmd.PersistentFlags().IntP(flagName, shortHand, 0, flagUsage(tag))
-		case "*string":
-			m.cmd.PersistentFlags().StringP(flagName, shortHand, "", flagUsage(tag))
-		case "*bool":
-			m.cmd.PersistentFlags().BoolP(flagName, shortHand, false, flagUsage(tag))
-		case "*[]string":
-			m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
-		default:
-			panic("Unknown type " + f.Type().String())
+			switch f.Type().String() {
+			case "*int":
+				m.cmd.PersistentFlags().IntP(flagName, shortHand, 0, flagUsage(tag))
+			case "*string":
+				m.cmd.PersistentFlags().StringP(flagName, shortHand, "", flagUsage(tag))
+			case "*bool":
+				m.cmd.PersistentFlags().BoolP(flagName, shortHand, false, flagUsage(tag))
+			case "*[]string":
+				m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
+			default:
+				panic("Unknown type " + f.Type().String())
+			}
 		}
 	}
 }
@@ -97,6 +99,9 @@ func (m FlagMapper) MappedFlags() interface{} {
 }
 
 func (m FlagMapper) Map(flags interface{}, opts interface{}) error {
+	if flags == nil {
+		return nil
+	}
 	var optsReflected reflect.Value
 	flagsReflected := reflect.ValueOf(flags).Elem()
 	if opts != nil {
