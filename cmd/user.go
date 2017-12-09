@@ -37,7 +37,7 @@ import (
 
 var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state, expires, scopes, name string
 var id, userId, keyId, projectsLimit, tokenId, emailId int
-var admin, canCreateGroup, skipConfirmation, external bool
+var external bool
 
 var userCmd = &cobra.Command{
 	Use:   "user",
@@ -167,20 +167,42 @@ var userCreateCmd = &golabCommand{
 	},
 }
 
-var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete a user",
-	Long:  `Delete a user`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		id, err := getUserId(id, user)
+// see 
+type userDeleteFlags struct {
+	Id         *string `flag_name:"id" short:"i" type:"int" required:"yes" description:"User ID or user name of user to be deleted"`
+	HardDelete *bool   `flag_name:"hard_delete" short:"d" type:"bool" required:"no" description:"If true, contributions that would usually be moved to the ghost user will be deleted instead, as well as groups owned solely by this user."`
+}
+
+var userDeleteCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userDeleteFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "delete",
+		Short: "User deletion",
+		Long:  `Deletes a user. Available only for administrators. This returns a 204 No Content status code if the operation was successfully or 404 if the resource was not found.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userDeleteFlags)
+		id, err := userIdFromFlag(*flags.Id)
 		if err != nil {
 			return err
 		}
-		resp, err := gitlabClient.Users.DeleteUser(id)
-		// TODO following the documentation, the user's data should be returned, but {} is returned...
-		// TODO see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-16-stable/doc/api/users.md#user-deletion
-		return OutputJson(resp.Body)
+		_, err = gitlabClient.Users.DeleteUser(id)
+		return err
 	},
+}
+
+func userIdFromFlag(intStrId string) (int, error) {
+	idInt, err := strconv.Atoi(intStrId)
+	username := intStrId
+	if err != nil {
+		fmt.Println("error: " + err.Error())
+		idInt = 0
+	} else {
+		username = ""
+	}
+	return getUserId(idInt, username)
 }
 
 var modifyCmd = &cobra.Command{
@@ -566,7 +588,7 @@ func init() {
 	userLsCmd.Init()
 	userCreateCmd.Init()
 	initUserModifyCommand()
-	initUserDeleteCommand()
+	userDeleteCmd.Init()
 	initSshKeysCmd()
 	initImpersonationTokenCmd()
 	initEmailsCmd()
@@ -612,14 +634,6 @@ func initUserModifyCommand() {
 	viper.BindPFlag("can_create_group", modifyCmd.PersistentFlags().Lookup("can_create_group"))
 	viper.BindPFlag("external", modifyCmd.PersistentFlags().Lookup("external"))
 	userCmd.AddCommand(modifyCmd)
-}
-
-func initUserDeleteCommand() {
-	deleteCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(mandatory if no username is set) id of the user to be deleted")
-	deleteCmd.PersistentFlags().StringVarP(&user, "user", "u", "", "(mandatory if no id is set) username of the user to be deleted")
-	viper.BindPFlag("id", deleteCmd.PersistentFlags().Lookup("id"))
-	viper.BindPFlag("user", deleteCmd.PersistentFlags().Lookup("user"))
-	userCmd.AddCommand(deleteCmd)
 }
 
 func initSshKeysCmd() {
