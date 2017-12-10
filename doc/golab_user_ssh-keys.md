@@ -1,11 +1,11 @@
 ## golab user ssh-keys
 
-Manage a user's ssh keys
+Manage a user's SSH keys
 
 ### Synopsis
 
 
-Allows management of a user's ssh keys (create, list, delete). If no sub-command is given, it lists ssh keys of currently authenticated user / user specified by user id.
+SSH key management for users
 
 ```
 golab user ssh-keys [flags]
@@ -14,8 +14,7 @@ golab user ssh-keys [flags]
 ### Options
 
 ```
-  -h, --help     help for ssh-keys
-  -i, --id int   (optional) id of user to show ssh-keys for - if none is given, logged in user will be used
+  -h, --help   help for ssh-keys
 ```
 
 ### Options inherited from parent commands
@@ -31,4 +30,5 @@ golab user ssh-keys [flags]
 * [golab user ssh-keys add](golab_user_ssh-keys_add.md)	 - Add SSH key
 * [golab user ssh-keys delete](golab_user_ssh-keys_delete.md)	 - Delete SSH key
 * [golab user ssh-keys get](golab_user_ssh-keys_get.md)	 - Single SSH key
+* [golab user ssh-keys ls](golab_user_ssh-keys_ls.md)	 - List SSH keys
 

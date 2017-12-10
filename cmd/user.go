@@ -35,9 +35,8 @@ import (
 	"time"
 )
 
-var key, title, user, email, password, skype, linkedin, twitter, websiteUrl, organization, username, externUid, provider, bio, location, adminString, canCreateGroupString, externalString, state, expires, scopes, name string
-var id, userId, keyId, projectsLimit, tokenId, emailId int
-var external bool
+var email, password, username, state, expires, scopes, name string
+var id, userId, tokenId, emailId int
 
 var userCmd = &cobra.Command{
 	Use:   "user",
@@ -197,7 +196,6 @@ func userIdFromFlag(intStrId string) (int, error) {
 	idInt, err := strconv.Atoi(intStrId)
 	username := intStrId
 	if err != nil {
-		fmt.Println("error: " + err.Error())
 		idInt = 0
 	} else {
 		username = ""
@@ -207,7 +205,7 @@ func userIdFromFlag(intStrId string) (int, error) {
 
 // see https://docs.gitlab.com/ce/api/users.html#user-modification
 type userModifyFlags struct {
-	Id               *string `flag_name:"id" short:"i" type:"int" required:"yes" description:"User ID or user name of user to be deleted"`
+	Id               *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"User ID or user name of user to be deleted"`
 	Email            *string `flag_name:"email" short:"e" type:"string" required:"no" description:"Email"`
 	Password         *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password"`
 	Username         *string `flag_name:"username" short:"u" type:"string" required:"no" description:"Username"`
@@ -254,83 +252,144 @@ var userModifyCmd = &golabCommand{
 	},
 }
 
-var listSshKeysCmd = &cobra.Command{
-	Use:   "ssh-keys",
-	Short: "Manage a user's ssh keys",
-	Long:  `Allows management of a user's ssh keys (create, list, delete). If no sub-command is given, it lists ssh keys of currently authenticated user / user specified by user id.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if id != 0 {
-			sshKeys, _, err := gitlabClient.Users.ListSSHKeysForUser(id)
-			if err != nil {
-				return err
-			}
-			return OutputJson(sshKeys)
-		} else {
-			sshKeys, _, err := gitlabClient.Users.ListSSHKeys()
-			if err != nil {
-				return err
-			}
-			return OutputJson(sshKeys)
-		}
+// see https://docs.gitlab.com/ce/api/users.html#list-ssh-keys
+var userSshKeysCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  nil,
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "ssh-keys",
+		Short: "Manage a user's SSH keys",
+		Long:  `SSH key management for users`,
+	},
+	Run: func(cmd golabCommand) error {
+		return errors.New("command cannot be run without sub-commands")
 	},
 }
 
-var getSshKeyCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Single SSH key",
-	Long:  `Get a single ssh key`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if keyId != 0 {
-			sshKey, _, err := gitlabClient.Users.GetSSHKey(keyId)
-			if err != nil {
-				return err
-			}
-			return OutputJson(sshKey)
-		}
-		return errors.New("you have to provide an id for a ssh key")
-	},
+// see https://docs.gitlab.com/ce/api/users.html#list-ssh-keys
+type userSshKeysListFlags struct {
+	Id *string `flag_name:"id" short:"i" type:"string" required:"no" description:"id of user to show SSH keys for - if none is given, logged in user will be used"`
 }
 
-var addSshKeyCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Add SSH key",
-	Long:  `Creates a new key (owned by the currently authenticated user, if no user id was given)`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if key == "" || title == "" {
-			return errors.New("you have to provide a key and a title")
-		}
-		sshKeyOps := &gitlab.AddSSHKeyOptions{
-			Key:   &key,
-			Title: &title,
-		}
-		if userId != 0 {
-			sshKey, _, err := gitlabClient.Users.AddSSHKeyForUser(userId, sshKeyOps)
-			if err != nil {
-				return err
-			}
-			return OutputJson(sshKey)
-		} else {
-			sshKey, _, err := gitlabClient.Users.AddSSHKey(sshKeyOps)
-			if err != nil {
-				return err
-			}
-			return OutputJson(sshKey)
-		}
+var userSshKeysListCmd = &golabCommand{
+	Parent: userSshKeysCmd.Cmd,
+	Flags:  &userSshKeysListFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List SSH keys",
+		Long:  `Get a list of (currently authenticated user's) SSH keys.`,
 	},
-}
-
-var deleteSshKeyCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete SSH key",
-	Long:  `If no user id is given, deletes key owned by currently authenticated user. If a user id is given, deletes key owned by specified user. Available only for admins.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if userId == 0 {
-			_, err := gitlabClient.Users.DeleteSSHKey(keyId)
-			return err
+	Run: func(cmd golabCommand) error {
+		var sshKeys []*gitlab.SSHKey
+		var err error
+		flags := cmd.Flags.(*userSshKeysListFlags)
+		if flags.Id != nil {
+			id, err := userIdFromFlag(*flags.Id)
+			if err != nil {
+				return err
+			}
+			sshKeys, _, err = gitlabClient.Users.ListSSHKeysForUser(id)
 		} else {
-			_, err := gitlabClient.Users.DeleteSSHKeyForUser(userId, keyId)
+			sshKeys, _, err = gitlabClient.Users.ListSSHKeys()
+		}
+		if err != nil {
 			return err
 		}
+		return OutputJson(sshKeys)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#single-ssh-key
+type userSshKeysGetFlags struct {
+	Id *int `flag_name:"id" short:"i" required:"yes" description:"key id of SSH key to be shown"`
+}
+
+var userSshKeysGetCmd = &golabCommand{
+	Parent: userSshKeysCmd.Cmd,
+	Flags:  &userSshKeysGetFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Single SSH key",
+		Long:  `Get a single SSH key for a given user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userSshKeysGetFlags)
+		sshKey, _, err := gitlabClient.Users.GetSSHKey(*flags.Id)
+		if err != nil {
+			return err
+		}
+		return OutputJson(sshKey)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#add-ssh-key
+type userSshKeysAddFlags struct {
+	User  *string `flag_name:"user" short:"u" type:"string" required:"yes" description:"User ID or user name of user to delete SSH key from"`
+	Title *string `flag_name:"title" short:"t" type:"string" required:"yes" description:"New SSH Key's title"`
+	Key   *string `flag_name:"key" short:"k" type:"string" required:"yes" description:"Public SSH key"`
+}
+
+var userSshKeysAddCmd = &golabCommand{
+	Parent: userSshKeysCmd.Cmd,
+	Flags:  &userSshKeysAddFlags{},
+	Opts:   &gitlab.AddSSHKeyOptions{},
+	Cmd: &cobra.Command{
+		Use:   "add",
+		Short: "Add SSH key",
+		Long:  `Creates a new key (owned by the currently authenticated user, if no user id was given)`,
+	},
+	Run: func(cmd golabCommand) error {
+		var err error
+		var key *gitlab.SSHKey
+		flags := cmd.Flags.(*userSshKeysAddFlags)
+		opts := cmd.Opts.(*gitlab.AddSSHKeyOptions)
+		if flags.User == nil {
+			key, _, err = gitlabClient.Users.AddSSHKey(opts)
+		} else {
+			userId, err := userIdFromFlag(*flags.User)
+			if err != nil {
+				return err
+			}
+			key, _, err = gitlabClient.Users.AddSSHKeyForUser(userId, opts)
+		}
+		if err != nil {
+			return err
+		}
+		return OutputJson(key)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#delete-ssh-key-for-current-user
+type userSshKeysDeleteFlags struct {
+	KeyId *int `flag_name:"key_id" short:"k" required:"yes" description:"key id of SSH key to be deleted"`
+	User *string `flag_name:"user" short:"u" type:"string" required:"yes" description:"User ID or user name of user to delete SSH key from"`
+}
+
+var userSshKeysDeleteCmd = &golabCommand{
+	Parent: userSshKeysCmd.Cmd,
+	Flags:  &userSshKeysDeleteFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "delete",
+		Short: "Delete SSH key",
+		Long:  `Deletes key owned by a specified user (available only for admin) or by currently logged in user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		var err error
+		flags := cmd.Flags.(*userSshKeysDeleteFlags)
+		if flags.User == nil {
+			_, err = gitlabClient.Users.DeleteSSHKey(*flags.KeyId)
+		} else {
+			userId, err := userIdFromFlag(*flags.User)
+			if err != nil {
+				return err
+			}
+			_, err = gitlabClient.Users.DeleteSSHKeyForUser(userId, *flags.KeyId)
+		}
+		return err
 	},
 }
 
@@ -516,18 +575,6 @@ If a user_id is given: Deletes email owned by a specified user. Available only f
 	},
 }
 
-func boolFromParamAndCurrSetting(paramString string, currentSetting bool) *bool {
-	var result bool
-	if paramString == "true" || paramString == "1" {
-		result = true
-	} else if paramString == "false" || paramString == "0" {
-		result = false
-	} else {
-		result = currentSetting
-	}
-	return &result
-}
-
 func getUserId(id int, username string) (int, error) {
 	if (id == 0 && username == "") || (id != 0 && username != "") {
 		return 0, errors.New("you either have to provide an id or a username")
@@ -551,35 +598,15 @@ func init() {
 	userCreateCmd.Init()
 	userModifyCmd.Init()
 	userDeleteCmd.Init()
-	initSshKeysCmd()
+	userSshKeysCmd.Init()
+	userSshKeysListCmd.Init()
+	userSshKeysGetCmd.Init()
+	userSshKeysAddCmd.Init()
+	userSshKeysDeleteCmd.Init()
 	initImpersonationTokenCmd()
 	initEmailsCmd()
 	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
-}
-
-func initSshKeysCmd() {
-	listSshKeysCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(optional) id of user to show ssh-keys for - if none is given, logged in user will be used")
-	viper.BindPFlag("id", listSshKeysCmd.PersistentFlags().Lookup("id"))
-
-	getSshKeyCmd.PersistentFlags().IntVarP(&keyId, "key_id", "k", 0, "(mandatory) key id of ssh key to be shown")
-	viper.BindPFlag("key_id", getSshKeyCmd.PersistentFlags().Lookup("key_id"))
-
-	addSshKeyCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(optional) id of user to add key for")
-	addSshKeyCmd.PersistentFlags().StringVarP(&key, "key", "k", "", "(mandatory) public ssh key")
-	addSshKeyCmd.PersistentFlags().StringVarP(&title, "title", "t", "", "(mandatory) title for ssh public key")
-	viper.BindPFlag("user", getSshKeyCmd.PersistentFlags().Lookup("user"))
-	viper.BindPFlag("key", getSshKeyCmd.PersistentFlags().Lookup("key"))
-	viper.BindPFlag("title", getSshKeyCmd.PersistentFlags().Lookup("title"))
-
-	deleteSshKeyCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(optional) id of user to delete key for")
-	deleteSshKeyCmd.PersistentFlags().IntVarP(&keyId, "key_id", "k", 0, "(optional) id of ssh key to be deleted")
-	viper.BindPFlag("user", deleteSshKeyCmd.PersistentFlags().Lookup("user"))
-	viper.BindPFlag("key_id", deleteSshKeyCmd.PersistentFlags().Lookup("key_id"))
-
-	listSshKeysCmd.AddCommand(getSshKeyCmd, addSshKeyCmd, deleteSshKeyCmd)
-
-	userCmd.AddCommand(listSshKeysCmd)
 }
 
 func initImpersonationTokenCmd() {

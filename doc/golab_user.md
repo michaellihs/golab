@@ -35,5 +35,5 @@ golab user [flags]
 * [golab user impersonation-token](golab_user_impersonation-token.md)	 - Manage impersonation tokens
 * [golab user ls](golab_user_ls.md)	 - List users
 * [golab user modify](golab_user_modify.md)	 - User modification
-* [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's ssh keys
+* [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's SSH keys
 

@@ -1,22 +1,21 @@
-## golab user ssh-keys delete
+## golab user ssh-keys ls
 
-Delete SSH key
+List SSH keys
 
 ### Synopsis
 
 
-Deletes key owned by a specified user (available only for admin) or by currently logged in user.
+Get a list of (currently authenticated user's) SSH keys.
 
 ```
-golab user ssh-keys delete [flags]
+golab user ssh-keys ls [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help          help for delete
-  -k, --key_id int    (required) key id of SSH key to be deleted
-  -u, --user string   (required) User ID or user name of user to delete SSH key from
+  -h, --help        help for ls
+  -i, --id string   (optional) id of user to show SSH keys for - if none is given, logged in user will be used
 ```
 
 ### Options inherited from parent commands

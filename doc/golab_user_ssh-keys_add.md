@@ -15,9 +15,9 @@ golab user ssh-keys add [flags]
 
 ```
   -h, --help           help for add
-  -k, --key string     (mandatory) public ssh key
-  -t, --title string   (mandatory) title for ssh public key
-  -u, --user int       (optional) id of user to add key for
+  -k, --key string     (required) Public SSH key
+  -t, --title string   (required) New SSH Key's title
+  -u, --user string    (required) User ID or user name of user to delete SSH key from
 ```
 
 ### Options inherited from parent commands
@@ -26,9 +26,8 @@ golab user ssh-keys add [flags]
       --ca-file string   (optional) provides a .pem file to be used in certificates pool for SSL connection
       --ca-path string   (optional) provides a directory with .pem certificates to be used for SSL connection
       --config string    (optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)
-  -i, --id int           (optional) id of user to show ssh-keys for - if none is given, logged in user will be used
 ```
 
 ### SEE ALSO
-* [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's ssh keys
+* [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's SSH keys
 
