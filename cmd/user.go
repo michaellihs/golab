@@ -693,6 +693,52 @@ If a user_id is given: Deletes email owned by a specified user. Available only f
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/users.html#block-user
+type userBlockFlags struct {
+	UserId  *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"id or username of user to block"`
+}
+
+var userBlockCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userBlockFlags{},
+	Cmd: &cobra.Command{
+		Use:   "block",
+		Short: "Block user",
+		Long:  `Blocks the specified user. Available only for admin.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userBlockFlags)
+		userId, err := userIdFromFlag(*flags.UserId)
+		if err != nil {
+			return err
+		}
+		return gitlabClient.Users.BlockUser(userId)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#unblock-user
+type userUnblockFlags struct {
+	UserId  *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"id or username of user to unblock"`
+}
+
+var userUnblockCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userUnblockFlags{},
+	Cmd: &cobra.Command{
+		Use:   "unblock",
+		Short: "Unblock user",
+		Long:  `Unblocks the specified user. Available only for admin`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userUnblockFlags)
+		userId, err := userIdFromFlag(*flags.UserId)
+		if err != nil {
+		return err
+	}
+		return gitlabClient.Users.UnblockUser(userId)
+	},
+}
+
 func getUserId(id int, username string) (int, error) {
 	if (id == 0 && username == "") || (id != 0 && username != "") {
 		return 0, errors.New("you either have to provide an id or a username")
@@ -732,5 +778,7 @@ func init() {
 	userEmailsGetCmd.Init()
 	userEmailsAddCmd.Init()
 	userEmailsDeleteCmd.Init()
+	userBlockCmd.Init()
+	userUnblockCmd.Init()
 	RootCmd.AddCommand(userCmd)
 }

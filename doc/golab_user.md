@@ -28,6 +28,7 @@ golab user [flags]
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab user activities](golab_user_activities.md)	 - Get user activities (admin only)
+* [golab user block](golab_user_block.md)	 - Block user
 * [golab user create](golab_user_create.md)	 - User creation
 * [golab user delete](golab_user_delete.md)	 - User deletion
 * [golab user emails](golab_user_emails.md)	 - User emails
@@ -36,4 +37,5 @@ golab user [flags]
 * [golab user ls](golab_user_ls.md)	 - List users
 * [golab user modify](golab_user_modify.md)	 - User modification
 * [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's SSH keys
+* [golab user unblock](golab_user_unblock.md)	 - Unblock user
 
