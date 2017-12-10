@@ -24,12 +24,10 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/michaellihs/golab/cmd/mapper"
 	"github.com/xanzy/go-gitlab"
 )
 
-var listMergeRequestFlagsMapper mapper.FlagMapper
-
+// see https://docs.gitlab.com/ce/api/merge_requests.html#merge-requests-api
 var mergeRequestsCmd = &cobra.Command{
 	Use:   "merge-requests",
 	Short: "Manage Merge Requests",
@@ -39,7 +37,8 @@ var mergeRequestsCmd = &cobra.Command{
 	},
 }
 
-type listMergeRequestsFlags struct {
+// see https://docs.gitlab.com/ce/api/merge_requests.html#list-merge-requests
+type mergeRequestsListFlags struct {
 	State           *string `flag_name:"state" type:"string" required:"no" description:"Return all merge requests or just those that are opened, closed, or merged"`
 	OrderBy         *string `flag_name:"order_by" type:"string" required:"no" description:"Return requests ordered by created_at or updated_at fields. Default is created_at"`
 	Sort            *string `flag_name:"sort" type:"string" required:"no" description:"Return requests sorted in asc or desc order. Default is desc"`
@@ -54,17 +53,21 @@ type listMergeRequestsFlags struct {
 	MyReactionEmoji *string `flag_name:"my_reaction_emoji" type:"string" required:"no" description:"Return merge requests reacted by the authenticated user by the given emoji (Introduced in GitLab 10.0)"`
 }
 
-var mergeRequestListCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List merge requests",
-	Long: `Get all merge requests the authenticated user has access to. By default it returns only merge requests created by the current user. To get all merge requests, use parameter scope=all.
+var mergeRequestsListCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsListFlags{},
+	Opts:   &gitlab.ListMergeRequestsOptions{},
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List merge requests",
+		Long: `Get all merge requests the authenticated user has access to. By default it returns only merge requests created by the current user. To get all merge requests, use parameter scope=all.
 
 The state parameter can be used to get only merge requests with a given state (opened, closed, or merged) or all of them (all). The pagination parameters page and per_page can be used to restrict the list of merge requests.
 
 Note: the changes_count value in the response is a string, not an integer. This is because when an MR has too many changes to display and store, it will be capped at 1,000. In that case, the API will return the string "1000+" for the changes count.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		listMergeRequestFlagsMapper.AutoMap()
-		opts := listMergeRequestFlagsMapper.MappedOpts().(*gitlab.ListMergeRequestsOptions)
+	},
+	Run: func(cmd golabCommand) error {
+		opts := cmd.Opts.(*gitlab.ListMergeRequestsOptions)
 		mergeRequests, _, err := gitlabClient.MergeRequests.ListMergeRequests(opts)
 		if err != nil {
 			return err
@@ -74,11 +77,6 @@ Note: the changes_count value in the response is a string, not an integer. This 
 }
 
 func init() {
-	initListMergeRequestCmd()
+	mergeRequestsListCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
-}
-
-func initListMergeRequestCmd() {
-	listMergeRequestFlagsMapper = mapper.InitializedMapper(mergeRequestListCmd, &listMergeRequestsFlags{}, &gitlab.ListMergeRequestsOptions{})
-	mergeRequestsCmd.AddCommand(mergeRequestListCmd)
 }

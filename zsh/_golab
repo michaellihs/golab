@@ -18,12 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      merge-requests)
-        _arguments '2: :(ls)'
-      ;;
-      project)
-        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
-      ;;
       user)
         _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
@@ -32,6 +26,12 @@ case $state in
       ;;
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
+      ;;
+      merge-requests)
+        _arguments '2: :(ls)'
+      ;;
+      project)
+        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
       ;;
       *)
         _arguments '*: :_files'
