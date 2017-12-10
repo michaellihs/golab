@@ -76,7 +76,47 @@ Note: the changes_count value in the response is a string, not an integer. This 
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#list-project-merge-requests
+type mergeRequestsListForProjectFlags struct {
+	Id              *int      `flag_name:"id" type:"integer" required:"yes" description:"The ID of a project"`
+	// TODO implement proper mapping of []int in flag_mapper
+	//IIDs            []int     `flag_name:"iids[]" type:"Array[integer]" required:"no" description:"Return the request having the given iid"`
+	State           *string   `flag_name:"state" type:"string" required:"no" description:"Return all merge requests or just those that are opened, closed, or merged"`
+	OrderBy         *string   `flag_name:"order_by" type:"string" required:"no" description:"Return requests ordered by created_at or updated_at fields. Default is created_at"`
+	Sort            *string   `flag_name:"sort" type:"string" required:"no" description:"Return requests sorted in asc or desc order. Default is desc"`
+	Milestone       *string   `flag_name:"milestone" type:"string" required:"no" description:"Return merge requests for a specific milestone"`
+	View            *string   `flag_name:"view" type:"string" required:"no" description:"If simple, returns the iid, URL, title, description, and basic state of merge request"`
+	Labels          *[]string `flag_name:"labels" type:"[]string" transform:"string2Labels" required:"no" description:"Return merge requests matching a comma separated list of labels"`
+	CreatedAfter    *string   `flag_name:"created_after" type:"datetime" required:"no" description:"Return merge requests created after the given time (inclusive)"`
+	CreatedBefore   *string   `flag_name:"created_before" type:"datetime" required:"no" description:"Return merge requests created before the given time (inclusive)"`
+	Scope           *string   `flag_name:"scope" type:"string" required:"no" description:"Return merge requests for the given scope: created-by-me, assigned-to-me or all (Introduced in GitLab 9.5)"`
+	AuthorID        *int      `flag_name:"author_id" type:"integer" required:"no" description:"Returns merge requests created by the given user id (Introduced in GitLab 9.5)"`
+	AssigneeID      *int      `flag_name:"assignee_id" type:"integer" required:"no" description:"Returns merge requests assigned to the given user id (Introduced in GitLab 9.5)"`
+	MyReactionEmoji *string   `flag_name:"my_reaction_emoji" type:"string" required:"no" description:"Return merge requests reacted by the authenticated user by the given emoji (Introduced in GitLab 10.0)"`
+}
+
+var mergeRequestsListForProjectCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsListForProjectFlags{},
+	Opts:   &gitlab.ListProjectMergeRequestsOptions{},
+	Cmd: &cobra.Command{
+		Use:   "project-ls",
+		Short: "List project merge requests",
+		Long:  `Get all merge requests for this project. The state parameter can be used to get only merge requests with a given state (opened, closed, or merged) or all of them (all). The pagination parameters page and per_page can be used to restrict the list of merge requests.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsListForProjectFlags)
+		opts := cmd.Opts.(*gitlab.ListProjectMergeRequestsOptions)
+		mrs, _, err := gitlabClient.MergeRequests.ListProjectMergeRequests(*flags.Id, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(mrs)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
+	mergeRequestsListForProjectCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
