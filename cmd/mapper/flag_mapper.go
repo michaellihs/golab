@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	"time"
+	"strings"
 )
 
 type FlagMapper struct {
@@ -275,7 +276,13 @@ func string2Time(s string) *time.Time {
 	return &t
 }
 
+func string2Labels(s string) gitlab.Labels {
+	stringSlice := strings.Split(s, ",")
+	return stringSlice
+}
+
 var funcs = map[string]interface{}{
+	"string2Labels":     string2Labels,
 	"string2visibility": str2Visibility,
 	"string2IsoTime":    string2IsoTime,
 	"string2Time":       string2Time,

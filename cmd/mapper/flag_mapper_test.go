@@ -76,6 +76,14 @@ var _ = Describe("FlagMapper", func() {
 		Flag1 *gitlab.VisibilityValue
 	}
 
+	type testFlagsWithLabelsTransformation struct {
+		Labels *string   `flag_name:"labels" type:"string" required:"no" description:"labels" transform:"string2Labels"`
+	}
+
+	type optsRequireLabelsTransformation struct {
+		Labels gitlab.Labels
+	}
+
 	type testFlagsWithPropertyNotInOpts struct {
 		Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"id"`
 		Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"name"`
@@ -197,14 +205,25 @@ var _ = Describe("FlagMapper", func() {
 	It("calls a transform function as expected", func() {
 		flags := &testFlagsWithTransformation{}
 		opts := &optsRequireTransformation{}
-		mockCmd := mockCmd()
-		var flagMapper = New(mockCmd)
-		flagMapper.SetFlags(flags)
+		cmd := mockCmd()
+		var flagMapper = InitializedMapper(cmd, flags, opts)
 
-		executeCommand(mockCmd, "mock", "--visibility", "private")
-		flagMapper.Map(flags, opts)
+		executeCommand(cmd, "mock", "--visibility", "private")
+		flagMapper.AutoMap()
 
 		Expect(*opts.Flag1).To(Equal(*gitlab.Visibility(gitlab.PrivateVisibility)))
+	})
+
+	It("transforms string to gitlab.Labels as expected", func() {
+		flags := &testFlagsWithLabelsTransformation{}
+		opts := &optsRequireLabelsTransformation{}
+		cmd := mockCmd()
+		var mapper = InitializedMapper(cmd, flags, opts)
+
+		executeCommand(cmd, "mock", "--labels", "label1,label2,label3")
+		mapper.AutoMap()
+
+		Expect(opts.Labels).Should(ConsistOf("label1", "label2", "label3"))
 	})
 
 	It("silently ignores properties in flags that are not available in opts", func() {
