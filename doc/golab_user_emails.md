@@ -1,11 +1,11 @@
 ## golab user emails
 
-Manage emails for users
+User emails
 
 ### Synopsis
 
 
-List, add and delete emails for users
+Manage user's email'
 
 ```
 golab user emails [flags]
@@ -27,7 +27,8 @@ golab user emails [flags]
 
 ### SEE ALSO
 * [golab user](golab_user.md)	 - Manage Gitlab users
-* [golab user emails add](golab_user_emails_add.md)	 - Add email (for user)
-* [golab user emails delete](golab_user_emails_delete.md)	 - Delete email for current / given user
-* [golab user emails ls](golab_user_emails_ls.md)	 - List emails (for user)
+* [golab user emails add](golab_user_emails_add.md)	 - Create new email (for user)
+* [golab user emails delete](golab_user_emails_delete.md)	 - Delete email for (current) user
+* [golab user emails get](golab_user_emails_get.md)	 - Single email
+* [golab user emails ls](golab_user_emails_ls.md)	 - List emails
 

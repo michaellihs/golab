@@ -1,22 +1,21 @@
-## golab user emails ls
+## golab user emails get
 
-List emails
+Single email
 
 ### Synopsis
 
 
-If no user_id is given: get a list of currently authenticated user's emails.
-If a user_id is given: Get a list of a specified user's emails. Available only for admin
+Get a single email.
 
 ```
-golab user emails ls [flags]
+golab user emails get [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help             help for ls
-  -u, --user_id string   (optional) The ID of the user or username of user to list emails for. If none is given, emails of currently logged in user are shown
+  -e, --email_id int   (required) email ID
+  -h, --help           help for get
 ```
 
 ### Options inherited from parent commands

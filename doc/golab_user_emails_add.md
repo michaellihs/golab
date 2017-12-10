@@ -1,6 +1,6 @@
 ## golab user emails add
 
-Add email (for user)
+Create new email (for user)
 
 ### Synopsis
 
@@ -17,9 +17,9 @@ golab user emails add [flags]
 ### Options
 
 ```
-  -e, --email string   (required) email address to be created
-  -h, --help           help for add
-  -u, --user_id int    (optional) id of user to create email for
+  -e, --email string     (required) email address
+  -h, --help             help for add
+  -u, --user_id string   (optional) id or username of user to add email to
 ```
 
 ### Options inherited from parent commands
@@ -31,5 +31,5 @@ golab user emails add [flags]
 ```
 
 ### SEE ALSO
-* [golab user emails](golab_user_emails.md)	 - Manage emails for users
+* [golab user emails](golab_user_emails.md)	 - User emails
 

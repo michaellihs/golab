@@ -1,6 +1,6 @@
 ## golab user emails delete
 
-Delete email for current / given user
+Delete email for (current) user
 
 ### Synopsis
 
@@ -15,9 +15,9 @@ golab user emails delete [flags]
 ### Options
 
 ```
-  -i, --email_id int   (required) id of email to be deleted
-  -h, --help           help for delete
-  -u, --user_id int    (optional) id of user to delete email from
+  -e, --email_id int     (required) id of email to be deleted
+  -h, --help             help for delete
+  -u, --user_id string   (optional) id or username of user to delete email from
 ```
 
 ### Options inherited from parent commands
@@ -29,5 +29,5 @@ golab user emails delete [flags]
 ```
 
 ### SEE ALSO
-* [golab user emails](golab_user_emails.md)	 - Manage emails for users
+* [golab user emails](golab_user_emails.md)	 - User emails
 
