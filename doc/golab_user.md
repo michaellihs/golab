@@ -27,12 +27,12 @@ golab user [flags]
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab user activities](golab_user_activities.md)	 - Get the last activity date for all users, sorted from oldest to newest.
+* [golab user activities](golab_user_activities.md)	 - Get user activities (admin only)
 * [golab user create](golab_user_create.md)	 - User creation
 * [golab user delete](golab_user_delete.md)	 - User deletion
 * [golab user emails](golab_user_emails.md)	 - Manage emails for users
 * [golab user get](golab_user_get.md)	 - Single user.
-* [golab user impersonation-token](golab_user_impersonation-token.md)	 - Manage impersonation tokens
+* [golab user impersonation-token](golab_user_impersonation-token.md)	 - Impersonation token
 * [golab user ls](golab_user_ls.md)	 - List users
 * [golab user modify](golab_user_modify.md)	 - User modification
 * [golab user ssh-keys](golab_user_ssh-keys.md)	 - Manage a user's SSH keys

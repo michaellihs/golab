@@ -31,8 +31,6 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"github.com/spf13/viper"
 	"strconv"
-	"strings"
-	"time"
 )
 
 var email, password, username, state, expires, scopes, name string
@@ -364,8 +362,8 @@ var userSshKeysAddCmd = &golabCommand{
 
 // see https://docs.gitlab.com/ce/api/users.html#delete-ssh-key-for-current-user
 type userSshKeysDeleteFlags struct {
-	KeyId *int `flag_name:"key_id" short:"k" required:"yes" description:"key id of SSH key to be deleted"`
-	User *string `flag_name:"user" short:"u" type:"string" required:"yes" description:"User ID or user name of user to delete SSH key from"`
+	KeyId *int    `flag_name:"key_id" short:"k" required:"yes" description:"key id of SSH key to be deleted"`
+	User  *string `flag_name:"user" short:"u" type:"string" required:"yes" description:"User ID or user name of user to delete SSH key from"`
 }
 
 var userSshKeysDeleteCmd = &golabCommand{
@@ -393,16 +391,29 @@ var userSshKeysDeleteCmd = &golabCommand{
 	},
 }
 
-var activitiesCmd = &cobra.Command{
-	Use:   "activities",
-	Short: "Get the last activity date for all users, sorted from oldest to newest.",
-	Long: `The activities that update the timestamp are:
+// see https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
+type userActivitiesFlags struct {
+	From *string `flag_name:"from" type:"string" required:"no" description:"Date string in the format YEAR-MONTH-DAY, e.g. 2016-03-11. Defaults to 6 months ago."`
+}
+
+var userActivitiesCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userActivitiesFlags{},
+	Cmd: &cobra.Command{
+		Use:   "activities",
+		Short: "Get user activities (admin only)",
+		Long: `Get the last activity date for all users, sorted from oldest to newest.
+
+The activities that update the timestamp are:
 
 * Git HTTP/SSH activities (such as clone, push)
 * User logging in into GitLab
 
 By default, it shows the activity for all users in the last 6 months, but this can be amended by using the from parameter.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	},
+	Run: func(cmd golabCommand) error {
+		// TODO From flag currently not supported by go-gitlab
+		// flags := cmd.Flags.(*userActivitiesFlags)
 		userActivities, _, err := gitlabClient.Users.GetUserActivities()
 		if err != nil {
 			return err
@@ -411,61 +422,103 @@ By default, it shows the activity for all users in the last 6 months, but this c
 	},
 }
 
-var impersinationTokenCmd = &cobra.Command{
-	Use:   "impersonation-token",
-	Short: "Manage impersonation tokens",
-	RunE: func(cmd *cobra.Command, args []string) error {
+// see https://docs.gitlab.com/ce/api/users.html#get-all-impersonation-tokens-of-a-user
+var userImpersonationTokenCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  nil,
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "impersonation-token",
+		Short: "Impersonation token",
+		Long:  `Manage a user's impersonation token`,
+	},
+	Run: func(cmd golabCommand) error {
 		return errors.New("you cannot use this command without one of its sub-commands")
 	},
 }
 
-var getImpersonationTokenCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Get all impersonation tokens of a user",
-	Long:  `It retrieves every impersonation token of the user. Use the pagination parameters page and per_page to restrict the list of impersonation tokens.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if userId == 0 {
-			return errors.New("required parameter `user` is missing")
+// see https://docs.gitlab.com/ce/api/users.html#get-all-impersonation-tokens-of-a-user
+type userImpersonationTokenGetAllFlags struct {
+	UserId *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"The ID of the user or the name of the user to get tokens for"`
+	State  *string `flag_name:"state" short:"s" type:"string" required:"no" description:"filter tokens based on state (all, active, inactive)"`
+}
+
+var userImpersonationTokenGetAllCmd = &golabCommand{
+	Parent: userImpersonationTokenCmd.Cmd,
+	Flags:  &userImpersonationTokenGetAllFlags{},
+	Opts:   &gitlab.GetAllImpersonationTokensOptions{},
+	Cmd: &cobra.Command{
+		Use:   "get-all",
+		Short: "Get all impersonation tokens of a user",
+		Long:  `It retrieves every impersonation token of the user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userImpersonationTokenGetAllFlags)
+		opts := cmd.Opts.(*gitlab.GetAllImpersonationTokensOptions)
+		userId, err := userIdFromFlag(*flags.UserId)
+		if err != nil {
+			return err
 		}
-		if tokenId == 0 {
-			opts := &gitlab.GetAllImpersonationTokensOptions{}
-			if state != "" {
-				opts.State = &state
-			}
-			token, _, err := gitlabClient.Users.GetAllImpersonationTokens(userId, opts)
-			if err != nil {
-				return err
-			}
-			return OutputJson(token)
-		} else {
-			tokens, _, err := gitlabClient.Users.GetImpersonationToken(userId, tokenId)
-			if err != nil {
-				return err
-			}
-			return OutputJson(tokens)
+		tokens, _, err := gitlabClient.Users.GetAllImpersonationTokens(userId, opts)
+		if err != nil {
+			return err
 		}
+		return OutputJson(tokens)
 	},
 }
 
-var createImpersonationTokenCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create an impersonation token",
-	Long:  `It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if userId == 0 {
-			return errors.New("required parameter `user` is missing")
+// see https://docs.gitlab.com/ce/api/users.html#get-an-impersonation-token-of-a-user
+type userImpersonationTokenGetFlags struct {
+	UserId               *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"The ID of the user or the username for which to get a token"`
+	ImpersonationTokenId *int    `flag_name:"impersonation_token_id" short:"t" type:"integer" required:"yes" description:"The ID of the impersonation token"`
+}
+
+var userImpersonationTokenGetCmd = &golabCommand{
+	Parent: userImpersonationTokenCmd.Cmd,
+	Flags:  &userImpersonationTokenGetFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Get an impersonation token of a user",
+		Long:  `It shows a user's impersonation token (admins only).`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userImpersonationTokenGetFlags)
+		userId, err := userIdFromFlag(*flags.UserId)
+		if err != nil {
+			return err
 		}
-		parsedScopes := strings.Split(scopes, ",")
-		opts := &gitlab.CreateImpersonationTokenOptions{
-			Name:   &name,
-			Scopes: &parsedScopes,
+		token, _, err := gitlabClient.Users.GetImpersonationToken(userId, *flags.ImpersonationTokenId)
+		if err != nil {
+			return err
 		}
-		if expires != "" {
-			parsedExpires, err := time.Parse("2006-01-02", expires)
-			if err != nil {
-				return err
-			}
-			opts.ExpiresAt = &parsedExpires
+		return OutputJson(token)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#create-an-impersonation-token
+type userImpersonationTokenCreateFlags struct {
+	UserId    *string   `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"The ID of the user"`
+	Name      *string   `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the impersonation token"`
+	ExpiresAt *string   `flag_name:"expires_at" short:"e" type:"string" transform:"string2Time" required:"no" description:"The expiration date of the impersonation token in ISO format (YYYY-MM-DD)"`
+	Scopes    *[]string `flag_name:"scopes" short:"s" type:"array" required:"yes" description:"The array of scopes of the impersonation token (api, read_user)"`
+}
+
+var userImpersonationTokenCreateCmd = &golabCommand{
+	Parent: userImpersonationTokenCmd.Cmd,
+	Flags:  &userImpersonationTokenCreateFlags{},
+	Opts:   &gitlab.CreateImpersonationTokenOptions{},
+	Cmd: &cobra.Command{
+		Use:   "create",
+		Short: "Create an impersonation token (admin only)",
+		Long:  `It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page. Requires admin permissions.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userImpersonationTokenCreateFlags)
+		opts := cmd.Opts.(*gitlab.CreateImpersonationTokenOptions)
+		userId, err := userIdFromFlag(*flags.UserId)
+		if err != nil {
+			return err
 		}
 		token, _, err := gitlabClient.Users.CreateImpersonationToken(userId, opts)
 		if err != nil {
@@ -475,15 +528,28 @@ var createImpersonationTokenCmd = &cobra.Command{
 	},
 }
 
-var revokeImpersonationTokenCmd = &cobra.Command{
-	Use:   "revoke",
-	Short: "Revoke an impersonation token",
-	Long:  `It revokes an impersonation token.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if userId == 0 || tokenId == 0 {
-			return errors.New("both, user_id and impersonation_token_id have to be given as parameters")
+// see https://docs.gitlab.com/ce/api/users.html#revoke-an-impersonation-token
+type userImpersonationTokenRevokeFlags struct {
+	UserId               *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"The ID of the user or username of user to revoke token for"`
+	ImpersonationTokenId *int    `flag_name:"impersonation_token_id" short:"t" type:"integer" required:"yes" description:"The ID of the impersonation token"`
+}
+
+var userImpersonationTokenRevokeCmd = &golabCommand{
+	Parent: userImpersonationTokenCmd.Cmd,
+	Flags:  &userImpersonationTokenRevokeFlags{},
+	Opts:   nil,
+	Cmd: &cobra.Command{
+		Use:   "revoke",
+		Short: "Revoke an impersonation token (admin only)",
+		Long:  `It revokes an impersonation token. Requires admin permissions.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userImpersonationTokenRevokeFlags)
+		userId, err := userIdFromFlag(*flags.UserId)
+		if err != nil {
+			return err
 		}
-		_, err := gitlabClient.Users.RevokeImpersonationToken(userId, tokenId)
+		_, err = gitlabClient.Users.RevokeImpersonationToken(userId, *flags.ImpersonationTokenId)
 		return err
 	},
 }
@@ -603,30 +669,14 @@ func init() {
 	userSshKeysGetCmd.Init()
 	userSshKeysAddCmd.Init()
 	userSshKeysDeleteCmd.Init()
-	initImpersonationTokenCmd()
+	userActivitiesCmd.Init()
+	userImpersonationTokenCmd.Init()
+	userImpersonationTokenGetAllCmd.Init()
+	userImpersonationTokenGetCmd.Init()
+	userImpersonationTokenCreateCmd.Init()
+	userImpersonationTokenRevokeCmd.Init()
 	initEmailsCmd()
-	userCmd.AddCommand(activitiesCmd)
 	RootCmd.AddCommand(userCmd)
-}
-
-func initImpersonationTokenCmd() {
-	getImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(required) id of user to get token(s) for")
-	getImpersonationTokenCmd.PersistentFlags().IntVarP(&tokenId, "impersonation_token_id", "t", 0, "(optional) id of token")
-	getImpersonationTokenCmd.PersistentFlags().StringVarP(&state, "state", "s", "", "(optional) state of token to be used as a filter (has no effect, if user is given)")
-	viper.BindPFlag("user", getImpersonationTokenCmd.PersistentFlags().Lookup("user"))
-	viper.BindPFlag("impersonation_token_id", getImpersonationTokenCmd.PersistentFlags().Lookup("impersonation_token_id"))
-	viper.BindPFlag("state", getImpersonationTokenCmd.PersistentFlags().Lookup("state"))
-
-	createImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user", "u", 0, "(required) the id of the user")
-	createImpersonationTokenCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "(required) the name of the impersonation token")
-	createImpersonationTokenCmd.PersistentFlags().StringVarP(&expires, "expires_at", "e", "", "(optional) the expiration date of the impersonation token in ISO format (YYYY-MM-DD)")
-	createImpersonationTokenCmd.PersistentFlags().StringVarP(&scopes, "scopes_array", "s", "", "(required) the comma-separated array of scopes of the impersonation token ( allowed values: `api`, `read_user`)")
-
-	revokeImpersonationTokenCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id of user to revoke token for")
-	revokeImpersonationTokenCmd.PersistentFlags().IntVarP(&tokenId, "impersonation_token_id", "t", 0, "(required) id of token to be revoked")
-
-	impersinationTokenCmd.AddCommand(getImpersonationTokenCmd, createImpersonationTokenCmd, revokeImpersonationTokenCmd)
-	userCmd.AddCommand(impersinationTokenCmd)
 }
 
 func initEmailsCmd() {

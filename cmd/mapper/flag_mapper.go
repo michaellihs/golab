@@ -267,9 +267,18 @@ func str2AccessLevel(s string) *gitlab.AccessLevelValue {
 	panic("Unknown access level: " + s)
 }
 
+func string2Time(s string) *time.Time {
+	t, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		panic(err.Error())
+	}
+	return &t
+}
+
 var funcs = map[string]interface{}{
 	"string2visibility": str2Visibility,
 	"string2IsoTime":    string2IsoTime,
+	"string2Time":       string2Time,
 	"str2AccessLevel":   str2AccessLevel,
 }
 

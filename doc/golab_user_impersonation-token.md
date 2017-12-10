@@ -1,11 +1,11 @@
 ## golab user impersonation-token
 
-Manage impersonation tokens
+Impersonation token
 
 ### Synopsis
 
 
-Manage impersonation tokens
+Manage a user's impersonation token
 
 ```
 golab user impersonation-token [flags]
@@ -27,7 +27,8 @@ golab user impersonation-token [flags]
 
 ### SEE ALSO
 * [golab user](golab_user.md)	 - Manage Gitlab users
-* [golab user impersonation-token create](golab_user_impersonation-token_create.md)	 - Create an impersonation token
-* [golab user impersonation-token get](golab_user_impersonation-token_get.md)	 - Get all impersonation tokens of a user
-* [golab user impersonation-token revoke](golab_user_impersonation-token_revoke.md)	 - Revoke an impersonation token
+* [golab user impersonation-token create](golab_user_impersonation-token_create.md)	 - Create an impersonation token (admin only)
+* [golab user impersonation-token get](golab_user_impersonation-token_get.md)	 - Get an impersonation token of a user
+* [golab user impersonation-token get-all](golab_user_impersonation-token_get-all.md)	 - Get all impersonation tokens of a user
+* [golab user impersonation-token revoke](golab_user_impersonation-token_revoke.md)	 - Revoke an impersonation token (admin only)
 

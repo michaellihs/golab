@@ -1,9 +1,11 @@
 ## golab user activities
 
-Get the last activity date for all users, sorted from oldest to newest.
+Get user activities (admin only)
 
 ### Synopsis
 
+
+Get the last activity date for all users, sorted from oldest to newest.
 
 The activities that update the timestamp are:
 
@@ -19,7 +21,8 @@ golab user activities [flags]
 ### Options
 
 ```
-  -h, --help   help for activities
+      --from string   (optional) Date string in the format YEAR-MONTH-DAY, e.g. 2016-03-11. Defaults to 6 months ago.
+  -h, --help          help for activities
 ```
 
 ### Options inherited from parent commands

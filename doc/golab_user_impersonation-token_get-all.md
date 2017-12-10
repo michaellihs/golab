@@ -1,22 +1,22 @@
-## golab user impersonation-token get
+## golab user impersonation-token get-all
 
-Get an impersonation token of a user
+Get all impersonation tokens of a user
 
 ### Synopsis
 
 
-It shows a user's impersonation token (admins only).
+It retrieves every impersonation token of the user.
 
 ```
-golab user impersonation-token get [flags]
+golab user impersonation-token get-all [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help                         help for get
-  -t, --impersonation_token_id int   (required) The ID of the impersonation token
-  -u, --user_id string               (required) The ID of the user or the username for which to get a token
+  -h, --help             help for get-all
+  -s, --state string     (optional) filter tokens based on state (all, active, inactive)
+  -u, --user_id string   (required) The ID of the user or the name of the user to get tokens for
 ```
 
 ### Options inherited from parent commands

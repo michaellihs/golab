@@ -1,11 +1,11 @@
 ## golab user impersonation-token create
 
-Create an impersonation token
+Create an impersonation token (admin only)
 
 ### Synopsis
 
 
-It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page.
+It creates a new impersonation token. Note that only administrators can do this. You are only able to create impersonation tokens to impersonate the user and perform both API calls and Git reads and writes. The user will not see these tokens in their profile settings page. Requires admin permissions.
 
 ```
 golab user impersonation-token create [flags]
@@ -14,11 +14,11 @@ golab user impersonation-token create [flags]
 ### Options
 
 ```
-  -e, --expires_at string   (optional) the expiration date of the impersonation token in ISO format (YYYY-MM-DD)
-  -h, --help                help for create
-  -n, --name string         (required) the name of the impersonation token
-  -s, --scopes_array api    (required) the comma-separated array of scopes of the impersonation token ( allowed values: api, `read_user`)
-  -u, --user int            (required) the id of the user
+  -e, --expires_at string    (optional) The expiration date of the impersonation token in ISO format (YYYY-MM-DD)
+  -h, --help                 help for create
+  -n, --name string          (required) The name of the impersonation token
+  -s, --scopes stringArray   (required) The array of scopes of the impersonation token (api, read_user)
+  -u, --user_id string       (required) The ID of the user
 ```
 
 ### Options inherited from parent commands
@@ -30,5 +30,5 @@ golab user impersonation-token create [flags]
 ```
 
 ### SEE ALSO
-* [golab user impersonation-token](golab_user_impersonation-token.md)	 - Manage impersonation tokens
+* [golab user impersonation-token](golab_user_impersonation-token.md)	 - Impersonation token
 

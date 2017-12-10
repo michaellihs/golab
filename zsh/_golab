@@ -53,7 +53,7 @@ case $state in
         _arguments '3: :(add delete ls)'
       ;;
       impersonation-token)
-        _arguments '3: :(create get revoke)'
+        _arguments '3: :(create get get-all revoke)'
       ;;
       *)
         _arguments '*: :_files'
