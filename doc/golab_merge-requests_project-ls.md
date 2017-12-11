@@ -20,6 +20,7 @@ golab merge-requests project-ls [flags]
       --created_before string      (optional) Return merge requests created before the given time (inclusive)
   -h, --help                       help for project-ls
       --id int                     (required) The ID of a project
+      --iids stringArray           (optional) Return the request having the given iid
       --labels stringArray         (optional) Return merge requests matching a comma separated list of labels
       --milestone string           (optional) Return merge requests for a specific milestone
       --my_reaction_emoji string   (optional) Return merge requests reacted by the authenticated user by the given emoji (Introduced in GitLab 10.0)

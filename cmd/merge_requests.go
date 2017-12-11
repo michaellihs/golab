@@ -79,8 +79,7 @@ Note: the changes_count value in the response is a string, not an integer. This 
 // see https://docs.gitlab.com/ce/api/merge_requests.html#list-project-merge-requests
 type mergeRequestsListForProjectFlags struct {
 	Id              *int      `flag_name:"id" type:"integer" required:"yes" description:"The ID of a project"`
-	// TODO implement proper mapping of []int in flag_mapper
-	//IIDs            []int     `flag_name:"iids[]" type:"Array[integer]" required:"no" description:"Return the request having the given iid"`
+	IIDs            []int     `flag_name:"iids" type:"Array[integer]" required:"no" description:"Return the request having the given iid"`
 	State           *string   `flag_name:"state" type:"string" required:"no" description:"Return all merge requests or just those that are opened, closed, or merged"`
 	OrderBy         *string   `flag_name:"order_by" type:"string" required:"no" description:"Return requests ordered by created_at or updated_at fields. Default is created_at"`
 	Sort            *string   `flag_name:"sort" type:"string" required:"no" description:"Return requests sorted in asc or desc order. Default is desc"`
