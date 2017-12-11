@@ -27,6 +27,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"time"
 	"strings"
+	"strconv"
 )
 
 type FlagMapper struct {
@@ -67,6 +68,8 @@ func (m FlagMapper) SetFlags(flags interface{}) {
 				m.cmd.PersistentFlags().BoolP(flagName, shortHand, false, flagUsage(tag))
 			case "*[]string":
 				m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
+			case "[]int":
+			    m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
 			default:
 				panic("Unknown type " + f.Type().String())
 			}
@@ -170,6 +173,8 @@ func mapValue(value reflect.Value, mapper FlagMapper, flagName string, opt refle
 		mapBool(mapper, flagName, opt)
 	case "*[]string":
 		mapStringArray(mapper, flagName, opt)
+	case "[]int":
+		mapIntArray(mapper, flagName, opt)
 	default:
 		panic("Unknown type " + value.Type().String())
 	}
@@ -203,6 +208,31 @@ func mapStringArray(m FlagMapper, flagName string, opt reflect.Value) {
 	if typesMatch(opt, &value) {
 		opt.Set(reflect.ValueOf(&value))
 	}
+}
+
+func mapIntArray(m FlagMapper, flagName string, opt reflect.Value) {
+	value, err := m.cmd.PersistentFlags().GetStringArray(flagName)
+	if err != nil {
+		panic(err.Error())
+	}
+	// TODO cobra does not parse "1,2,3,4" into an array
+	sarr := strings.Split(value[0], ",")
+	arr := stringArray2IntArray(sarr)
+	if typesMatch(opt, arr) {
+		opt.Set(reflect.ValueOf(arr))
+	}
+}
+
+func stringArray2IntArray(s []string) []int {
+	var result = []int{}
+	for _, i := range s {
+		j, err := strconv.Atoi(i)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, j)
+	}
+	return result
 }
 
 func mapBool(m FlagMapper, flagName string, opt reflect.Value) {

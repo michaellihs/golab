@@ -51,7 +51,8 @@ var _ = Describe("FlagMapper", func() {
 		Flag1 *bool     `flag_name:"flag1" short:"f" type:"bool" required:"yes" description:"first flag"`
 		Flag2 *string   `flag_name:"flag2" type:"string" required:"no" description:"second flag"`
 		Flag3 *int      `flag_name:"flag3" type:"string" required:"no" description:"third flag"`
-		Flag4 *[]string `flag_name:"flag4" type:"string" required:"no" description:"fourth flag"`
+		Flag4 *[]string `flag_name:"flag4" type:"[]string" required:"no" description:"fourth flag"`
+		Flag5 []int     `flag_name:"flag5" type:"[]int" required:"no" description:"fifth flag"`
 	}
 
 	type testOpts struct {
@@ -59,6 +60,7 @@ var _ = Describe("FlagMapper", func() {
 		Flag2 *string
 		Flag3 *int
 		Flag4 *[]string
+		Flag5 []int
 	}
 
 	type testOptsNonMatching struct {
@@ -102,29 +104,34 @@ var _ = Describe("FlagMapper", func() {
 	It("sets expected flags on command", func() {
 		flags := &testFlags{}
 
-		mockCmd := mockCmd()
-		var flagMapper = New(mockCmd)
-		flagMapper.SetFlags(flags)
+		cmd := mockCmd()
+		var mapper = New(cmd)
+		mapper.SetFlags(flags)
 
-		Expect(mockCmd.Flag("flag1")).NotTo(BeNil())
-		Expect(mockCmd.Flag("flag1").Name).To(Equal("flag1"))
-		Expect(mockCmd.Flag("flag1").Usage).To(Equal("(required) first flag"))
-		Expect(mockCmd.Flag("flag1").Shorthand).To(Equal("f"))
+		Expect(cmd.Flag("flag1")).NotTo(BeNil())
+		Expect(cmd.Flag("flag1").Name).To(Equal("flag1"))
+		Expect(cmd.Flag("flag1").Usage).To(Equal("(required) first flag"))
+		Expect(cmd.Flag("flag1").Shorthand).To(Equal("f"))
 
-		Expect(mockCmd.Flag("flag2")).NotTo(BeNil())
-		Expect(mockCmd.Flag("flag2").Name).To(Equal("flag2"))
-		Expect(mockCmd.Flag("flag2").Usage).To(Equal("(optional) second flag"))
-		Expect(mockCmd.Flag("flag2").Shorthand).To(Equal(""))
+		Expect(cmd.Flag("flag2")).NotTo(BeNil())
+		Expect(cmd.Flag("flag2").Name).To(Equal("flag2"))
+		Expect(cmd.Flag("flag2").Usage).To(Equal("(optional) second flag"))
+		Expect(cmd.Flag("flag2").Shorthand).To(Equal(""))
 
-		Expect(mockCmd.Flag("flag3")).NotTo(BeNil())
-		Expect(mockCmd.Flag("flag3").Name).To(Equal("flag3"))
-		Expect(mockCmd.Flag("flag3").Usage).To(Equal("(optional) third flag"))
-		Expect(mockCmd.Flag("flag3").Shorthand).To(Equal(""))
+		Expect(cmd.Flag("flag3")).NotTo(BeNil())
+		Expect(cmd.Flag("flag3").Name).To(Equal("flag3"))
+		Expect(cmd.Flag("flag3").Usage).To(Equal("(optional) third flag"))
+		Expect(cmd.Flag("flag3").Shorthand).To(Equal(""))
 
-		Expect(mockCmd.Flag("flag4")).NotTo(BeNil())
-		Expect(mockCmd.Flag("flag4").Name).To(Equal("flag4"))
-		Expect(mockCmd.Flag("flag4").Usage).To(Equal("(optional) fourth flag"))
-		Expect(mockCmd.Flag("flag4").Shorthand).To(Equal(""))
+		Expect(cmd.Flag("flag4")).NotTo(BeNil())
+		Expect(cmd.Flag("flag4").Name).To(Equal("flag4"))
+		Expect(cmd.Flag("flag4").Usage).To(Equal("(optional) fourth flag"))
+		Expect(cmd.Flag("flag4").Shorthand).To(Equal(""))
+
+		Expect(cmd.Flag("flag5")).NotTo(BeNil())
+		Expect(cmd.Flag("flag5").Name).To(Equal("flag5"))
+		Expect(cmd.Flag("flag5").Usage).To(Equal("(optional) fifth flag"))
+		Expect(cmd.Flag("flag5").Shorthand).To(Equal(""))
 	})
 
 	It("sets no flags if given flags are nil", func() {
@@ -137,7 +144,7 @@ var _ = Describe("FlagMapper", func() {
 		mockCmd := mockCmd()
 		var mapper = InitializedMapper(mockCmd, &testFlags{}, &testOpts{})
 
-		executeCommand(mockCmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3")
+		executeCommand(mockCmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3", "--flag5", "1,2,3,4")
 		_,_,err := mapper.AutoMap()
 		flags := mapper.MappedFlags().(*testFlags)
 		opts := mapper.MappedOpts().(*testOpts)
@@ -150,18 +157,19 @@ var _ = Describe("FlagMapper", func() {
 	It("maps valid args to given opts struct as expected", func() {
 		flags := &testFlags{}
 		opts := &testOpts{}
-		mockCmd := mockCmd()
-		var flagMapper = New(mockCmd)
-		flagMapper.SetFlags(flags)
+		cmd := mockCmd()
+		var mapper = New(cmd)
+		mapper.SetFlags(flags)
 
-		executeCommand(mockCmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3")
-		flagMapper.Map(flags, opts)
+		executeCommand(cmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3", "--flag5", "1,2,3,4")
+		mapper.Map(flags, opts)
 
 		Expect(*opts.Flag1).To(Equal(true))
 		Expect(*opts.Flag2).To(Equal("string"))
 		Expect(*opts.Flag3).To(Equal(4))
-		// TODO bug, when parsing array flags
+		// TODO there seems to be bug in cobra, when parsing array flags
 		Expect(*opts.Flag4).Should(ConsistOf("v1, v2, v3"))
+		Expect(opts.Flag5).Should(ConsistOf(1,2,3,4))
 	})
 
 	It ("maps args to given flags struct as expected", func() {
