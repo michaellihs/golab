@@ -30,6 +30,7 @@ import (
 // see https://docs.gitlab.com/ce/api/merge_requests.html#merge-requests-api
 var mergeRequestsCmd = &cobra.Command{
 	Use:   "merge-requests",
+	Aliases: []string{"mr"},
 	Short: "Manage Merge Requests",
 	Long:  `Show, create, edit and delte Merge Requests`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -114,8 +115,33 @@ var mergeRequestsListForProjectCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#get-single-mr
+type mergeRequestGetFlags struct {
+	Id  *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	Iid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestGetCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestGetFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Get single Merge Request",
+		Long:  `Shows information about a single merge request.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestGetFlags)
+		mr, _, err := gitlabClient.MergeRequests.GetMergeRequest(*flags.Id, *flags.Iid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(mr)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
+	mergeRequestGetCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }

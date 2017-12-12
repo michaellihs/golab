@@ -53,7 +53,6 @@ type userGetFlags struct {
 var userGetCmd = &golabCommand{
 	Parent: userCmd,
 	Flags:  &userGetFlags{},
-	Opts:   nil,
 	Cmd: &cobra.Command{
 		Use:   "get",
 		Short: "Single user.",
