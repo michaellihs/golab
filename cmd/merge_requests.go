@@ -29,10 +29,10 @@ import (
 
 // see https://docs.gitlab.com/ce/api/merge_requests.html#merge-requests-api
 var mergeRequestsCmd = &cobra.Command{
-	Use:   "merge-requests",
+	Use:     "merge-requests",
 	Aliases: []string{"mr"},
-	Short: "Manage Merge Requests",
-	Long:  `Show, create, edit and delte Merge Requests`,
+	Short:   "Manage Merge Requests",
+	Long:    `Show, create, edit and delte Merge Requests`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("this command cannot be run without a sub-command")
 	},
@@ -187,11 +187,46 @@ var mergeRequestsGetChangesCmd = &golabCommand{
 	},
 }
 
+// see 
+type mergeRequestsCreateFlags struct {
+	Id                 *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	SourceBranch       *string `flag_name:"source_branch" short:"s" type:"string" required:"yes" description:"The source branch"`
+	TargetBranch       *string `flag_name:"target_branch" short:"t" type:"string" required:"yes" description:"The target branch"`
+	Title              *string `flag_name:"title" short:"n" type:"string" required:"yes" description:"Title of MR"`
+	AssigneeId         *int    `flag_name:"assignee_id" short:"a" type:"integer" required:"no" description:"Assignee user ID"`
+	Description        *string `flag_name:"description" short:"d" type:"string" required:"no" description:"Description of MR"`
+	TargetProjectId    *int    `flag_name:"target_project_id" type:"integer" required:"no" description:"The target project (numeric id)"`
+	Labels             *string `flag_name:"labels" type:"string" required:"no" description:"Labels for MR as a comma-separated list"`
+	MilestoneId        *int    `flag_name:"milestone_id" type:"integer" required:"no" description:"The ID of a milestone"`
+	RemoveSourceBranch *bool   `flag_name:"remove_source_branch" type:"boolean" required:"no" description:"Flag indicating if a merge request should remove the source branch when merging"`
+}
+
+var mergeRequestsCreateCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsCreateFlags{},
+	Opts:   &gitlab.CreateMergeRequestOptions{},
+	Cmd: &cobra.Command{
+		Use:   "create",
+		Short: "Create merge request",
+		Long:  `Creates a new merge request.`,
+	},
+	Run: func (cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsCreateFlags)
+		opts := cmd.Opts.(*gitlab.CreateMergeRequestOptions)
+		mr, _, err := gitlabClient.MergeRequests.CreateMergeRequest(*flags.Id, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(mr)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
 	mergeRequestGetCmd.Init()
 	mergeRequestsGetCommitsCmd.Init()
 	mergeRequestsGetChangesCmd.Init()
+	mergeRequestsCreateCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
