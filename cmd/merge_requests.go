@@ -187,7 +187,7 @@ var mergeRequestsGetChangesCmd = &golabCommand{
 	},
 }
 
-// see 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#create-mr
 type mergeRequestsCreateFlags struct {
 	Id                 *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
 	SourceBranch       *string `flag_name:"source_branch" short:"s" type:"string" required:"yes" description:"The source branch"`
@@ -256,6 +256,27 @@ var mergeRequestUpdateCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#delete-a-merge-request
+type mergeRequestsDeleteFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsDeleteCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsDeleteFlags{},
+	Cmd: &cobra.Command{
+		Use:   "delete",
+		Short: "Delete a merge request",
+		Long:  `Only for admins and project owners. Soft deletes the merge request in question.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsDeleteFlags)
+		_, err := gitlabClient.MergeRequests.DeleteMergeRequest(*flags.Id, *flags.MergeRequestIid)
+		return err
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -264,5 +285,6 @@ func init() {
 	mergeRequestsGetChangesCmd.Init()
 	mergeRequestsCreateCmd.Init()
 	mergeRequestUpdateCmd.Init()
+	mergeRequestsDeleteCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
