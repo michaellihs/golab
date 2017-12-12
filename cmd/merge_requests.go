@@ -315,6 +315,34 @@ If you don't have permissions to accept this merge request - you'll get a 401`,
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#cancel-merge-when-pipeline-succeeds
+type mergeRequestsCancelPipelineSucceedsFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequetsCancelPipelineSucceedsCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsCancelPipelineSucceedsFlags{},
+	Cmd: &cobra.Command{
+		Use:   "cancel-when-pipeline-succeeds",
+		Short: "Cancel Merge When Pipeline Succeeds",
+		Long:  `If you don't have permissions to accept this merge request - you'll get a 401
+
+If the merge request is already merged or closed - you get 405 and error message 'Method Not Allowed'
+
+In case the merge request is not set to be merged when the pipeline succeeds, you'll also get a 406 error.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsCancelPipelineSucceedsFlags)
+		mr, _, err := gitlabClient.MergeRequests.CancelMergeWhenPipelineSucceeds(*flags.Id, *flags.MergeRequestIid)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(mr)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -325,5 +353,6 @@ func init() {
 	mergeRequestUpdateCmd.Init()
 	mergeRequestsDeleteCmd.Init()
 	mergeRequestAcceptCmd.Init()
+	mergeRequetsCancelPipelineSucceedsCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }

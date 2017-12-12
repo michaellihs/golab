@@ -482,6 +482,34 @@ func (s *MergeRequestsService) AcceptMergeRequest(pid interface{}, mergeRequest 
 	return m, resp, err
 }
 
+// CancelMergeWhenPipelineSucceeds Cancels a merge When Pipeline Succeeds
+// If you don't have permissions to accept this merge request - you'll get a 401
+// If the merge request is already merged or closed - you get 405 and error message 'Method Not Allowed'
+// In case the merge request is not set to be merged when the pipeline succeeds, you'll also get a 406 error.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/merge_requests.html#cancel-merge-when-pipeline-succeeds
+func (s *MergeRequestsService) CancelMergeWhenPipelineSucceeds(pid interface{}, mergeRequest int,options ...OptionFunc) (*MergeRequest, *Response, error) {
+	project, err := parseID(pid)
+	if err != nil {
+		return nil, nil, err
+	}
+	u := fmt.Sprintf("/projects/%s/merge_requests/%d/cancel_merge_when_pipeline_succeeds", url.QueryEscape(project), mergeRequest)
+
+	req, err := s.client.NewRequest("PUT", u, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	m := new(MergeRequest)
+	resp, err := s.client.Do(req, m)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return m, resp, err
+}
+
 // SetTimeEstimate sets the time estimate for a single project merge request.
 //
 // GitLab API docs:

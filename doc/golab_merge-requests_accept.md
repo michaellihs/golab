@@ -23,12 +23,12 @@ golab merge-requests accept [flags]
 
 ```
   -h, --help                           help for accept
-      --id string                      (required) The ID or URL-encoded path of the project owned by the authenticated user
+  -i, --id string                      (required) The ID or URL-encoded path of the project owned by the authenticated user
       --merge_commit_message string    (optional) Custom merge commit message
-      --merge_request_iid int          (required) Internal ID of MR
+  -m, --merge_request_iid int          (required) Internal ID of MR
       --merge_when_pipeline_succeeds   (optional) if true the MR is merged when the pipeline succeeds
       --sha string                     (optional) if present, then this SHA must match the HEAD of the source branch, otherwise the merge will fail
-      --should_remove_source_branch    (optional) if true removes the source branch
+  -d, --should_remove_source_branch    (optional) if true removes the source branch
 ```
 
 ### Options inherited from parent commands
