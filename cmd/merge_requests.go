@@ -277,6 +277,44 @@ var mergeRequestsDeleteCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#accept-mr
+type mergeRequestAcceptFlags struct {
+	Id                        *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	MergeRequestIid           *int    `flag_name:"merge_request_iid" short:"m" type:"int" required:"yes" description:"Internal ID of MR"`
+	MergeCommitMessage        *string `flag_name:"merge_commit_message" type:"string" required:"no" description:"Custom merge commit message"`
+	ShouldRemoveSourceBranch  *bool   `flag_name:"should_remove_source_branch" short:"d" type:"bool" required:"no" description:"if true removes the source branch"`
+	MergeWhenPipelineSucceeds *bool   `flag_name:"merge_when_pipeline_succeeds" type:"bool" required:"no" description:"if true the MR is merged when the pipeline succeeds"`
+	Sha                       *string `flag_name:"sha" type:"string" required:"no" description:"if present, then this SHA must match the HEAD of the source branch, otherwise the merge will fail"`
+}
+
+var mergeRequestAcceptCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestAcceptFlags{},
+	Opts:   &gitlab.AcceptMergeRequestOptions{},
+	Cmd: &cobra.Command{
+		Use:   "accept",
+		Short: "Accept merge request",
+		Long:  `Merge changes submitted with MR using this API.
+
+If it has some conflicts and can not be merged - you'll get a 405 and the error message 'Branch cannot be merged'
+
+If merge request is already merged or closed - you'll get a 406 and the error message 'Method Not Allowed'
+
+If the sha parameter is passed and does not match the HEAD of the source - you'll get a 409 and the error message 'SHA does not match HEAD of source branch'
+
+If you don't have permissions to accept this merge request - you'll get a 401`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestAcceptFlags)
+		opts := cmd.Opts.(*gitlab.AcceptMergeRequestOptions)
+		mr, _, err := gitlabClient.MergeRequests.AcceptMergeRequest(*flags.Id, *flags.MergeRequestIid, opts)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(mr)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -286,5 +324,6 @@ func init() {
 	mergeRequestsCreateCmd.Init()
 	mergeRequestUpdateCmd.Init()
 	mergeRequestsDeleteCmd.Init()
+	mergeRequestAcceptCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
