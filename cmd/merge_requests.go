@@ -139,9 +139,59 @@ var mergeRequestGetCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#get-single-mr-commits
+type mergeRequestGetCommitsFlags struct {
+	Id  *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	Iid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsGetCommitsCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestGetCommitsFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get-commits",
+		Short: "Get single Merge Request commits",
+		Long:  `Get a list of merge request commits.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestGetCommitsFlags)
+		commits, _, err := gitlabClient.MergeRequests.GetMergeRequestCommits(*flags.Id, *flags.Iid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(commits)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/merge_requests.html#get-single-mr-changes
+type mergeRequestsGetChangesFlags struct {
+	Id  *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	Iid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsGetChangesCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsGetChangesFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get-changes",
+		Short: "Get single Merge Request changes",
+		Long:  `Shows information about the merge request including its files and changes.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsGetChangesFlags)
+		changes, _, err := gitlabClient.MergeRequests.GetMergeRequestChanges(*flags.Id, *flags.Iid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(changes)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
 	mergeRequestGetCmd.Init()
+	mergeRequestsGetCommitsCmd.Init()
+	mergeRequestsGetChangesCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }

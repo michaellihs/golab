@@ -28,6 +28,8 @@ golab merge-requests [flags]
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab merge-requests get](golab_merge-requests_get.md)	 - Get single Merge Request
+* [golab merge-requests get-changes](golab_merge-requests_get-changes.md)	 - Get single Merge Request changes
+* [golab merge-requests get-commits](golab_merge-requests_get-commits.md)	 - Get single Merge Request commits
 * [golab merge-requests ls](golab_merge-requests_ls.md)	 - List merge requests
 * [golab merge-requests project-ls](golab_merge-requests_project-ls.md)	 - List project merge requests
 
