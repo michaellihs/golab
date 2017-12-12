@@ -67,6 +67,8 @@ Create a file `.golab.yml` in either `~/` or the directory you want to use golab
 
 Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
 
+According to [this discussion](https://github.com/xanzy/go-gitlab/issues/267) the login with username and password might not work with newer Gitlab versions.
+
 
 ZSH auto-completion
 -------------------
