@@ -33,4 +33,5 @@ golab merge-requests [flags]
 * [golab merge-requests get-commits](golab_merge-requests_get-commits.md)	 - Get single Merge Request commits
 * [golab merge-requests ls](golab_merge-requests_ls.md)	 - List merge requests
 * [golab merge-requests project-ls](golab_merge-requests_project-ls.md)	 - List project merge requests
+* [golab merge-requests update](golab_merge-requests_update.md)	 - Update merge request
 

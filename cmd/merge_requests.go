@@ -79,20 +79,20 @@ Note: the changes_count value in the response is a string, not an integer. This 
 
 // see https://docs.gitlab.com/ce/api/merge_requests.html#list-project-merge-requests
 type mergeRequestsListForProjectFlags struct {
-	Id              *int      `flag_name:"id" type:"integer" required:"yes" description:"The ID of a project"`
-	IIDs            []int     `flag_name:"iids" type:"Array[integer]" required:"no" description:"Return the request having the given iid"`
-	State           *string   `flag_name:"state" type:"string" required:"no" description:"Return all merge requests or just those that are opened, closed, or merged"`
-	OrderBy         *string   `flag_name:"order_by" type:"string" required:"no" description:"Return requests ordered by created_at or updated_at fields. Default is created_at"`
-	Sort            *string   `flag_name:"sort" type:"string" required:"no" description:"Return requests sorted in asc or desc order. Default is desc"`
-	Milestone       *string   `flag_name:"milestone" type:"string" required:"no" description:"Return merge requests for a specific milestone"`
-	View            *string   `flag_name:"view" type:"string" required:"no" description:"If simple, returns the iid, URL, title, description, and basic state of merge request"`
-	Labels          *[]string `flag_name:"labels" type:"[]string" transform:"string2Labels" required:"no" description:"Return merge requests matching a comma separated list of labels"`
-	CreatedAfter    *string   `flag_name:"created_after" type:"datetime" required:"no" description:"Return merge requests created after the given time (inclusive)"`
-	CreatedBefore   *string   `flag_name:"created_before" type:"datetime" required:"no" description:"Return merge requests created before the given time (inclusive)"`
-	Scope           *string   `flag_name:"scope" type:"string" required:"no" description:"Return merge requests for the given scope: created-by-me, assigned-to-me or all (Introduced in GitLab 9.5)"`
-	AuthorID        *int      `flag_name:"author_id" type:"integer" required:"no" description:"Returns merge requests created by the given user id (Introduced in GitLab 9.5)"`
-	AssigneeID      *int      `flag_name:"assignee_id" type:"integer" required:"no" description:"Returns merge requests assigned to the given user id (Introduced in GitLab 9.5)"`
-	MyReactionEmoji *string   `flag_name:"my_reaction_emoji" type:"string" required:"no" description:"Return merge requests reacted by the authenticated user by the given emoji (Introduced in GitLab 10.0)"`
+	Id              *int    `flag_name:"id" type:"integer" required:"yes" description:"The ID of a project"`
+	IIDs            []int   `flag_name:"iids" type:"Array[integer]" required:"no" description:"Return the request having the given iid"`
+	State           *string `flag_name:"state" type:"string" required:"no" description:"Return all merge requests or just those that are opened, closed, or merged"`
+	OrderBy         *string `flag_name:"order_by" type:"string" required:"no" description:"Return requests ordered by created_at or updated_at fields. Default is created_at"`
+	Sort            *string `flag_name:"sort" type:"string" required:"no" description:"Return requests sorted in asc or desc order. Default is desc"`
+	Milestone       *string `flag_name:"milestone" type:"string" required:"no" description:"Return merge requests for a specific milestone"`
+	View            *string `flag_name:"view" type:"string" required:"no" description:"If simple, returns the iid, URL, title, description, and basic state of merge request"`
+	Labels          *string `flag_name:"labels" type:"[]string" transform:"string2Labels" required:"no" description:"Return merge requests matching a comma separated list of labels"`
+	CreatedAfter    *string `flag_name:"created_after" type:"datetime" required:"no" description:"Return merge requests created after the given time (inclusive)"`
+	CreatedBefore   *string `flag_name:"created_before" type:"datetime" required:"no" description:"Return merge requests created before the given time (inclusive)"`
+	Scope           *string `flag_name:"scope" type:"string" required:"no" description:"Return merge requests for the given scope: created-by-me, assigned-to-me or all (Introduced in GitLab 9.5)"`
+	AuthorID        *int    `flag_name:"author_id" type:"integer" required:"no" description:"Returns merge requests created by the given user id (Introduced in GitLab 9.5)"`
+	AssigneeID      *int    `flag_name:"assignee_id" type:"integer" required:"no" description:"Returns merge requests assigned to the given user id (Introduced in GitLab 9.5)"`
+	MyReactionEmoji *string `flag_name:"my_reaction_emoji" type:"string" required:"no" description:"Return merge requests reacted by the authenticated user by the given emoji (Introduced in GitLab 10.0)"`
 }
 
 var mergeRequestsListForProjectCmd = &golabCommand{
@@ -196,7 +196,7 @@ type mergeRequestsCreateFlags struct {
 	AssigneeId         *int    `flag_name:"assignee_id" short:"a" type:"integer" required:"no" description:"Assignee user ID"`
 	Description        *string `flag_name:"description" short:"d" type:"string" required:"no" description:"Description of MR"`
 	TargetProjectId    *int    `flag_name:"target_project_id" type:"integer" required:"no" description:"The target project (numeric id)"`
-	Labels             *string `flag_name:"labels" type:"string" required:"no" description:"Labels for MR as a comma-separated list"`
+	Labels             *string `flag_name:"labels" type:"[]string" transform:"string2Labels" required:"no" description:"Labels for MR as a comma-separated list"`
 	MilestoneId        *int    `flag_name:"milestone_id" type:"integer" required:"no" description:"The ID of a milestone"`
 	RemoveSourceBranch *bool   `flag_name:"remove_source_branch" type:"boolean" required:"no" description:"Flag indicating if a merge request should remove the source branch when merging"`
 }
@@ -210,10 +210,45 @@ var mergeRequestsCreateCmd = &golabCommand{
 		Short: "Create merge request",
 		Long:  `Creates a new merge request.`,
 	},
-	Run: func (cmd golabCommand) error {
+	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*mergeRequestsCreateFlags)
 		opts := cmd.Opts.(*gitlab.CreateMergeRequestOptions)
 		mr, _, err := gitlabClient.MergeRequests.CreateMergeRequest(*flags.Id, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(mr)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/merge_requests.html#update-mr
+type mergeRequestUpdateFlags struct {
+	Id                 *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	MergeRequestIid    *int    `flag_name:"merge_request_iid" short:"m" type:"integer" required:"yes" description:"The ID of a merge request"`
+	TargetBranch       *string `flag_name:"target_branch" type:"string" required:"no" description:"The target branch"`
+	Title              *string `flag_name:"title" type:"string" required:"no" description:"Title of MR"`
+	AssigneeId         *int    `flag_name:"assignee_id" type:"integer" required:"no" description:"Assignee user ID"`
+	Description        *string `flag_name:"description" type:"string" required:"no" description:"Description of MR"`
+	StateEvent         *string `flag_name:"state_event" type:"string" required:"no" description:"New state (close/reopen)"`
+	Labels             *string `flag_name:"labels" type:"[]string" transform:"string2Labels" required:"no" description:"Labels for MR as a comma-separated list"`
+	MilestoneId        *int    `flag_name:"milestone_id" type:"integer" required:"no" description:"The ID of a milestone"`
+	RemoveSourceBranch *bool   `flag_name:"remove_source_branch" type:"boolean" required:"no" description:"Flag indicating if a merge request should remove the source branch when merging"`
+	DiscussionLocked   *bool   `flag_name:"discussion_locked" type:"boolean" required:"no" description:"Flag indicating if the merge request's discussion is locked. If the discussion is locked only project members can add, edit or resolve comments."`
+}
+
+var mergeRequestUpdateCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestUpdateFlags{},
+	Opts:   &gitlab.UpdateMergeRequestOptions{},
+	Cmd: &cobra.Command{
+		Use:   "update",
+		Short: "Update merge request",
+		Long:  `Updates an existing merge request. You can change the target branch, title, or even close the MR.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestUpdateFlags)
+		opts := cmd.Opts.(*gitlab.UpdateMergeRequestOptions)
+		mr, _, err := gitlabClient.MergeRequests.UpdateMergeRequest(*flags.Id, *flags.MergeRequestIid, opts)
 		if err != nil {
 			return err
 		}
@@ -228,5 +263,6 @@ func init() {
 	mergeRequestsGetCommitsCmd.Init()
 	mergeRequestsGetChangesCmd.Init()
 	mergeRequestsCreateCmd.Init()
+	mergeRequestUpdateCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
