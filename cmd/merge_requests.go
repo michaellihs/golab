@@ -449,6 +449,55 @@ var mergeRequestsCreateTodoCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#get-mr-diff-versions
+type mergeRequestListDiffVersionsFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestListDiffVersionsCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestListDiffVersionsFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get-diff-versions",
+		Short: "Get merge request diff versions",
+		Long:  `Get a list of merge request diff versions.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestListDiffVersionsFlags)
+		versions, _, err := gitlabClient.MergeRequests.GetMergeRequestDiffVersions(*flags.Id, *flags.MergeRequestIid)
+		if err != nil {
+			return err
+		}
+		return OutputJson(versions)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/merge_requests.html#get-a-single-mr-diff-version
+type mergeRequestsGetSingleDiffVersionFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+	VersionId       *int    `flag_name:"version_id" short:"v" type:"integer" required:"yes" description:"The ID of the merge request diff version"`
+}
+
+var mergeRequestGetSingleDiffVersionCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsGetSingleDiffVersionFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get-diff-version",
+		Short: "Get a single merge request diff version",
+		Long:  `Get a single merge request diff version.`,
+	},
+	Run: func (cmd golabCommand) error{
+		flags := cmd.Flags.(*mergeRequestsGetSingleDiffVersionFlags)
+		version, _, err := gitlabClient.MergeRequests.GetSingleMergeRequestDiffVersion(*flags.Id, *flags.MergeRequestIid, *flags.VersionId)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(version)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -464,5 +513,7 @@ func init() {
 	mergeRequestsSubscribeCmd.Init()
 	mergeRequestsUnsubscribeCmd.Init()
 	mergeRequestsCreateTodoCmd.Init()
+	mergeRequestListDiffVersionsCmd.Init()
+	mergeRequestGetSingleDiffVersionCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }

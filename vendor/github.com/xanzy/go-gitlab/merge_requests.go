@@ -46,7 +46,7 @@ type MergeRequest struct {
 	UpdatedAt    *time.Time `json:"updated_at"`
 	Upvotes      int        `json:"upvotes"`
 	Downvotes    int        `json:"downvotes"`
-	Author       struct {
+	Author struct {
 		ID        int        `json:"id"`
 		Username  string     `json:"username"`
 		Name      string     `json:"name"`
@@ -77,7 +77,7 @@ type MergeRequest struct {
 	ForceRemoveSourceBranch   bool       `json:"force_remove_source_branch"`
 	WebURL                    string     `json:"web_url"`
 	DiscussionLocked          bool       `json:"discussion_locked"`
-	Changes                   []struct {
+	Changes []struct {
 		OldPath     string `json:"old_path"`
 		NewPath     string `json:"new_path"`
 		AMode       string `json:"a_mode"`
@@ -108,7 +108,7 @@ type MergeRequestApprovals struct {
 	MergeStatus       string     `json:"merge_status"`
 	ApprovalsRequired int        `json:"approvals_required"`
 	ApprovalsMissing  int        `json:"approvals_missing"`
-	ApprovedBy        []struct {
+	ApprovedBy []struct {
 		User struct {
 			Name      string `json:"name"`
 			Username  string `json:"username"`
@@ -121,6 +121,26 @@ type MergeRequestApprovals struct {
 }
 
 func (m MergeRequestApprovals) String() string {
+	return Stringify(m)
+}
+
+// MergeRequestDiffVersion represents Gitlab merge request version.
+//
+// Gitlab API docs:
+// https://docs.gitlab.com/ce/api/merge_requests.html#get-a-single-mr-diff-version
+type MergeRequestDiffVersion struct {
+	Id             int        `json:"id"`
+	HeadCommitSha  string     `json:"head_commit_sha,omitempty"`
+	BaseCommitSha  string     `json:"base_commit_sha,omitempty"`
+	StartCommitSha string     `json:"start_commit_sha,omitempty"`
+	CreatedAt      *time.Time `json:"created_at,omitempty"`
+	MergeRequestId int        `json:"merge_request_id,omitempty"`
+	State          string     `json:"state,omitempty"`
+	RealSize       string     `json:"real_size,omitempty"`
+	Commits        []*Commit  `json:"commits,omitempty"`
+}
+
+func (m MergeRequestDiffVersion) String() string {
 	return Stringify(m)
 }
 
@@ -525,7 +545,7 @@ func (s *MergeRequestsService) Subscribe(pid interface{}, mergeRequest int, opti
 
 	req, err := s.client.NewRequest("POST", u, nil, options)
 	if err != nil {
-	    return nil, nil, err
+		return nil, nil, err
 	}
 
 	m := new(MergeRequest)
@@ -586,6 +606,56 @@ func (s *MergeRequestsService) CreateTodo(pid interface{}, mergeRequest int, opt
 	}
 
 	return t, resp, err
+}
+
+// GetMergeRequestDiffVersions get a list of merge request diff versions.
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/merge_requests.html#get-mr-diff-versions
+func (s *MergeRequestsService) GetMergeRequestDiffVersions(pid interface{}, mergeRequest int, options ...OptionFunc) ([]*MergeRequestDiffVersion, *Response, error) {
+	project, err := parseID(pid)
+	if err != nil {
+		return nil, nil, err
+	}
+	u := fmt.Sprintf("projects/%s/merge_requests/%d/versions", url.QueryEscape(project), mergeRequest)
+
+	req, err := s.client.NewRequest("GET", u, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var v []*MergeRequestDiffVersion
+	resp, err := s.client.Do(req, &v)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return v, resp, err
+}
+
+// GetSingleMergeRequestDiffVersion get a single MR diff version
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/merge_requests.html#get-a-single-mr-diff-version
+func (s *MergeRequestsService) GetSingleMergeRequestDiffVersion(pid interface{}, mergeRequest int, versionId int, options ...OptionFunc) (*MergeRequestDiffVersion, *Response, error) {
+	project, err := parseID(pid)
+	if err != nil {
+		return nil, nil, err
+	}
+	u := fmt.Sprintf("projects/%s/merge_requests/%d/versions/%d", url.QueryEscape(project), mergeRequest, versionId)
+
+	req, err := s.client.NewRequest("GET", u, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var v = new(MergeRequestDiffVersion)
+	resp, err := s.client.Do(req, v)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return v, resp, err
 }
 
 // SetTimeEstimate sets the time estimate for a single project merge request.

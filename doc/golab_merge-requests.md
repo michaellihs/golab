@@ -35,6 +35,8 @@ golab merge-requests [flags]
 * [golab merge-requests get](golab_merge-requests_get.md)	 - Get single Merge Request
 * [golab merge-requests get-changes](golab_merge-requests_get-changes.md)	 - Get single Merge Request changes
 * [golab merge-requests get-commits](golab_merge-requests_get-commits.md)	 - Get single Merge Request commits
+* [golab merge-requests get-diff-version](golab_merge-requests_get-diff-version.md)	 - Get a single merge request diff version
+* [golab merge-requests get-diff-versions](golab_merge-requests_get-diff-versions.md)	 - Get merge request diff versions
 * [golab merge-requests list-issues](golab_merge-requests_list-issues.md)	 - List issues that will close on merge
 * [golab merge-requests ls](golab_merge-requests_ls.md)	 - List merge requests
 * [golab merge-requests project-ls](golab_merge-requests_project-ls.md)	 - List project merge requests

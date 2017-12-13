@@ -25,7 +25,7 @@ case $state in
         _arguments '2: :(add delete edit get ls sync)'
       ;;
       merge-requests)
-        _arguments '2: :(accept cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits list-issues ls project-ls subscribe unsubscribe update)'
+        _arguments '2: :(accept cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls subscribe unsubscribe update)'
       ;;
       project)
         _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
@@ -40,9 +40,6 @@ case $state in
   ;;
   level3)
     case $words[3] in
-      hooks)
-        _arguments '3: :(add delete edit get ls)'
-      ;;
       emails)
         _arguments '3: :(add delete get ls)'
       ;;
@@ -54,6 +51,9 @@ case $state in
       ;;
       forks)
         _arguments '3: :(create delete)'
+      ;;
+      hooks)
+        _arguments '3: :(add delete edit get ls)'
       ;;
       *)
         _arguments '*: :_files'
