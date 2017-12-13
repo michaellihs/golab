@@ -41,6 +41,7 @@ golab merge-requests [flags]
 * [golab merge-requests list-issues](golab_merge-requests_list-issues.md)	 - List issues that will close on merge
 * [golab merge-requests ls](golab_merge-requests_ls.md)	 - List merge requests
 * [golab merge-requests project-ls](golab_merge-requests_project-ls.md)	 - List project merge requests
+* [golab merge-requests reset-spent-time](golab_merge-requests_reset-spent-time.md)	 - Reset spent time for a merge request
 * [golab merge-requests reset-time-estimate](golab_merge-requests_reset-time-estimate.md)	 - Reset the time estimate for a merge request
 * [golab merge-requests set-time-estimate](golab_merge-requests_set-time-estimate.md)	 - Set a time estimate for a merge request
 * [golab merge-requests subscribe](golab_merge-requests_subscribe.md)	 - Subscribe to a merge request

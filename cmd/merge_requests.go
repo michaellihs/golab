@@ -576,6 +576,30 @@ var mergeRequestsAddSpentTimeCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#reset-spent-time-for-a-merge-request
+type mergeRequestsResetSpentTimeFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsResetSpentTimeCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsResetSpentTimeFlags{},
+	Cmd: &cobra.Command{
+		Use:   "reset-spent-time",
+		Short: "Reset spent time for a merge request",
+		Long:  `Resets the total spent time for this merge request to 0 seconds.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsResetSpentTimeFlags)
+		timeStats, _, err := gitlabClient.MergeRequests.ResetSpentTime(*flags.Id, *flags.MergeRequestIid)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(timeStats)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -596,5 +620,6 @@ func init() {
 	mergeRequestsSetTimeEstimateCmd.Init()
 	mergeRequestsResetTimeEstimateCmd.Init()
 	mergeRequestsAddSpentTimeCmd.Init()
+	mergeRequestsResetSpentTimeCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
