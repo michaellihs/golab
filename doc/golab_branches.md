@@ -30,4 +30,5 @@ golab branches [flags]
 * [golab branches get](golab_branches_get.md)	 - Get single repository branch
 * [golab branches list](golab_branches_list.md)	 - List repository branches
 * [golab branches protect](golab_branches_protect.md)	 - Protect repository branch
+* [golab branches unprotect](golab_branches_unprotect.md)	 - Unprotect repository branch
 

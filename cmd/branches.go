@@ -117,9 +117,34 @@ var branchesProtectCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/branches.html#unprotect-repository-branch
+type branchesUnprotectFlags struct {
+	Id     *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Branch *string `flag_name:"branch" short:"b" type:"string" required:"yes" description:"The name of the branch"`
+}
+
+var branchesUnprotectCmd = &golabCommand{
+	Parent: branchesCmd.Cmd,
+	Flags:  &branchesUnprotectFlags{},
+	Cmd: &cobra.Command{
+		Use:   "unprotect",
+		Short: "Unprotect repository branch",
+		Long:  `Unprotects a single project repository branch. This is an idempotent function, unprotecting an already unprotected repository branch still returns a 200 OK status code.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*branchesUnprotectFlags)
+		branch, _, err := gitlabClient.Branches.UnprotectBranch(*flags.Id, *flags.Branch)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(branch)
+	},
+}
+
 func init() {
 	branchesCmd.Init()
 	branchesListCmd.Init()
 	branchesGetSingleCmd.Init()
 	branchesProtectCmd.Init()
+	branchesUnprotectCmd.Init()
 }
