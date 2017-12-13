@@ -525,6 +525,30 @@ var mergeRequestsSetTimeEstimateCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#reset-the-time-estimate-for-a-merge-request
+type mergeRequestResetTimeEstimateFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsResetTimeEstimateCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestResetTimeEstimateFlags{},
+	Cmd: &cobra.Command{
+		Use:   "reset-time-estimate",
+		Short: "Reset the time estimate for a merge request",
+		Long:  `Resets the estimated time for this merge request to 0 seconds.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestResetTimeEstimateFlags)
+		timeStats, _,  err := gitlabClient.MergeRequests.ResetTimeEstimate(*flags.Id, *flags.MergeRequestIid)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(timeStats)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -543,5 +567,6 @@ func init() {
 	mergeRequestListDiffVersionsCmd.Init()
 	mergeRequestGetSingleDiffVersionCmd.Init()
 	mergeRequestsSetTimeEstimateCmd.Init()
+	mergeRequestsResetTimeEstimateCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
