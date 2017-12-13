@@ -294,7 +294,7 @@ var mergeRequestAcceptCmd = &golabCommand{
 	Cmd: &cobra.Command{
 		Use:   "accept",
 		Short: "Accept merge request",
-		Long:  `Merge changes submitted with MR using this API.
+		Long: `Merge changes submitted with MR using this API.
 
 If it has some conflicts and can not be merged - you'll get a 405 and the error message 'Branch cannot be merged'
 
@@ -309,7 +309,7 @@ If you don't have permissions to accept this merge request - you'll get a 401`,
 		opts := cmd.Opts.(*gitlab.AcceptMergeRequestOptions)
 		mr, _, err := gitlabClient.MergeRequests.AcceptMergeRequest(*flags.Id, *flags.MergeRequestIid, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(mr)
 	},
@@ -327,7 +327,7 @@ var mergeRequetsCancelPipelineSucceedsCmd = &golabCommand{
 	Cmd: &cobra.Command{
 		Use:   "cancel-when-pipeline-succeeds",
 		Short: "Cancel Merge When Pipeline Succeeds",
-		Long:  `If you don't have permissions to accept this merge request - you'll get a 401
+		Long: `If you don't have permissions to accept this merge request - you'll get a 401
 
 If the merge request is already merged or closed - you get 405 and error message 'Method Not Allowed'
 
@@ -337,7 +337,7 @@ In case the merge request is not set to be merged when the pipeline succeeds, yo
 		flags := cmd.Flags.(*mergeRequestsCancelPipelineSucceedsFlags)
 		mr, _, err := gitlabClient.MergeRequests.CancelMergeWhenPipelineSucceeds(*flags.Id, *flags.MergeRequestIid)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(mr)
 	},
@@ -361,9 +361,63 @@ var mergeRequestsClosedIssuesUponMergeCmd = &golabCommand{
 		flags := cmd.Flags.(*mergeRequestsClosedIssuesUponMergeFlags)
 		issues, _, err := gitlabClient.MergeRequests.GetIssuesClosedOnMerge(*flags.Id, *flags.MergeRequestIid)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(issues)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/merge_requests.html#subscribe-to-a-merge-request
+type mergeRequestsSubscribeFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsSubscribeCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsSubscribeFlags{},
+	Cmd: &cobra.Command{
+		Use:   "subscribe",
+		Short: "Subscribe to a merge request",
+		Long:  `Subscribes the authenticated user to a merge request to receive notification. If the user is already subscribed to the merge request, the status code 304 is returned.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsSubscribeFlags)
+		mr, resp, err := gitlabClient.MergeRequests.Subscribe(*flags.Id, *flags.MergeRequestIid)
+		if resp.StatusCode == 304 {
+			return errors.New("304: the user was already subscribed to the merge request")
+		}
+		if err != nil {
+			return err
+		}
+		return OutputJson(mr)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/merge_requests.html#unsubscribe-from-a-merge-request
+type mergeRequestsUnsubscribeFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsUnsubscribeCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsUnsubscribeFlags{},
+	Cmd: &cobra.Command{
+		Use:   "unsubscribe",
+		Short: "Unsubscribe from a merge request",
+		Long:  `Unsubscribes the authenticated user from a merge request to not receive notification. If the user is not subscribed to the merge request, the status code 304 is returned.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsUnsubscribeFlags)
+		mr, resp, err := gitlabClient.MergeRequests.Unsubscribe(*flags.Id, *flags.MergeRequestIid)
+		if resp.StatusCode == 304 {
+			return errors.New("304: the user was not subscribed to the merge request")
+		}
+		if err != nil {
+			return err
+		}
+		return OutputJson(mr)
 	},
 }
 
@@ -379,5 +433,7 @@ func init() {
 	mergeRequestAcceptCmd.Init()
 	mergeRequetsCancelPipelineSucceedsCmd.Init()
 	mergeRequestsClosedIssuesUponMergeCmd.Init()
+	mergeRequestsSubscribeCmd.Init()
+	mergeRequestsUnsubscribeCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
