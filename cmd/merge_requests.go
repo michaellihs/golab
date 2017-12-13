@@ -600,6 +600,30 @@ var mergeRequestsResetSpentTimeCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#get-time-tracking-stats
+type mergeRequestsGetTimeTrackingStatsFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsGetTimeTrackingStatsCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsGetTimeTrackingStatsFlags{},
+	Cmd: &cobra.Command{
+		Use:   "time-tracking-stats",
+		Short: "Get time tracking stats",
+		Long:  `Get time tracking stats`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsGetTimeTrackingStatsFlags)
+		stats, _, err := gitlabClient.MergeRequests.GetTimeSpent(*flags.Id, *flags.MergeRequestIid)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(stats)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -621,5 +645,6 @@ func init() {
 	mergeRequestsResetTimeEstimateCmd.Init()
 	mergeRequestsAddSpentTimeCmd.Init()
 	mergeRequestsResetSpentTimeCmd.Init()
+	mergeRequestsGetTimeTrackingStatsCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }

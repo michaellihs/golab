@@ -45,6 +45,7 @@ golab merge-requests [flags]
 * [golab merge-requests reset-time-estimate](golab_merge-requests_reset-time-estimate.md)	 - Reset the time estimate for a merge request
 * [golab merge-requests set-time-estimate](golab_merge-requests_set-time-estimate.md)	 - Set a time estimate for a merge request
 * [golab merge-requests subscribe](golab_merge-requests_subscribe.md)	 - Subscribe to a merge request
+* [golab merge-requests time-tracking-stats](golab_merge-requests_time-tracking-stats.md)	 - Get time tracking stats
 * [golab merge-requests unsubscribe](golab_merge-requests_unsubscribe.md)	 - Unsubscribe from a merge request
 * [golab merge-requests update](golab_merge-requests_update.md)	 - Update merge request
 
