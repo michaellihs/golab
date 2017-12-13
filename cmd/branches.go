@@ -31,7 +31,7 @@ var branchesCmd = &golabCommand{
 	Parent: RootCmd,
 	Cmd: &cobra.Command{
 		Use:     "branches",
-		Aliases: []string{"alias"},
+		Aliases: []string{"branch"},
 		Short:   "Branches",
 		Long:    `Manage repository branches`,
 	},
