@@ -1,20 +1,21 @@
-## golab branches
+## golab branches list
 
-Branches
+List repository branches
 
 ### Synopsis
 
 
-Manage repository branches
+Get a list of repository branches from a project, sorted by name alphabetically. This endpoint can be accessed without authentication if the repository is publicly accessible.
 
 ```
-golab branches [flags]
+golab branches list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for branches
+  -h, --help        help for list
+  -i, --id string   (required) The ID or URL-encoded path of the project owned by the authenticated user
 ```
 
 ### Options inherited from parent commands
@@ -26,7 +27,5 @@ golab branches [flags]
 ```
 
 ### SEE ALSO
-* [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab branches get](golab_branches_get.md)	 - Get single repository branch
-* [golab branches list](golab_branches_list.md)	 - List repository branches
+* [golab branches](golab_branches.md)	 - Branches
 

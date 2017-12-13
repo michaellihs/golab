@@ -1,11 +1,11 @@
 ## golab branches get
 
-List repository branches
+Get single repository branch
 
 ### Synopsis
 
 
-Get a list of repository branches from a project, sorted by name alphabetically. This endpoint can be accessed without authentication if the repository is publicly accessible.
+Get a single project repository branch. This endpoint can be accessed without authentication if the repository is publicly accessible.
 
 ```
 golab branches get [flags]
@@ -14,8 +14,9 @@ golab branches get [flags]
 ### Options
 
 ```
-  -h, --help        help for get
-  -i, --id string   (required) The ID or URL-encoded path of the project owned by the authenticated user
+  -b, --branch string   (required) The name of the branch
+  -h, --help            help for get
+  -i, --id string       (required) The ID or URL-encoded path of the project owned by the authenticated user
 ```
 
 ### Options inherited from parent commands

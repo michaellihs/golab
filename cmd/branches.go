@@ -41,21 +41,21 @@ var branchesCmd = &golabCommand{
 }
 
 // see https://docs.gitlab.com/ce/api/branches.html#list-repository-branches
-type branchesGetFlags struct {
+type branchesListFlags struct {
 	Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
 }
 
-var branchesGetCmd = &golabCommand{
+var branchesListCmd = &golabCommand{
 	Parent: branchesCmd.Cmd,
-	Flags:  &branchesGetFlags{},
+	Flags:  &branchesListFlags{},
 	Opts:   &gitlab.ListBranchesOptions{},
 	Cmd: &cobra.Command{
-		Use:   "get",
+		Use:   "list",
 		Short: "List repository branches",
 		Long:  `Get a list of repository branches from a project, sorted by name alphabetically. This endpoint can be accessed without authentication if the repository is publicly accessible.`,
 	},
 	Run: func(cmd golabCommand) error {
-		flags := cmd.Flags.(*branchesGetFlags)
+		flags := cmd.Flags.(*branchesListFlags)
 		opts := cmd.Opts.(*gitlab.ListBranchesOptions)
 		branches, _, err := gitlabClient.Branches.ListBranches(*flags.Id, opts)
 		if err != nil {
@@ -65,7 +65,32 @@ var branchesGetCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/branches.html#get-single-repository-branch
+type branchesGetSingleFlags struct {
+	Id     *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Branch *string `flag_name:"branch" short:"b" type:"string" required:"yes" description:"The name of the branch"`
+}
+
+var branchesGetSingleCmd = &golabCommand{
+	Parent: branchesCmd.Cmd,
+	Flags:  &branchesGetSingleFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Get single repository branch",
+		Long:  `Get a single project repository branch. This endpoint can be accessed without authentication if the repository is publicly accessible.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*branchesGetSingleFlags)
+		branch, _, err := gitlabClient.Branches.GetBranch(*flags.Id, *flags.Branch)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(branch)
+	},
+}
+
 func init() {
 	branchesCmd.Init()
-	branchesGetCmd.Init()
+	branchesListCmd.Init()
+	branchesGetSingleCmd.Init()
 }
