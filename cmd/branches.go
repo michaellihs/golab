@@ -83,6 +83,34 @@ var branchesGetSingleCmd = &golabCommand{
 		flags := cmd.Flags.(*branchesGetSingleFlags)
 		branch, _, err := gitlabClient.Branches.GetBranch(*flags.Id, *flags.Branch)
 		if err != nil {
+			return err
+		}
+		return OutputJson(branch)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/branches.html#protect-repository-branch
+type branchesProtectFlags struct {
+	Id                 *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Branch             *string `flag_name:"branch" short:"b" type:"string" required:"yes" description:"The name of the branch"`
+	DevelopersCanPush  *bool   `flag_name:"developers_can_push" short:"p" type:"boolean" required:"no" description:"Flag if developers can push to the branch"`
+	DevelopersCanMerge *bool   `flag_name:"developers_can_merge" short:"m" type:"boolean" required:"no" description:"Flag if developers can merge to the branch"`
+}
+
+var branchesProtectCmd = &golabCommand{
+	Parent: branchesCmd.Cmd,
+	Flags:  &branchesProtectFlags{},
+	Opts:   &gitlab.ProtectBranchOptions{},
+	Cmd: &cobra.Command{
+		Use:   "protect",
+		Short: "Protect repository branch",
+		Long:  `Protects a single project repository branch. This is an idempotent function, protecting an already protected repository branch still returns a 200 OK status code.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*branchesProtectFlags)
+		opts := cmd.Opts.(*gitlab.ProtectBranchOptions)
+		branch, _, err := gitlabClient.Branches.ProtectBranch(*flags.Id, *flags.Branch, opts)
+		if err != nil {
 		    return err
 		}
 		return OutputJson(branch)
@@ -93,4 +121,5 @@ func init() {
 	branchesCmd.Init()
 	branchesListCmd.Init()
 	branchesGetSingleCmd.Init()
+	branchesProtectCmd.Init()
 }

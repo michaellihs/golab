@@ -29,4 +29,5 @@ golab branches [flags]
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab branches get](golab_branches_get.md)	 - Get single repository branch
 * [golab branches list](golab_branches_list.md)	 - List repository branches
+* [golab branches protect](golab_branches_protect.md)	 - Protect repository branch
 
