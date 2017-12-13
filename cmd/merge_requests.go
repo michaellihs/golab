@@ -343,6 +343,30 @@ In case the merge request is not set to be merged when the pipeline succeeds, yo
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#list-issues-that-will-close-on-merge
+type mergeRequestsClosedIssuesUponMergeFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsClosedIssuesUponMergeCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsClosedIssuesUponMergeFlags{},
+	Cmd: &cobra.Command{
+		Use:   "list-issues",
+		Short: "List issues that will close on merge",
+		Long:  `Get all the issues that would be closed by merging the provided merge request.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsClosedIssuesUponMergeFlags)
+		issues, _, err := gitlabClient.MergeRequests.GetIssuesClosedOnMerge(*flags.Id, *flags.MergeRequestIid)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(issues)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -354,5 +378,6 @@ func init() {
 	mergeRequestsDeleteCmd.Init()
 	mergeRequestAcceptCmd.Init()
 	mergeRequetsCancelPipelineSucceedsCmd.Init()
+	mergeRequestsClosedIssuesUponMergeCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }

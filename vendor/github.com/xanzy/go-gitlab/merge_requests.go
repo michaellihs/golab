@@ -328,7 +328,7 @@ func (s *MergeRequestsService) GetIssuesClosedOnMerge(pid interface{}, mergeRequ
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("/projects/%s/merge_requests/%v/closes_issues", url.QueryEscape(project), mergeRequest)
+	u := fmt.Sprintf("projects/%s/merge_requests/%v/closes_issues", url.QueryEscape(project), mergeRequest)
 
 	req, err := s.client.NewRequest("GET", u, nil, options)
 	if err != nil {
@@ -482,7 +482,12 @@ func (s *MergeRequestsService) AcceptMergeRequest(pid interface{}, mergeRequest 
 	return m, resp, err
 }
 
-// CancelMergeWhenPipelineSucceeds Cancels a merge When Pipeline Succeeds
+// CancelMergeWhenPipelineSucceeds Cancels a merge when pipeline succeeds
+//
+// When reviewing a merge request that looks ready to merge but still has one or more CI jobs running, you can set it to be merged automatically when the jobs pipeline succeeds.
+// This action cancels this automatic merge, hence the merge request will not be merged automatically upon a successful pipeline run.
+// see https://docs.gitlab.com/ce/user/project/merge_requests/merge_when_pipeline_succeeds.html for further explanations.
+//
 // If you don't have permissions to accept this merge request - you'll get a 401
 // If the merge request is already merged or closed - you get 405 and error message 'Method Not Allowed'
 // In case the merge request is not set to be merged when the pipeline succeeds, you'll also get a 406 error.
