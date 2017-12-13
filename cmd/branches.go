@@ -189,6 +189,28 @@ var branchesDeleteCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/branches.html#delete-merged-branches
+type branchesDeleteMergedFlags struct {
+	Id     *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+}
+
+var branchesDeleteMergedCmd = &golabCommand{
+	Parent: branchesCmd.Cmd,
+	Flags:  &branchesDeleteMergedFlags{},
+	Cmd: &cobra.Command{
+		Use:   "delete-merged",
+		Short: "Delete merged branches",
+		Long:  `Will delete all branches that are merged into the project's default branch.
+
+Protected branches will not be deleted as part of this operation.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*branchesDeleteMergedFlags)
+		_, err := gitlabClient.Branches.DeleteMergedBranches(*flags.Id)
+		return err
+	},
+}
+
 func init() {
 	branchesCmd.Init()
 	branchesListCmd.Init()
@@ -197,4 +219,5 @@ func init() {
 	branchesUnprotectCmd.Init()
 	branchesDeleteCmd.Init()
 	branchesCreateCmd.Init()
+	branchesDeleteMergedCmd.Init()
 }
