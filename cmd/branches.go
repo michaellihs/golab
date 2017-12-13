@@ -141,10 +141,38 @@ var branchesUnprotectCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/branches.html#create-repository-branch
+type branchesCreateFlags struct {
+	Id     *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Branch *string `flag_name:"branch" short:"b" type:"string" required:"yes" description:"The name of the branch"`
+	Ref    *string `flag_name:"ref" short:"r" type:"string" required:"yes" description:"The branch name or commit SHA to create branch from"`
+}
+
+var branchesCreateCmd = &golabCommand{
+	Parent: branchesCmd.Cmd,
+	Flags:  &branchesCreateFlags{},
+	Opts:   &gitlab.CreateBranchOptions{},
+	Cmd: &cobra.Command{
+		Use:   "create",
+		Short: "Create repository branch",
+		Long:  `Create repository branch`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*branchesCreateFlags)
+		opts := cmd.Opts.(*gitlab.CreateBranchOptions)
+		branch, _, err := gitlabClient.Branches.CreateBranch(*flags.Id, opts)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(branch)
+	},
+}
+
 func init() {
 	branchesCmd.Init()
 	branchesListCmd.Init()
 	branchesGetSingleCmd.Init()
 	branchesProtectCmd.Init()
 	branchesUnprotectCmd.Init()
+	branchesCreateCmd.Init()
 }
