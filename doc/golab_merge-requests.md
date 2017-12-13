@@ -30,6 +30,7 @@ golab merge-requests [flags]
 * [golab merge-requests accept](golab_merge-requests_accept.md)	 - Accept merge request
 * [golab merge-requests cancel-when-pipeline-succeeds](golab_merge-requests_cancel-when-pipeline-succeeds.md)	 - Cancel Merge When Pipeline Succeeds
 * [golab merge-requests create](golab_merge-requests_create.md)	 - Create merge request
+* [golab merge-requests create-todo](golab_merge-requests_create-todo.md)	 - Create a todo
 * [golab merge-requests delete](golab_merge-requests_delete.md)	 - Delete a merge request
 * [golab merge-requests get](golab_merge-requests_get.md)	 - Get single Merge Request
 * [golab merge-requests get-changes](golab_merge-requests_get-changes.md)	 - Get single Merge Request changes

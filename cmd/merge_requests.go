@@ -421,6 +421,34 @@ var mergeRequestsUnsubscribeCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#create-a-todo
+type mergeRequestsCreateTodoFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+}
+
+var mergeRequestsCreateTodoCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsCreateTodoFlags{},
+	Cmd: &cobra.Command{
+		Use:     "create-todo",
+		Aliases: []string{"todo"},
+		Short:   "Create a todo",
+		Long:    `Manually creates a todo for the current user on a merge request. If there already exists a todo for the user on that merge request, status code 304 is returned.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsCreateTodoFlags)
+		mr, resp, err := gitlabClient.MergeRequests.CreateTodo(*flags.Id, *flags.MergeRequestIid)
+		if resp.StatusCode == 304 {
+			return errors.New("304: there already exists a todo on that merge request for the current user")
+		}
+		if err != nil {
+			return err
+		}
+		return OutputJson(mr)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -435,5 +463,6 @@ func init() {
 	mergeRequestsClosedIssuesUponMergeCmd.Init()
 	mergeRequestsSubscribeCmd.Init()
 	mergeRequestsUnsubscribeCmd.Init()
+	mergeRequestsCreateTodoCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
