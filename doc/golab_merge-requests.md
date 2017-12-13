@@ -28,6 +28,7 @@ golab merge-requests [flags]
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab merge-requests accept](golab_merge-requests_accept.md)	 - Accept merge request
+* [golab merge-requests add-spent-time](golab_merge-requests_add-spent-time.md)	 - Add spent time for a merge request
 * [golab merge-requests cancel-when-pipeline-succeeds](golab_merge-requests_cancel-when-pipeline-succeeds.md)	 - Cancel Merge When Pipeline Succeeds
 * [golab merge-requests create](golab_merge-requests_create.md)	 - Create merge request
 * [golab merge-requests create-todo](golab_merge-requests_create-todo.md)	 - Create a todo

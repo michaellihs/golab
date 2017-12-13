@@ -549,6 +549,33 @@ var mergeRequestsResetTimeEstimateCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#add-spent-time-for-a-merge-request
+type mergeRequestsAddSpentTimeFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+	Duration        *string `flag_name:"duration" short:"d" type:"string" required:"yes" description:"The duration in human format. e.g: 3h30m"`
+}
+
+var mergeRequestsAddSpentTimeCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsAddSpentTimeFlags{},
+	Opts:   &gitlab.AddSpentTimeOptions{},
+	Cmd: &cobra.Command{
+		Use:   "add-spent-time",
+		Short: "Add spent time for a merge request",
+		Long:  `Adds spent time for this merge request`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsAddSpentTimeFlags)
+		opts := cmd.Opts.(*gitlab.AddSpentTimeOptions)
+		timeStats, _, err := gitlabClient.MergeRequests.AddSpentTime(*flags.Id, *flags.MergeRequestIid, opts)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(timeStats)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -568,5 +595,6 @@ func init() {
 	mergeRequestGetSingleDiffVersionCmd.Init()
 	mergeRequestsSetTimeEstimateCmd.Init()
 	mergeRequestsResetTimeEstimateCmd.Init()
+	mergeRequestsAddSpentTimeCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
