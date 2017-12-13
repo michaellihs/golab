@@ -28,6 +28,7 @@ golab branches [flags]
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab branches create](golab_branches_create.md)	 - Create repository branch
+* [golab branches delete](golab_branches_delete.md)	 - Delete repository branch
 * [golab branches get](golab_branches_get.md)	 - Get single repository branch
 * [golab branches list](golab_branches_list.md)	 - List repository branches
 * [golab branches protect](golab_branches_protect.md)	 - Protect repository branch

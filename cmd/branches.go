@@ -168,11 +168,33 @@ var branchesCreateCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/branches.html#delete-repository-branch
+type branchesDeleteFlags struct {
+	Id     *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Branch *string `flag_name:"branch" short:"b" type:"string" required:"yes" description:"The name of the branch"`
+}
+
+var branchesDeleteCmd = &golabCommand{
+	Parent: branchesCmd.Cmd,
+	Flags:  &branchesDeleteFlags{},
+	Cmd: &cobra.Command{
+		Use:   "delete",
+		Short: "Delete repository branch",
+		Long:  `Delete repository branch`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*branchesDeleteFlags)
+		_, err := gitlabClient.Branches.DeleteBranch(*flags.Id, *flags.Branch)
+		return err
+	},
+}
+
 func init() {
 	branchesCmd.Init()
 	branchesListCmd.Init()
 	branchesGetSingleCmd.Init()
 	branchesProtectCmd.Init()
 	branchesUnprotectCmd.Init()
+	branchesDeleteCmd.Init()
 	branchesCreateCmd.Init()
 }
