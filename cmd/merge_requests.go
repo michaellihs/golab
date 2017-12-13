@@ -498,6 +498,33 @@ var mergeRequestGetSingleDiffVersionCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/merge_requests.html#set-a-time-estimate-for-a-merge-request
+type mergeRequestsSetTimeEstimateFlags struct {
+	Id              *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+	MergeRequestIid *int    `flag_name:"iid" short:"m" type:"integer" required:"yes" description:"The internal ID of the merge request"`
+	Duration        *string `flag_name:"duration" short:"d" type:"string" required:"yes" description:"The duration in human format. e.g: 3h30m"`
+}
+
+var mergeRequestsSetTimeEstimateCmd = &golabCommand{
+	Parent: mergeRequestsCmd,
+	Flags:  &mergeRequestsSetTimeEstimateFlags{},
+	Opts:   &gitlab.SetTimeEstimateOptions{},
+	Cmd: &cobra.Command{
+		Use:   "set-time-estimate",
+		Short: "Set a time estimate for a merge request",
+		Long:  `Sets an estimated time of work for this merge request.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*mergeRequestsSetTimeEstimateFlags)
+		opts := cmd.Opts.(*gitlab.SetTimeEstimateOptions)
+		timeStats, _, err := gitlabClient.MergeRequests.SetTimeEstimate(*flags.Id, *flags.MergeRequestIid, opts)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(timeStats)
+	},
+}
+
 func init() {
 	mergeRequestsListCmd.Init()
 	mergeRequestsListForProjectCmd.Init()
@@ -515,5 +542,6 @@ func init() {
 	mergeRequestsCreateTodoCmd.Init()
 	mergeRequestListDiffVersionsCmd.Init()
 	mergeRequestGetSingleDiffVersionCmd.Init()
+	mergeRequestsSetTimeEstimateCmd.Init()
 	RootCmd.AddCommand(mergeRequestsCmd)
 }
