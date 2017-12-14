@@ -32,4 +32,5 @@ golab namespaces [flags]
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab namespaces ls](golab_namespaces_ls.md)	 - List namespaces
+* [golab namespaces search](golab_namespaces_search.md)	 - Search for namespace
 

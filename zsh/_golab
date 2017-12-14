@@ -18,9 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      user)
-        _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
-      ;;
       branches)
         _arguments '2: :(create delete delete-merged get list protect unprotect)'
       ;;
@@ -34,10 +31,13 @@ case $state in
         _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
       ;;
       namespaces)
-        _arguments '2: :(ls)'
+        _arguments '2: :(ls search)'
       ;;
       project)
         _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
+      ;;
+      user)
+        _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
       *)
         _arguments '*: :_files'
@@ -46,6 +46,9 @@ case $state in
   ;;
   level3)
     case $words[3] in
+      forks)
+        _arguments '3: :(create delete)'
+      ;;
       hooks)
         _arguments '3: :(add delete edit get ls)'
       ;;
@@ -57,9 +60,6 @@ case $state in
       ;;
       ssh-keys)
         _arguments '3: :(add delete get ls)'
-      ;;
-      forks)
-        _arguments '3: :(create delete)'
       ;;
       *)
         _arguments '*: :_files'

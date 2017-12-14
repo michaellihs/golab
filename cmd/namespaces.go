@@ -68,7 +68,31 @@ var namespacesListCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/namespaces.html#search-for-namespace
+type namespacesSearchFlags struct {
+	Search *string `flag_name:"search" type:"string" required:"no" description:"Returns a list of namespaces the user is authorized to see based on the search criteria"`
+}
+
+var namespacesSearchCmd = &golabCommand{
+	Parent: namespacesCmd.Cmd,
+	Flags:  &namespacesSearchFlags{},
+	Cmd: &cobra.Command{
+		Use:   "search",
+		Short: "Search for namespace",
+		Long:  `Get all namespaces that match a string in their name or path.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*namespacesSearchFlags)
+		ns, _, err := gitlabClient.Namespaces.SearchNamespace(*flags.Search)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(ns)
+	},
+}
+
 func init() {
 	namespacesCmd.Init()
 	namespacesListCmd.Init()
+	namespacesSearchCmd.Init()
 }
