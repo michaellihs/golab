@@ -19,6 +19,8 @@ golab project ls [flags]
       --membership                    (optional) Limit by projects that the current user is a member of
       --order_by string               (optional) Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at
       --owned                         (optional) Limit by projects owned by the current user
+      --page int                      (optional) Page of results to retrieve
+      --per_page int                  (optional) The number of results to include per page (max 100)
       --search string                 (optional) Return list of projects matching the search criteria
       --simple                        (optional) Return only the ID, URL, name, and path of each project
       --sort string                   (optional) Return projects sorted in asc or desc order. Default is desc

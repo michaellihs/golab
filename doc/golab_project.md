@@ -7,10 +7,6 @@ Manage projects
 
 List, create, edit and delete projects
 
-```
-golab project [flags]
-```
-
 ### Options
 
 ```

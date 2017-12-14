@@ -29,18 +29,23 @@ import (
 	"github.com/michaellihs/golab/cmd/mapper"
 )
 
-var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, listForksOptsMapper, shareOptsMapper, addHookOptsMapper, editHookOptsMapper, projectSearchOptsMapper mapper.FlagMapper
+var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, shareOptsMapper, addHookOptsMapper, editHookOptsMapper, projectSearchOptsMapper, listForksOptsMapper mapper.FlagMapper
 
-var projectCmd = &cobra.Command{
-	Use:   "project",
-	Short: "Manage projects",
-	Long:  `List, create, edit and delete projects`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+// see https://docs.gitlab.com/ce/api/projects.html
+var projectsCmd = &golabCommand{
+	Parent: RootCmd,
+	Cmd: &cobra.Command{
+		Use:   "project",
+		Short: "Manage projects",
+		Long:  `List, create, edit and delete projects`,
+	},
+	Run: func(cmd golabCommand) error {
 		return errors.New("cannot run this command without further sub-commands")
 	},
 }
 
-type listFlags struct {
+// see https://docs.gitlab.com/ce/api/projects.html#list-all-projects
+type projectsListFlags struct {
 	Archived                 *bool   `flag_name:"archived" type:"bool" required:"no" description:"Limit by archived status"`
 	Visibility               *string `flag_name:"visibility" type:"string" required:"no" description:"Limit by visibility public, internal, or private"`
 	OrderBy                  *string `flag_name:"order_by" type:"string" required:"no" description:"Return projects ordered by id, name, path, created_at, updated_at, or last_activity_at fields. Default is created_at"`
@@ -56,13 +61,18 @@ type listFlags struct {
 	// TODO custom attributes are currently not supported
 }
 
-var projectListCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List all projects",
-	Long:  `Get a list of all visible projects across GitLab for the authenticated user.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		_, _, err := listOptsMapper.AutoMap()
-		opts := listOptsMapper.MappedOpts().(*gitlab.ListProjectsOptions)
+var projectsListCmd = &golabCommand{
+	Parent: projectsCmd.Cmd,
+	Flags:  &projectsListFlags{},
+	Opts:   &gitlab.ListProjectsOptions{},
+	Paged:  true,
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List all projects",
+		Long:  `Get a list of all visible projects across GitLab for the authenticated user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		opts := cmd.Opts.(*gitlab.ListProjectsOptions)
 		projects, _, err := gitlabClient.Projects.ListProjects(opts)
 		if err != nil {
 			return err
@@ -613,17 +623,17 @@ func parsePid(value string) interface{} {
 }
 
 func init() {
-	initProjectListCmd()
+	projectsListCmd.Init()
 	initProjectGetCmd()
 	initProjectCreateCmd()
 	initProjectEditCmd()
 	initProjectForkCmd()
 	initProjectListForksCmd()
-	initCommandWithIdOnly(projectStarCmd, projectCmd)
-	initCommandWithIdOnly(projectUnstarCmd, projectCmd)
-	initCommandWithIdOnly(projectArchiveCmd, projectCmd)
-	initCommandWithIdOnly(projectUnarchiveCmd, projectCmd)
-	initCommandWithIdOnly(projectDeleteCmd, projectCmd)
+	initCommandWithIdOnly(projectStarCmd, projectsCmd.Cmd)
+	initCommandWithIdOnly(projectUnstarCmd, projectsCmd.Cmd)
+	initCommandWithIdOnly(projectArchiveCmd, projectsCmd.Cmd)
+	initCommandWithIdOnly(projectUnarchiveCmd, projectsCmd.Cmd)
+	initCommandWithIdOnly(projectDeleteCmd, projectsCmd.Cmd)
 	initProjectUploadFileCmd()
 	initProjectShareCmd()
 	initProjectUnshareCmd()
@@ -635,59 +645,54 @@ func init() {
 	initProjectForksCreateCmd()
 	initCommandWithIntIdOnly(projectForksDeleteCmd, projectForskCmd)
 	initProjectSearchCmd()
-	initCommandWithIdOnly(projectHousekeepingCmd, projectCmd)
+	initCommandWithIdOnly(projectHousekeepingCmd, projectsCmd.Cmd)
 
-	projectCmd.AddCommand(projectForskCmd)
-	projectCmd.AddCommand(projectHooksCmd)
-	RootCmd.AddCommand(projectCmd)
-}
-
-func initProjectListCmd() {
-	listOptsMapper = mapper.InitializedMapper(projectListCmd, &listFlags{}, &gitlab.ListProjectsOptions{})
-	projectCmd.AddCommand(projectListCmd)
+	projectsCmd.Cmd.AddCommand(projectForskCmd)
+	projectsCmd.Cmd.AddCommand(projectHooksCmd)
+	RootCmd.AddCommand(projectsCmd.Cmd)
 }
 
 func initProjectGetCmd() {
 	getOptsMapper = mapper.InitializedMapper(projectGetCmd, &getFlags{}, &getFlags{})
-	projectCmd.AddCommand(projectGetCmd)
+	projectsCmd.Cmd.AddCommand(projectGetCmd)
 }
 
 func initProjectCreateCmd() {
 	createOptsMapper = mapper.InitializedMapper(projectCreateCmd, &createFlags{}, &gitlab.CreateProjectOptions{})
-	projectCmd.AddCommand(projectCreateCmd)
+	projectsCmd.Cmd.AddCommand(projectCreateCmd)
 }
 
 func initProjectEditCmd() {
 	editOptsMapper = mapper.InitializedMapper(projectEditCmd, &editFlags{}, &gitlab.EditProjectOptions{})
-	projectCmd.AddCommand(projectEditCmd)
+	projectsCmd.Cmd.AddCommand(projectEditCmd)
 }
 
 func initProjectForkCmd() {
 	forkOptsMapper = mapper.InitializedMapper(projectForkCmd, &forkFlags{}, &forkFlags{})
-	projectCmd.AddCommand(projectForkCmd)
+	projectsCmd.Cmd.AddCommand(projectForkCmd)
 }
 
 func initProjectListForksCmd() {
 	// TODO the opts are currently not available in go-gitlab
 	listForksOptsMapper = mapper.InitializedMapper(projectListForksCmd, &listForksFlags{}, &listForksFlags{})
-	projectCmd.AddCommand(projectListForksCmd)
+	projectsCmd.Cmd.AddCommand(projectListForksCmd)
 }
 
 func initProjectUploadFileCmd() {
 	projectUploadFileCmd.PersistentFlags().StringP("id", "i", "", "(required) The ID or URL-encoded path of the project")
 	projectUploadFileCmd.PersistentFlags().StringP("file", "f", "", "(required) Path to the file to be uploaded")
-	projectCmd.AddCommand(projectUploadFileCmd)
+	projectsCmd.Cmd.AddCommand(projectUploadFileCmd)
 }
 
 func initProjectShareCmd() {
 	shareOptsMapper = mapper.InitializedMapper(projectShareWithGroupCmd, &shareFlags{}, &gitlab.ShareWithGroupOptions{})
-	projectCmd.AddCommand(projectShareWithGroupCmd)
+	projectsCmd.Cmd.AddCommand(projectShareWithGroupCmd)
 }
 
 func initProjectUnshareCmd() {
 	projectUnshareWithGroupCmd.PersistentFlags().StringP("id", "i", "", "The ID or URL-encoded path of the project")
 	projectUnshareWithGroupCmd.PersistentFlags().StringP("group_id", "g", "", "The ID of the group")
-	projectCmd.AddCommand(projectUnshareWithGroupCmd)
+	projectsCmd.Cmd.AddCommand(projectUnshareWithGroupCmd)
 }
 
 func initProjectHooksGetCmd() {
@@ -722,7 +727,7 @@ func initProjectForksCreateCmd() {
 func initProjectSearchCmd() {
 	// TODO we do not have the opts in go-gitlab yet
 	projectSearchOptsMapper = mapper.InitializedMapper(projectSearchCmd, &projectSearchFlags{}, &projectSearchFlags{})
-	projectCmd.AddCommand(projectSearchCmd)
+	projectsCmd.Cmd.AddCommand(projectSearchCmd)
 }
 
 func initCommandWithIdOnly(cmd *cobra.Command, parent *cobra.Command) {
