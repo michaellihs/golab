@@ -9,7 +9,7 @@ case $state in
   level1)
     case $words[1] in
       golab)
-        _arguments '1: :(branches gendoc group group-members help login merge-requests project user zsh-completion)'
+        _arguments '1: :(branches gendoc group group-members help login merge-requests namespaces project user zsh-completion)'
       ;;
       *)
         _arguments '*: :_files'
@@ -18,15 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      merge-requests)
-        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
-      ;;
-      project)
-        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
-      ;;
-      user)
-        _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
-      ;;
       branches)
         _arguments '2: :(create delete delete-merged get list protect unprotect)'
       ;;
@@ -35,6 +26,15 @@ case $state in
       ;;
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
+      ;;
+      merge-requests)
+        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
+      ;;
+      project)
+        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
+      ;;
+      user)
+        _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
       *)
         _arguments '*: :_files'
