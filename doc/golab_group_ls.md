@@ -18,6 +18,8 @@ golab group ls [flags]
   -h, --help                      help for ls
       --order_by string           (optional) Order groups by name or path. Default is name
       --owned                     (optional) Limit to groups owned by the current user
+      --page int                  (optional) Page of results to retrieve
+      --per_page int              (optional) The number of results to include per page (max 100)
       --search string             (optional) Return the list of authorized groups matching the search criteria
       --skip_groups stringArray   (optional) Skip the group IDs passed
       --sort string               (optional) Order groups in asc or desc order. Default is asc

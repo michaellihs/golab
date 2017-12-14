@@ -51,6 +51,7 @@ var groupLsCmd = &golabCommand{
 	Parent: groupCmd,
 	Flags:  &groupLsFlags{},
 	Opts:   &gitlab.ListGroupsOptions{},
+	Paged:  true,
 	Cmd: &cobra.Command{
 		Use:   "ls",
 		Short: "List groups",
@@ -82,6 +83,7 @@ var groupProjectsCmd = &golabCommand{
 	Parent: groupCmd,
 	Flags:  &listGroupProjectsFlags{},
 	Opts:   &gitlab.ListGroupProjectsOptions{},
+	Paged:  true,
 	Cmd: &cobra.Command{
 		Use:   "projects",
 		Short: "List a group's projects",
