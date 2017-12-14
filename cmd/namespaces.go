@@ -70,7 +70,7 @@ var namespacesListCmd = &golabCommand{
 
 // see https://docs.gitlab.com/ce/api/namespaces.html#search-for-namespace
 type namespacesSearchFlags struct {
-	Search *string `flag_name:"search" type:"string" required:"no" description:"Returns a list of namespaces the user is authorized to see based on the search criteria"`
+	Search *string `flag_name:"search" short:"s" type:"string" required:"no" description:"Returns a list of namespaces the user is authorized to see based on the search criteria"`
 }
 
 var namespacesSearchCmd = &golabCommand{
@@ -91,8 +91,34 @@ var namespacesSearchCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/namespaces.html#get-namespace-by-id
+type namespacesGetFlags struct {
+	Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"ID or path of the namespace"`
+}
+
+var namespacesGetCmd = &golabCommand{
+	Parent: namespacesCmd.Cmd,
+	Flags:  &namespacesGetFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Get namespace by ID",
+		Long:  `Get a namespace by ID.`,
+	},
+	Run: func(cmd golabCommand) error {
+		return errors.New("currently not implemented")
+		// TODO currently not available in go-gitlab
+		//flags := cmd.Flags.(*namespacesGetFlags)
+		//ns, _, err := gitlabClient.Namespaces.GetById(*flags.Id)
+		//if err != nil {
+		//    return err
+		//}
+		//return OutputJson(ns)
+	},
+}
+
 func init() {
 	namespacesCmd.Init()
 	namespacesListCmd.Init()
 	namespacesSearchCmd.Init()
+	namespacesGetCmd.Init()
 }
