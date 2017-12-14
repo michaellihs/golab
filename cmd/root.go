@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/go-rootcerts"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/michaellihs/golab/cmd/mapper"
+	"reflect"
 )
 
 var cfgFile, caFile, caPath string
@@ -44,6 +45,7 @@ type golabCommand struct {
 	Parent *cobra.Command
 	Flags  interface{}
 	Opts   interface{}
+	Paged  bool
 	Run    func(cmd golabCommand) error
 	Mapper mapper.FlagMapper
 	Cmd    *cobra.Command
@@ -56,7 +58,27 @@ func (c golabCommand) Execute() error {
 	}
 	c.Flags = c.Mapper.MappedFlags()
 	c.Opts = c.Mapper.MappedOpts()
+	if err = applyPagination(c); err != nil {
+		return err
+	}
 	return c.Run(c)
+}
+
+func applyPagination(c golabCommand) error {
+	if c.Paged {
+		optsReflected := reflect.ValueOf(c.Opts).Elem()
+		page, err := c.Cmd.Flags().GetInt("page")
+		if err != nil {
+			return err
+		}
+		optsReflected.FieldByName("ListOptions").FieldByName("Page").Set(reflect.ValueOf(page))
+		perPage, err := c.Cmd.Flags().GetInt("per_page")
+		if err != nil {
+			return err
+		}
+		optsReflected.FieldByName("ListOptions").FieldByName("PerPage").Set(reflect.ValueOf(perPage))
+	}
+	return nil
 }
 
 func (c golabCommand) Init() error {
@@ -64,8 +86,16 @@ func (c golabCommand) Init() error {
 		return c.Execute()
 	}
 	c.Mapper = mapper.InitializedMapper(c.Cmd, c.Flags, c.Opts)
+	setPaginationFlags(c)
 	c.Parent.AddCommand(c.Cmd)
 	return nil // TODO do something useful with the error return
+}
+
+func setPaginationFlags(c golabCommand) {
+	if c.Paged {
+		c.Cmd.PersistentFlags().Int("page", 0, "(optional) Page of results to retrieve")
+		c.Cmd.PersistentFlags().Int("per_page", 0, "(optional) The number of results to include per page (max 100)")
+	}
 }
 
 var RootCmd = &cobra.Command{
