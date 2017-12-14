@@ -21,8 +21,9 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
-	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -111,7 +112,7 @@ var branchesProtectCmd = &golabCommand{
 		opts := cmd.Opts.(*gitlab.ProtectBranchOptions)
 		branch, _, err := gitlabClient.Branches.ProtectBranch(*flags.Id, *flags.Branch, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(branch)
 	},
@@ -135,7 +136,7 @@ var branchesUnprotectCmd = &golabCommand{
 		flags := cmd.Flags.(*branchesUnprotectFlags)
 		branch, _, err := gitlabClient.Branches.UnprotectBranch(*flags.Id, *flags.Branch)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(branch)
 	},
@@ -162,7 +163,7 @@ var branchesCreateCmd = &golabCommand{
 		opts := cmd.Opts.(*gitlab.CreateBranchOptions)
 		branch, _, err := gitlabClient.Branches.CreateBranch(*flags.Id, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(branch)
 	},
@@ -191,7 +192,7 @@ var branchesDeleteCmd = &golabCommand{
 
 // see https://docs.gitlab.com/ce/api/branches.html#delete-merged-branches
 type branchesDeleteMergedFlags struct {
-	Id     *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
+	Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project"`
 }
 
 var branchesDeleteMergedCmd = &golabCommand{
@@ -200,7 +201,7 @@ var branchesDeleteMergedCmd = &golabCommand{
 	Cmd: &cobra.Command{
 		Use:   "delete-merged",
 		Short: "Delete merged branches",
-		Long:  `Will delete all branches that are merged into the project's default branch.
+		Long: `Will delete all branches that are merged into the project's default branch.
 
 Protected branches will not be deleted as part of this operation.`,
 	},
