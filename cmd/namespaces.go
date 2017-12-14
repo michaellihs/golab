@@ -23,6 +23,7 @@ package cmd
 import (
 	"errors"
 	"github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 // see https://docs.gitlab.com/ce/api/namespaces.html#namespaces-api
@@ -42,6 +43,32 @@ Pagination is used.`,
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/namespaces.html#list-namespaces
+type namespaceListFlags struct {
+	// only for pagination
+}
+
+var namespacesListCmd = &golabCommand{
+	Parent: namespacesCmd.Cmd,
+	Flags:  &namespaceListFlags{},
+	Opts:   &gitlab.ListNamespacesOptions{},
+	Paged:  true,
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List namespaces",
+		Long:  `Get a list of the namespaces of the authenticated user. If the user is an administrator, a list of all namespaces in the GitLab instance is shown.`,
+	},
+	Run: func(cmd golabCommand) error {
+		opts := cmd.Opts.(*gitlab.ListNamespacesOptions)
+		ns, _, err := gitlabClient.Namespaces.ListNamespaces(opts)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(ns)
+	},
+}
+
 func init() {
 	namespacesCmd.Init()
+	namespacesListCmd.Init()
 }
