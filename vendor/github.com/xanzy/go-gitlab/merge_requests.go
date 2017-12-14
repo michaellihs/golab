@@ -129,15 +129,16 @@ func (m MergeRequestApprovals) String() string {
 // Gitlab API docs:
 // https://docs.gitlab.com/ce/api/merge_requests.html#get-a-single-mr-diff-version
 type MergeRequestDiffVersion struct {
-	Id             int        `json:"id"`
-	HeadCommitSha  string     `json:"head_commit_sha,omitempty"`
-	BaseCommitSha  string     `json:"base_commit_sha,omitempty"`
-	StartCommitSha string     `json:"start_commit_sha,omitempty"`
+	ID             int        `json:"id"`
+	HeadCommitSHA  string     `json:"head_commit_sha,omitempty"`
+	BaseCommitSHA  string     `json:"base_commit_sha,omitempty"`
+	StartCommitSHA string     `json:"start_commit_sha,omitempty"`
 	CreatedAt      *time.Time `json:"created_at,omitempty"`
-	MergeRequestId int        `json:"merge_request_id,omitempty"`
+	MergeRequestID int        `json:"merge_request_id,omitempty"`
 	State          string     `json:"state,omitempty"`
 	RealSize       string     `json:"real_size,omitempty"`
 	Commits        []*Commit  `json:"commits,omitempty"`
+	Diffs          []*Diff    `json:"diffs,omitempty"`
 }
 
 func (m MergeRequestDiffVersion) String() string {
@@ -531,12 +532,13 @@ func (s *MergeRequestsService) CancelMergeWhenPipelineSucceeds(pid interface{}, 
 	return m, resp, err
 }
 
-// Subscribe subscribes the authenticated user to the given merge request to receive notifications.
-// If the user is already subscribed to the merge request, the status code 304 is returned.
+// Subscribe subscribes the authenticated user to the given merge request
+// to receive notifications. If the user is already subscribed to the
+// merge request, the status code 304 is returned.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/merge_requests.html#subscribe-to-a-merge-request
-func (s *MergeRequestsService) Subscribe(pid interface{}, mergeRequest int, options ...OptionFunc) (*MergeRequest, *Response, error) {
+func (s *MergeRequestsService) SubscribeToMergeRequest(pid interface{}, mergeRequest int, options ...OptionFunc) (*MergeRequest, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -557,12 +559,13 @@ func (s *MergeRequestsService) Subscribe(pid interface{}, mergeRequest int, opti
 	return m, resp, err
 }
 
-// Unsubscribe unsubscribes the authenticated user from the given merge request to not receive notifications from that merge request.
-// If the user is not subscribed to the merge request, the status code 304 is returned.
+// Unsubscribe unsubscribes the authenticated user from the given merge request
+// to not receive notifications from that merge request. If the user is
+// not subscribed to the merge request, status code 304 is returned.
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/merge_requests.html#unsubscribe-from-a-merge-request
-func (s *MergeRequestsService) Unsubscribe(pid interface{}, mergeRequest int, options ...OptionFunc) (*MergeRequest, *Response, error) {
+func (s *MergeRequestsService) UnsubscribeFromMergeRequest(pid interface{}, mergeRequest int, options ...OptionFunc) (*MergeRequest, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
@@ -637,12 +640,12 @@ func (s *MergeRequestsService) GetMergeRequestDiffVersions(pid interface{}, merg
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/merge_requests.html#get-a-single-mr-diff-version
-func (s *MergeRequestsService) GetSingleMergeRequestDiffVersion(pid interface{}, mergeRequest int, versionId int, options ...OptionFunc) (*MergeRequestDiffVersion, *Response, error) {
+func (s *MergeRequestsService) GetSingleMergeRequestDiffVersion(pid interface{}, mergeRequest, version int, options ...OptionFunc) (*MergeRequestDiffVersion, *Response, error) {
 	project, err := parseID(pid)
 	if err != nil {
 		return nil, nil, err
 	}
-	u := fmt.Sprintf("projects/%s/merge_requests/%d/versions/%d", url.QueryEscape(project), mergeRequest, versionId)
+	u := fmt.Sprintf("projects/%s/merge_requests/%d/versions/%d", url.QueryEscape(project), mergeRequest, version)
 
 	req, err := s.client.NewRequest("GET", u, nil, options)
 	if err != nil {

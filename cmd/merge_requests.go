@@ -383,7 +383,7 @@ var mergeRequestsSubscribeCmd = &golabCommand{
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*mergeRequestsSubscribeFlags)
-		mr, resp, err := gitlabClient.MergeRequests.Subscribe(*flags.Id, *flags.MergeRequestIid)
+		mr, resp, err := gitlabClient.MergeRequests.SubscribeToMergeRequest(*flags.Id, *flags.MergeRequestIid)
 		if resp.StatusCode == 304 {
 			return errors.New("304: the user was already subscribed to the merge request")
 		}
@@ -410,7 +410,7 @@ var mergeRequestsUnsubscribeCmd = &golabCommand{
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*mergeRequestsUnsubscribeFlags)
-		mr, resp, err := gitlabClient.MergeRequests.Unsubscribe(*flags.Id, *flags.MergeRequestIid)
+		mr, resp, err := gitlabClient.MergeRequests.UnsubscribeFromMergeRequest(*flags.Id, *flags.MergeRequestIid)
 		if resp.StatusCode == 304 {
 			return errors.New("304: the user was not subscribed to the merge request")
 		}

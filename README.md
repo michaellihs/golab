@@ -29,6 +29,12 @@ It allows you to run Gitlab administration tasks from your command line. Example
    golab user ssh-keys add --key "`cat ~/.ssh/id_rsa.pub`" --title "my dsa key"
    ```
 
+* query your json output with [jq](https://stedolan.github.io/jq/)
+
+   ``` bash
+   golab project list | jq ".[] | {name: .name, id: .id}
+   ```
+
 For a complete documentation of features, check the [generated documentation](doc/golab.md)
 
 
