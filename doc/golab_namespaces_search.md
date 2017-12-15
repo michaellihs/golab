@@ -15,7 +15,7 @@ golab namespaces search [flags]
 
 ```
   -h, --help            help for search
-      --search string   (optional) Returns a list of namespaces the user is authorized to see based on the search criteria
+  -s, --search string   (optional) Returns a list of namespaces the user is authorized to see based on the search criteria
 ```
 
 ### Options inherited from parent commands

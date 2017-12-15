@@ -15,7 +15,7 @@ golab namespaces get [flags]
 
 ```
   -h, --help        help for get
-      --id string   (required) ID or path of the namespace
+  -i, --id string   (required) ID or path of the namespace
 ```
 
 ### Options inherited from parent commands
