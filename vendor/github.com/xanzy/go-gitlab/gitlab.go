@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -28,6 +29,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/go-querystring/query"
 )
@@ -66,6 +68,40 @@ const (
 	MasterPermissions    AccessLevelValue = 40
 	OwnerPermission      AccessLevelValue = 50
 )
+
+// ISOTime represents an ISO 8601 formatted date
+type ISOTime time.Time
+
+// ISO 8601 date format
+const iso8601 = "2006-01-02"
+
+// MarshalJSON implements the json.Marshaler interface
+func (t ISOTime) MarshalJSON() ([]byte, error) {
+	if y := time.Time(t).Year(); y < 0 || y >= 10000 {
+		// ISO 8901 uses 4 digits for the years
+		return nil, errors.New("ISOTime.MarshalJSON: year outside of range [0,9999]")
+	}
+
+	b := make([]byte, 0, len(iso8601)+2)
+	b = append(b, '"')
+	b = time.Time(t).AppendFormat(b, iso8601)
+	b = append(b, '"')
+
+	return b, nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (t *ISOTime) UnmarshalJSON(data []byte) error {
+	// Ignore null, like in the main JSON package
+	if string(data) == "null" {
+		return nil
+	}
+
+	isotime, err := time.Parse(`"`+iso8601+`"`, string(data))
+	*t = ISOTime(isotime)
+
+	return err
+}
 
 // NotificationLevelValue represents a notification level.
 type NotificationLevelValue int
@@ -187,6 +223,7 @@ type Client struct {
 	Services             *ServicesService
 	Session              *SessionService
 	Settings             *SettingsService
+	Snippets             *SnippetsService
 	SystemHooks          *SystemHooksService
 	Tags                 *TagsService
 	Todos                *TodosService
@@ -260,6 +297,7 @@ func newClient(httpClient *http.Client, tokenType tokenType, token string) *Clie
 	c.Services = &ServicesService{client: c}
 	c.Session = &SessionService{client: c}
 	c.Settings = &SettingsService{client: c}
+	c.Snippets = &SnippetsService{client: c}
 	c.SystemHooks = &SystemHooksService{client: c}
 	c.Tags = &TagsService{client: c}
 	c.Todos = &TodosService{client: c}
@@ -318,6 +356,10 @@ func (c *Client) NewRequest(method, path string, opt interface{}, options []Opti
 	}
 
 	for _, fn := range options {
+		if fn == nil {
+			continue
+		}
+
 		if err := fn(req); err != nil {
 			return nil, err
 		}
