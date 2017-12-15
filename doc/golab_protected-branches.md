@@ -27,5 +27,6 @@ golab protected-branches [flags]
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
+* [golab protected-branches get](golab_protected-branches_get.md)	 - Get a single protected branch or wildcard protected branch
 * [golab protected-branches ls](golab_protected-branches_ls.md)	 - List protected branches
 

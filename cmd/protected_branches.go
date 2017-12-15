@@ -29,10 +29,10 @@ import (
 var protectedBranchesCmd = &golabCommand{
 	Parent: RootCmd,
 	Cmd: &cobra.Command{
-		Use:   "protected-branches",
+		Use:     "protected-branches",
 		Aliases: []string{"pb"},
-		Short: "Protected branches",
-		Long:  `Manage protected branches`,
+		Short:   "Protected branches",
+		Long:    `Manage protected branches`,
 	},
 	Run: func(cmd golabCommand) error {
 		return errors.New("you cannot run this command without a sub-command")
@@ -64,7 +64,34 @@ var protectedBranchesListCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/protected_branches.html#get-a-single-protected-branch-or-wildcard-protected-branch
+type protectedBranchesGetFlags struct {
+	Id   *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the branch or wildcard"`
+}
+
+var protectedBranchesGetCmd = &golabCommand{
+	Parent: protectedBranchesCmd.Cmd,
+	Flags:  &protectedBranchesGetFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Get a single protected branch or wildcard protected branch",
+		Long:  `Gets a single protected branch or wildcard protected branch.`,
+	},
+	Run: func(cmd golabCommand) error {
+		// TODO implement in go-gitlab
+		return errors.New("currently not implemented in go-gitlab")
+		//flags := cmd.Flags.(*protectedBranchesGetFlags)
+		//branch, _, err := gitlabClient.Branches.GetProtectedBranch(*flags.Id, *flags.Name)
+		//if err != nil {
+		//    return err
+		//}
+		//return OutputJson(branch)
+	},
+}
+
 func init() {
 	protectedBranchesCmd.Init()
 	protectedBranchesListCmd.Init()
+	protectedBranchesGetCmd.Init()
 }
