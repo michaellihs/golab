@@ -1,20 +1,21 @@
-## golab protected-branches
+## golab protected-branches ls
 
-Protected branches
+List protected branches
 
 ### Synopsis
 
 
-Manage protected branches
+Gets a list of protected branches from a project.
 
 ```
-golab protected-branches [flags]
+golab protected-branches ls [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for protected-branches
+  -h, --help        help for ls
+  -i, --id string   (required) The ID or URL-encoded path of the project owned by the authenticated user
 ```
 
 ### Options inherited from parent commands
@@ -26,6 +27,5 @@ golab protected-branches [flags]
 ```
 
 ### SEE ALSO
-* [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab protected-branches ls](golab_protected-branches_ls.md)	 - List protected branches
+* [golab protected-branches](golab_protected-branches.md)	 - Protected branches
 

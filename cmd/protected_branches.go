@@ -39,6 +39,32 @@ var protectedBranchesCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/protected_branches.html#list-protected-branches
+type protectedBranchesListFlags struct {
+	Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+}
+
+var protectedBranchesListCmd = &golabCommand{
+	Parent: protectedBranchesCmd.Cmd,
+	Flags:  &protectedBranchesListFlags{},
+	Cmd: &cobra.Command{
+		Use:   "ls",
+		Short: "List protected branches",
+		Long:  `Gets a list of protected branches from a project.`,
+	},
+	Run: func(cmd golabCommand) error {
+		// TODO implement in go-gitlab
+		return errors.New("currently not implemented by go-gitlab")
+		//flags := cmd.Flags.(*protectedBranchesListFlags)
+		//branches, _, err := gitlabClient.Branches.ListProtectedBranches(*flags.Id)
+		//if err != nil {
+		//    return err
+		//}
+		//return OutputJson(branches)
+	},
+}
+
 func init() {
 	protectedBranchesCmd.Init()
+	protectedBranchesListCmd.Init()
 }
