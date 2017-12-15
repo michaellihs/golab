@@ -35,7 +35,7 @@ type MilestonesService struct {
 // GitLab API docs: https://docs.gitlab.com/ce/api/milestones.html
 type Milestone struct {
 	ID          int        `json:"id"`
-	IID         int        `json:"iid"`
+	Iid         int        `json:"iid"`
 	ProjectID   int        `json:"project_id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`

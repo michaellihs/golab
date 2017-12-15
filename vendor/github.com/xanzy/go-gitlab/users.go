@@ -41,12 +41,10 @@ type User struct {
 	State            string          `json:"state"`
 	CreatedAt        *time.Time      `json:"created_at"`
 	Bio              string          `json:"bio"`
-	Location         string          `json:"location"`
 	Skype            string          `json:"skype"`
 	Linkedin         string          `json:"linkedin"`
 	Twitter          string          `json:"twitter"`
 	WebsiteURL       string          `json:"website_url"`
-	Organization     string          `json:"organization"`
 	ExternUID        string          `json:"extern_uid"`
 	Provider         string          `json:"provider"`
 	ThemeID          int             `json:"theme_id"`
@@ -60,7 +58,6 @@ type User struct {
 	LastSignInAt     *time.Time      `json:"last_sign_in_at"`
 	TwoFactorEnabled bool            `json:"two_factor_enabled"`
 	Identities       []*UserIdentity `json:"identities"`
-	External         bool            `json:"external"`
 }
 
 // UserIdentity represents a user identity
@@ -130,16 +127,13 @@ type CreateUserOptions struct {
 	Linkedin         *string `url:"linkedin,omitempty" json:"linkedin,omitempty"`
 	Twitter          *string `url:"twitter,omitempty" json:"twitter,omitempty"`
 	WebsiteURL       *string `url:"website_url,omitempty" json:"website_url,omitempty"`
-	Organization     *string `url:"organization,omitempty" json:"organization,omitempty"`
 	ProjectsLimit    *int    `url:"projects_limit,omitempty" json:"projects_limit,omitempty"`
 	ExternUID        *string `url:"extern_uid,omitempty" json:"extern_uid,omitempty"`
 	Provider         *string `url:"provider,omitempty" json:"provider,omitempty"`
 	Bio              *string `url:"bio,omitempty" json:"bio,omitempty"`
-	Location         *string `url:"location,omitempty" json:"location,omitempty"`
 	Admin            *bool   `url:"admin,omitempty" json:"admin,omitempty"`
 	CanCreateGroup   *bool   `url:"can_create_group,omitempty" json:"can_create_group,omitempty"`
 	SkipConfirmation *bool   `url:"skip_confirmation,omitempty" json:"skip_confirmation,omitempty"`
-	External         *bool   `url:"external,omitempty" json:"external,omitempty"`
 }
 
 // CreateUser creates a new user. Note only administrators can create new users.
@@ -172,15 +166,12 @@ type ModifyUserOptions struct {
 	Linkedin       *string `url:"linkedin,omitempty" json:"linkedin,omitempty"`
 	Twitter        *string `url:"twitter,omitempty" json:"twitter,omitempty"`
 	WebsiteURL     *string `url:"website_url,omitempty" json:"website_url,omitempty"`
-	Organization   *string `url:"organization,omitempty" json:"organization,omitempty"`
 	ProjectsLimit  *int    `url:"projects_limit,omitempty" json:"projects_limit,omitempty"`
 	ExternUID      *string `url:"extern_uid,omitempty" json:"extern_uid,omitempty"`
 	Provider       *string `url:"provider,omitempty" json:"provider,omitempty"`
 	Bio            *string `url:"bio,omitempty" json:"bio,omitempty"`
-	Location       *string `url:"location,omitempty" json:"location,omitempty"`
 	Admin          *bool   `url:"admin,omitempty" json:"admin,omitempty"`
 	CanCreateGroup *bool   `url:"can_create_group,omitempty" json:"can_create_group,omitempty"`
-	External       *bool   `url:"external,omitempty" json:"external,omitempty"`
 }
 
 // ModifyUser modifies an existing user. Only administrators can change attributes
@@ -605,7 +596,7 @@ type ImpersonationToken struct {
 	Scopes    []string   `json:"scopes"`
 	Revoked   bool       `json:"revoked"`
 	CreatedAt *time.Time `json:"created_at"`
-	ExpiresAt *ISOTime   `json:"expires_at"`
+	ExpiresAt *time.Time `json:"expires_at"`
 }
 
 // GetAllImpersonationTokensOptions represents the available
@@ -704,32 +695,4 @@ func (s *UsersService) RevokeImpersonationToken(user, token int, options ...Opti
 	}
 
 	return s.client.Do(req, nil)
-}
-
-// UserActivity represents an entry in the user/activities response
-//
-// GitLab API docs:
-// https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
-type UserActivity struct {
-	Username       string   `json:"username"`
-	LastActivityOn *ISOTime `json:"last_activity_on"`
-}
-
-// GetUserActivities retrieves user activities (admin only)
-//
-// GitLab API docs:
-// https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
-func (s *UsersService) GetUserActivities(options ...OptionFunc) ([]*UserActivity, *Response, error) {
-	req, err := s.client.NewRequest("GET", "user/activities", nil, options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var t []*UserActivity
-	resp, err := s.client.Do(req, &t)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return t, resp, err
 }
