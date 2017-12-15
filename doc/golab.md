@@ -25,6 +25,7 @@ This application provides a Command Line Interface for Gitlab.
 * [golab merge-requests](golab_merge-requests.md)	 - Manage Merge Requests
 * [golab namespaces](golab_namespaces.md)	 - Manage namespaces
 * [golab project](golab_project.md)	 - Manage projects
+* [golab protected-branches](golab_protected-branches.md)	 - Protected branches
 * [golab user](golab_user.md)	 - Manage Gitlab users
 * [golab zsh-completion](golab_zsh-completion.md)	 - Generate ZSH completion file
 

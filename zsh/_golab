@@ -9,7 +9,7 @@ case $state in
   level1)
     case $words[1] in
       golab)
-        _arguments '1: :(branches gendoc group group-members help login merge-requests namespaces project user zsh-completion)'
+        _arguments '1: :(branches gendoc group group-members help login merge-requests namespaces project protected-branches user zsh-completion)'
       ;;
       *)
         _arguments '*: :_files'
@@ -18,12 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      merge-requests)
-        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
-      ;;
-      namespaces)
-        _arguments '2: :(get ls search)'
-      ;;
       project)
         _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
       ;;
@@ -39,6 +33,12 @@ case $state in
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
       ;;
+      merge-requests)
+        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
+      ;;
+      namespaces)
+        _arguments '2: :(get ls search)'
+      ;;
       *)
         _arguments '*: :_files'
       ;;
@@ -46,6 +46,9 @@ case $state in
   ;;
   level3)
     case $words[3] in
+      emails)
+        _arguments '3: :(add delete get ls)'
+      ;;
       impersonation-token)
         _arguments '3: :(create get get-all revoke)'
       ;;
@@ -57,9 +60,6 @@ case $state in
       ;;
       hooks)
         _arguments '3: :(add delete edit get ls)'
-      ;;
-      emails)
-        _arguments '3: :(add delete get ls)'
       ;;
       *)
         _arguments '*: :_files'
