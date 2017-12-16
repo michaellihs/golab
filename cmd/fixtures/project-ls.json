@@ -26,13 +26,11 @@
     "last_activity_at": "2017-11-27T22:22:43.177Z",
     "creator_id": 1,
     "namespace": {
-      "created_at": null,
-      "description": "",
       "id": 35,
       "name": "test2",
-      "owner_id": 0,
       "path": "test2",
-      "updated_at": null
+      "kind": "",
+      "full_path": ""
     },
     "permissions": {
       "project_access": null,
