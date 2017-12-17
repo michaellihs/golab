@@ -29,5 +29,6 @@ golab labels [flags]
 * [golab](golab.md)	 - Gitlab CLI written in Go
 * [golab labels create](golab_labels_create.md)	 - Create a new label
 * [golab labels delete](golab_labels_delete.md)	 - Delete a label
+* [golab labels edit](golab_labels_edit.md)	 - Edit an existing label
 * [golab labels list](golab_labels_list.md)	 - List labels
 

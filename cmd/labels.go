@@ -70,6 +70,7 @@ type labelsCreateFlags struct {
 	Name        *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the label"`
 	Color       *string `flag_name:"color" short:"c" type:"string" required:"yes" description:"The color of the label given in 6-digit hex notation with leading '#' sign (e.g. #FFAABB) or one of the CSS color names"`
 	Description *string `flag_name:"description" short:"d" type:"string" required:"no" description:"The description of the label"`
+	// TODO this is currently not available in go-gitlab
 	Priority    *int    `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The priority of the label. Must be greater or equal than zero or null to remove the priority."`
 }
 
@@ -102,11 +103,12 @@ type labelsDeleteFlags struct {
 var labelsDeleteCmd = &golabCommand{
 	Parent: labelsCmd.Cmd,
 	Flags:  &labelsDeleteFlags{},
-	Opts: &gitlab.DeleteLabelOptions{},
+	Opts:   &gitlab.DeleteLabelOptions{},
 	Cmd: &cobra.Command{
-		Use:   "delete",
-		Short: "Delete a label",
-		Long:  `Deletes a label with a given name.`,
+		Use:     "delete",
+		Aliases: []string{"rm"},
+		Short:   "Delete a label",
+		Long:    `Deletes a label with a given name.`,
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*labelsDeleteFlags)
@@ -116,9 +118,46 @@ var labelsDeleteCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/labels.html#edit-an-existing-label
+type labelsEditFlags struct {
+	Id          *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name        *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the existing label"`
+	// TODO think about an optional tag, that provides the "required / optional" message
+	NewName     *string `flag_name:"new_name" short:"u" type:"string" required:"no" description:"(required, if color is not provided) The new name of the label"`
+	Color       *string `flag_name:"color" short:"c" type:"string" required:"no" description:"(required, if new_name is not provided) The color of the label given in 6-digit hex notation with leading '#' sign (e.g. #FFAABB) or one of the CSS color names"`
+	Description *string `flag_name:"description" short:"d" type:"string" required:"no" description:"The new description of the label"`
+	// TODO this is currently not available in go-gitlab
+	Priority    *int    `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The new priority of the label. Must be greater or equal than zero or null to remove the priority."`
+}
+
+var labelsEditCmd = &golabCommand{
+	Parent: labelsCmd.Cmd,
+	Flags:  &labelsEditFlags{},
+	Opts:   &gitlab.UpdateLabelOptions{},
+	Cmd: &cobra.Command{
+		Use:     "edit",
+		Aliases: []string{"update"},
+		Short:   "Edit an existing label",
+		Long:    `Updates an existing label with new name or new color. At least one parameter is required, to update the label.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*labelsEditFlags)
+		if flags.NewName == nil && flags.Color == nil {
+			return errors.New("either --new_name or --color is required")
+		}
+		opts := cmd.Opts.(*gitlab.UpdateLabelOptions)
+		label, _, err := gitlabClient.Labels.UpdateLabel(*flags.Id, opts)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(label)
+	},
+}
+
 func init() {
 	labelsCmd.Init()
 	labelsListCmd.Init()
 	labelsCreateCmd.Init()
 	labelsDeleteCmd.Init()
+	labelsEditCmd.Init()
 }
