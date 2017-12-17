@@ -23,15 +23,17 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"errors"
+	"github.com/xanzy/go-gitlab"
 )
 
 // see https://docs.gitlab.com/ce/api/labels.html#labels-api
 var labelsCmd = &golabCommand{
 	Parent: RootCmd,
 	Cmd: &cobra.Command{
-		Use:   "labels",
-		Short: "Manage labels",
-		Long:  `Manage labels`,
+		Use:     "labels",
+		Aliases: []string{"label"},
+		Short:   "Manage labels",
+		Long:    `Manage labels`,
 	},
 	Run: func(cmd golabCommand) error {
 		return errors.New("you cannot call this command without any subcommand")
@@ -47,22 +49,52 @@ var labelsListCmd = &golabCommand{
 	Parent: labelsCmd.Cmd,
 	Flags:  &labelsListFlag{},
 	Cmd: &cobra.Command{
-		Use:   "list",
+		Use:     "list",
 		Aliases: []string{"ls"},
-		Short: "List labels",
-		Long:  `Get all labels for a project`,
+		Short:   "List labels",
+		Long:    `Get all labels for a project`,
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*labelsListFlag)
 		labels, _, err := gitlabClient.Labels.ListLabels(*flags.Id)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(labels)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/labels.html#create-a-new-label
+type labelsCreateFlags struct {
+	Id          *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name        *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the label"`
+	Color       *string `flag_name:"color" short:"c" type:"string" required:"yes" description:"The color of the label given in 6-digit hex notation with leading '#' sign (e.g. #FFAABB) or one of the CSS color names"`
+	Description *string `flag_name:"description" short:"d" type:"string" required:"no" description:"The description of the label"`
+	Priority    *int    `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The priority of the label. Must be greater or equal than zero or null to remove the priority."`
+}
+
+var labelsCreateCmd = &golabCommand{
+	Parent: labelsCmd.Cmd,
+	Flags:  &labelsCreateFlags{},
+	Opts:   &gitlab.CreateLabelOptions{},
+	Cmd: &cobra.Command{
+		Use:   "create",
+		Short: "Create a new label",
+		Long:  `Creates a new label for the given repository with the given name and color.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*labelsCreateFlags)
+		opts := cmd.Opts.(*gitlab.CreateLabelOptions)
+		label, _, err := gitlabClient.Labels.CreateLabel(*flags.Id, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(label)
 	},
 }
 
 func init() {
 	labelsCmd.Init()
 	labelsListCmd.Init()
+	labelsCreateCmd.Init()
 }
