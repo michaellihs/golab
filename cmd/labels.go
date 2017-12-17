@@ -93,8 +93,32 @@ var labelsCreateCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/labels.html#delete-a-label
+type labelsDeleteFlags struct {
+	Id   *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the label"`
+}
+
+var labelsDeleteCmd = &golabCommand{
+	Parent: labelsCmd.Cmd,
+	Flags:  &labelsDeleteFlags{},
+	Opts: &gitlab.DeleteLabelOptions{},
+	Cmd: &cobra.Command{
+		Use:   "delete",
+		Short: "Delete a label",
+		Long:  `Deletes a label with a given name.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*labelsDeleteFlags)
+		opts := cmd.Opts.(*gitlab.DeleteLabelOptions)
+		_, err := gitlabClient.Labels.DeleteLabel(*flags.Id, opts)
+		return err
+	},
+}
+
 func init() {
 	labelsCmd.Init()
 	labelsListCmd.Init()
 	labelsCreateCmd.Init()
+	labelsDeleteCmd.Init()
 }

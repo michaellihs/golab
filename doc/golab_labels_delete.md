@@ -1,20 +1,22 @@
-## golab labels
+## golab labels delete
 
-Manage labels
+Delete a label
 
 ### Synopsis
 
 
-Manage labels
+Deletes a label with a given name.
 
 ```
-golab labels [flags]
+golab labels delete [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for labels
+  -h, --help          help for delete
+  -i, --id string     (required) The ID or URL-encoded path of the project owned by the authenticated user
+  -n, --name string   (required) The name of the label
 ```
 
 ### Options inherited from parent commands
@@ -26,8 +28,5 @@ golab labels [flags]
 ```
 
 ### SEE ALSO
-* [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab labels create](golab_labels_create.md)	 - Create a new label
-* [golab labels delete](golab_labels_delete.md)	 - Delete a label
-* [golab labels list](golab_labels_list.md)	 - List labels
+* [golab labels](golab_labels.md)	 - Manage labels
 
