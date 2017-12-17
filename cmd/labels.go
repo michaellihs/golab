@@ -71,7 +71,7 @@ type labelsCreateFlags struct {
 	Color       *string `flag_name:"color" short:"c" type:"string" required:"yes" description:"The color of the label given in 6-digit hex notation with leading '#' sign (e.g. #FFAABB) or one of the CSS color names"`
 	Description *string `flag_name:"description" short:"d" type:"string" required:"no" description:"The description of the label"`
 	// TODO this is currently not available in go-gitlab
-	Priority    *int    `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The priority of the label. Must be greater or equal than zero or null to remove the priority."`
+	Priority *int `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The priority of the label. Must be greater or equal than zero or null to remove the priority."`
 }
 
 var labelsCreateCmd = &golabCommand{
@@ -120,14 +120,14 @@ var labelsDeleteCmd = &golabCommand{
 
 // see https://docs.gitlab.com/ce/api/labels.html#edit-an-existing-label
 type labelsEditFlags struct {
-	Id          *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
-	Name        *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the existing label"`
+	Id   *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the existing label"`
 	// TODO think about an optional tag, that provides the "required / optional" message
 	NewName     *string `flag_name:"new_name" short:"u" type:"string" required:"no" description:"(required, if color is not provided) The new name of the label"`
 	Color       *string `flag_name:"color" short:"c" type:"string" required:"no" description:"(required, if new_name is not provided) The color of the label given in 6-digit hex notation with leading '#' sign (e.g. #FFAABB) or one of the CSS color names"`
 	Description *string `flag_name:"description" short:"d" type:"string" required:"no" description:"The new description of the label"`
 	// TODO this is currently not available in go-gitlab
-	Priority    *int    `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The new priority of the label. Must be greater or equal than zero or null to remove the priority."`
+	Priority *int `flag_name:"priority" short:"p" type:"integer" required:"no" description:"The new priority of the label. Must be greater or equal than zero or null to remove the priority."`
 }
 
 var labelsEditCmd = &golabCommand{
@@ -148,9 +148,54 @@ var labelsEditCmd = &golabCommand{
 		opts := cmd.Opts.(*gitlab.UpdateLabelOptions)
 		label, _, err := gitlabClient.Labels.UpdateLabel(*flags.Id, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(label)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/labels.html#subscribe-to-a-label
+type labelsSubscribeFlags struct {
+	Id      *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	LabelId *string    `flag_name:"label_id" short:"l" type:"strint" required:"yes" description:"The ID or title of a project's label"`
+}
+
+var labelsSubsribeCmd = &golabCommand{
+	Parent: labelsCmd.Cmd,
+	Flags:  &labelsSubscribeFlags{},
+	Cmd: &cobra.Command{
+		Use:   "subscribe",
+		Short: "Subscribe to a label",
+		Long:  `Subscribes the authenticated user to a label to receive notifications. If the user is already subscribed to the label, the status code 304 is returned.`,
+	},
+	Run: func(cmd golabCommand) error {
+		return errors.New("currently not implemented")
+		//flags := cmd.Flags.(*labelsSubscribeFlags)
+		//opts := cmd.Opts.(*bla)
+		// TODO currently not implemented in go-gitlab
+		//gitlabClient.Labels.Subscribe(...)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/labels.html#unsubscribe-from-a-label
+type labelsUnsubscribeFlags struct {
+	
+}
+
+var labelsUnsubscribeCmd = &golabCommand{
+	Parent: labelsCmd.Cmd,
+	Flags:  &labelsUnsubscribeFlags{},
+	Cmd: &cobra.Command{
+		Use:   "unsubscribe",
+		Short: "Unsubscribe from a label",
+		Long:  `Unsubscribes the authenticated user from a label to not receive notifications from it. If the user is not subscribed to the label, the status code 304 is returned.`,
+	},
+	Run: func(cmd golabCommand) error {
+		return errors.New("currently not implemented")
+		// Currently not implemented in go-gitlab
+		//flags := cmd.Flags.(*labelsUnsubscribeFlags)
+		//opts := cmd.Opts.(*)
+		//gitlabClient.Labels.Unsubscribe(...)
 	},
 }
 
@@ -160,4 +205,6 @@ func init() {
 	labelsCreateCmd.Init()
 	labelsDeleteCmd.Init()
 	labelsEditCmd.Init()
+	labelsSubsribeCmd.Init()
+	labelsUnsubscribeCmd.Init()
 }

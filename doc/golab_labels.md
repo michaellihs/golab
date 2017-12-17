@@ -31,4 +31,6 @@ golab labels [flags]
 * [golab labels delete](golab_labels_delete.md)	 - Delete a label
 * [golab labels edit](golab_labels_edit.md)	 - Edit an existing label
 * [golab labels list](golab_labels_list.md)	 - List labels
+* [golab labels subscribe](golab_labels_subscribe.md)	 - Subscribe to a label
+* [golab labels unsubscribe](golab_labels_unsubscribe.md)	 - Unsubscribe from a label
 
