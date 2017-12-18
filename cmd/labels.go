@@ -157,7 +157,7 @@ var labelsEditCmd = &golabCommand{
 // see https://docs.gitlab.com/ce/api/labels.html#subscribe-to-a-label
 type labelsSubscribeFlags struct {
 	Id      *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
-	LabelId *string    `flag_name:"label_id" short:"l" type:"strint" required:"yes" description:"The ID or title of a project's label"`
+	LabelId *string `flag_name:"label_id" short:"l" type:"string" required:"yes" description:"The ID or title of a project's label"`
 }
 
 var labelsSubsribeCmd = &golabCommand{
@@ -169,17 +169,19 @@ var labelsSubsribeCmd = &golabCommand{
 		Long:  `Subscribes the authenticated user to a label to receive notifications. If the user is already subscribed to the label, the status code 304 is returned.`,
 	},
 	Run: func(cmd golabCommand) error {
-		return errors.New("currently not implemented")
-		//flags := cmd.Flags.(*labelsSubscribeFlags)
-		//opts := cmd.Opts.(*bla)
-		// TODO currently not implemented in go-gitlab
-		//gitlabClient.Labels.Subscribe(...)
+		flags := cmd.Flags.(*labelsSubscribeFlags)
+		l, _, err := gitlabClient.Labels.SubscribeToLabel(*flags.Id, *flags.LabelId)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(l)
 	},
 }
 
 // see https://docs.gitlab.com/ce/api/labels.html#unsubscribe-from-a-label
 type labelsUnsubscribeFlags struct {
-	
+	Id      *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	LabelId *string `flag_name:"label_id" short:"l" type:"string" required:"yes" description:"The ID or title of a project's label"`
 }
 
 var labelsUnsubscribeCmd = &golabCommand{
@@ -191,11 +193,9 @@ var labelsUnsubscribeCmd = &golabCommand{
 		Long:  `Unsubscribes the authenticated user from a label to not receive notifications from it. If the user is not subscribed to the label, the status code 304 is returned.`,
 	},
 	Run: func(cmd golabCommand) error {
-		return errors.New("currently not implemented")
-		// Currently not implemented in go-gitlab
-		//flags := cmd.Flags.(*labelsUnsubscribeFlags)
-		//opts := cmd.Opts.(*)
-		//gitlabClient.Labels.Unsubscribe(...)
+		flags := cmd.Flags.(*labelsUnsubscribeFlags)
+		_, err  := gitlabClient.Labels.UnsubscribeFromLabel(*flags.Id, *flags.LabelId)
+		return err
 	},
 }
 

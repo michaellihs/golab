@@ -14,7 +14,9 @@ golab labels unsubscribe [flags]
 ### Options
 
 ```
-  -h, --help   help for unsubscribe
+  -h, --help              help for unsubscribe
+  -i, --id string         (required) The ID or URL-encoded path of the project owned by the authenticated user
+  -l, --label_id string   (required) The ID or title of a project's label
 ```
 
 ### Options inherited from parent commands
