@@ -3,7 +3,40 @@ Gitlab CLI written in Go [![Build Status](https://travis-ci.org/michaellihs/gola
 
 This project provides a Command Line Interface (CLI) for Gitlab written in Go. The project uses the [go-gitlab client](https://github.com/xanzy/go-gitlab) for the communication with Gitlab.
 
-It allows you to run Gitlab administration tasks from your command line. Examples:
+It allows you to run Gitlab administration tasks from your command line.
+
+[TOC levels=1-3]: # "## Table of Contents"
+
+## Table of Contents
+- [Usage](#usage)
+    - [Examples](#examples)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+        - [Login with Username and Password](#login-with-username-and-password)
+        - [Login with Access Token](#login-with-access-token)
+    - [ZSH auto-completion](#zsh-auto-completion)
+- [Development](#development)
+    - [API Debugging](#api-debugging)
+    - [Build and test the application](#build-and-test-the-application)
+    - [Ginkgo Tests](#ginkgo-tests)
+    - [Update vendored dependencies](#update-vendored-dependencies)
+    - [Translate API Doc into Flag Structs](#translate-api-doc-into-flag-structs)
+    - [Gitlab Docker Image](#gitlab-docker-image)
+    - [Troubleshooting](#troubleshooting)
+        - [`panic: trying to get string value of flag of type int`](#panic-trying-to-get-string-value-of-flag-of-type-int)
+- [TODOs](#todos)
+    - [Support multiple Targets](#support-multiple-targets)
+    - [Support GPG keys in user command](#support-gpg-keys-in-user-command)
+    - [Support for nested groups](#support-for-nested-groups)
+    - [Fix password issue on Windows](#fix-password-issue-on-windows)
+- [Further Resources](#further-resources)
+
+
+Usage
+=====
+
+Examples
+--------
 
 * create a user
 
@@ -60,6 +93,8 @@ Run the following command to login with your username and password
 
 If `--password` is omitted, you'll be prompted to enter your password interactively.
 
+According to [this discussion](https://github.com/xanzy/go-gitlab/issues/267) the login with username and password might not work with newer Gitlab versions.
+
 
 ### Login with Access Token
 
@@ -73,8 +108,6 @@ Create a file `.golab.yml` in either `~/` or the directory you want to use golab
 
 Test your configuration - e.g. by running `golab project` to get a list of projects from your Gitlab server.
 
-According to [this discussion](https://github.com/xanzy/go-gitlab/issues/267) the login with username and password might not work with newer Gitlab versions.
-
 
 ZSH auto-completion
 -------------------
@@ -87,9 +120,9 @@ TODO: After the `#compdef` header, add a `#autoload` - see http://zsh.sourceforg
 
 Check where to add your auto-complete files with `echo $FPATH` and copy the generated file there with
 
-    cp zsh/_golab $FPATH/_golab
+    cp zsh/_golab /usr/local/share/zsh/site-functions/_golab
 
-Don't forget to reload / restart your ZSH shell after changing the auto-complete file.
+Don't forget to reload / restart your ZSH shell after changing the auto-complete file (e.g. `source ~/.zshrc`).
 
 
 Development
@@ -214,6 +247,12 @@ Support for nested groups
 -------------------------
 
 Currently there is no support for [nested groups](https://docs.gitlab.com/ce/api/groups.html#list-a-groups-39-s-subgroups) since this feature is only available in Gitlab >= 10.3
+
+
+Fix password issue on Windows
+-----------------------------
+
+Currently, when logging in with username and password (on Cygwin) on Windows, the password is not hidden (as it is on MacOS).
 
 
 Further Resources
