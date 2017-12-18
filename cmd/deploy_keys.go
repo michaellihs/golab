@@ -39,6 +39,25 @@ var deployKeysCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/deploy_keys.html#list-all-deploy-keys
+var deployKeysListAllCmd = &golabCommand{
+	Parent: deployKeysCmd.Cmd,
+	Cmd: &cobra.Command{
+		Use:     "list-all",
+		Aliases: []string{"lsa"},
+		Short:   "List all deploy keys",
+		Long:    `Get a list of all deploy keys across all projects of the GitLab instance. This endpoint requires admin access.`,
+	},
+	Run: func(cmd golabCommand) error {
+		keys, _, err := gitlabClient.DeployKeys.ListAllDeployKeys()
+		if err != nil {
+			return err
+		}
+		return OutputJson(keys)
+	},
+}
+
 func init() {
 	deployKeysCmd.Init()
+	deployKeysListAllCmd.Init()
 }

@@ -1,20 +1,20 @@
-## golab deploy-keys
+## golab deploy-keys list-all
 
-Deploy Keys API
+List all deploy keys
 
 ### Synopsis
 
 
-Manage deploy keys
+Get a list of all deploy keys across all projects of the GitLab instance. This endpoint requires admin access.
 
 ```
-golab deploy-keys [flags]
+golab deploy-keys list-all [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for deploy-keys
+  -h, --help   help for list-all
 ```
 
 ### Options inherited from parent commands
@@ -26,6 +26,5 @@ golab deploy-keys [flags]
 ```
 
 ### SEE ALSO
-* [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab deploy-keys list-all](golab_deploy-keys_list-all.md)	 - List all deploy keys
+* [golab deploy-keys](golab_deploy-keys.md)	 - Deploy Keys API
 
