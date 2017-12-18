@@ -137,10 +137,33 @@ If the deploy key already exists in another project, it will be joined to curren
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/deploy_keys.html#delete-deploy-key
+type deplyKeysDeleteFlags struct {
+	Id    *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	KeyId *int    `flag_name:"key_id" short:"k" type:"integer" required:"yes" description:"The ID of the deploy key"`
+}
+
+var deplyKeysDeleteCmd = &golabCommand{
+	Parent: deployKeysCmd.Cmd,
+	Flags:  &deplyKeysDeleteFlags{},
+	Cmd:    &cobra.Command{
+		Use:     "delete",
+		Aliases: []string{"rm"},
+		Short:   "Delete deploy key",
+		Long:    `Removes a deploy key from the project. If the deploy key is used only for this project, it will be deleted from the system.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*deplyKeysDeleteFlags)
+		_, err := gitlabClient.DeployKeys.DeleteDeployKey(*flags.Id, *flags.KeyId)
+		return err
+	},
+}
+
 func init() {
 	deployKeysCmd.Init()
 	deployKeysListAllCmd.Init()
 	deployKeysListAllForProjectCmd.Init()
 	deployKeysGetSingleCmd.Init()
 	deployKeysAddCmd.Init()
+	deplyKeysDeleteCmd.Init()
 }
