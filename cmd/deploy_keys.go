@@ -159,6 +159,31 @@ var deplyKeysDeleteCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/deploy_keys.html#enable-a-deploy-key
+type deployKeysEnableFlags struct {
+	Id    *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	KeyId *int    `flag_name:"key_id" short:"k" type:"integer" required:"yes" description:"The ID of the deploy key"`
+}
+
+var deployKeysEnableCmd = &golabCommand{
+	Parent: deployKeysCmd.Cmd,
+	Flags:  &deployKeysEnableFlags{},
+	Cmd:    &cobra.Command{
+		Use:     "enable",
+		Aliases: []string{"e"},
+		Short:   "Enable a deploy key",
+		Long:    `Enables a deploy key for a project so this can be used. Returns the enabled key, with a status code 201 when successful.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*deployKeysEnableFlags)
+		key, _, err := gitlabClient.DeployKeys.EnableDeployKey(*flags.Id, *flags.KeyId)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(key)
+	},
+}
+
 func init() {
 	deployKeysCmd.Init()
 	deployKeysListAllCmd.Init()
@@ -166,4 +191,5 @@ func init() {
 	deployKeysGetSingleCmd.Init()
 	deployKeysAddCmd.Init()
 	deplyKeysDeleteCmd.Init()
+	deployKeysEnableCmd.Init()
 }
