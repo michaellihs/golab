@@ -27,6 +27,7 @@ golab deploy-keys [flags]
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
+* [golab deploy-keys add](golab_deploy-keys_add.md)	 - Add deploy key
 * [golab deploy-keys get](golab_deploy-keys_get.md)	 - Get single deploy key
 * [golab deploy-keys list](golab_deploy-keys_list.md)	 - List project deploy keys
 * [golab deploy-keys list-all](golab_deploy-keys_list-all.md)	 - List all deploy keys

@@ -1,3 +1,4 @@
 .idea/
 .golab.yml
 vendor/**/*.local
+id_rsa*

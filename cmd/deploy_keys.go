@@ -23,6 +23,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"errors"
+	"github.com/xanzy/go-gitlab"
 )
 
 // see https://docs.gitlab.com/ce/api/deploy_keys.html#deploy-keys-api
@@ -99,6 +100,37 @@ var deployKeysGetSingleCmd = &golabCommand{
 		flags := cmd.Flags.(*deployKeysGetSingleFlags)
 		key, _, err := gitlabClient.DeployKeys.GetDeployKey(*flags.Id, *flags.KeyId)
 		if err != nil {
+			return err
+		}
+		return OutputJson(key)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/deploy_keys.html#add-deploy-key
+type deployKeysAddFlags struct {
+	Id      *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Title   *string `flag_name:"title" short:"t" type:"string" required:"yes" description:"New deploy key's title"`
+	Key     *string `flag_name:"key" short:"k" type:"string" required:"yes" description:"New deploy key"`
+	CanPush *bool   `flag_name:"can_push" short:"p" type:"boolean" required:"no" description:"Can deploy key push to the project's repository"`
+}
+
+var deployKeysAddCmd = &golabCommand{
+	Parent: deployKeysCmd.Cmd,
+	Flags:  &deployKeysAddFlags{},
+	Opts:   &gitlab.AddDeployKeyOptions{},
+	Cmd: &cobra.Command{
+		Use:     "add",
+		Aliases: []string{"create"},
+		Short:   "Add deploy key",
+		Long: `Creates a new deploy key for a project.
+
+If the deploy key already exists in another project, it will be joined to current project only if original one is accessible by the same user.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*deployKeysAddFlags)
+		opts := cmd.Opts.(*gitlab.AddDeployKeyOptions)
+		key, _, err := gitlabClient.DeployKeys.AddDeployKey(*flags.Id, opts)
+		if err != nil {
 		    return err
 		}
 		return OutputJson(key)
@@ -110,4 +142,5 @@ func init() {
 	deployKeysListAllCmd.Init()
 	deployKeysListAllForProjectCmd.Init()
 	deployKeysGetSingleCmd.Init()
+	deployKeysAddCmd.Init()
 }
