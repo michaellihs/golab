@@ -66,18 +66,42 @@ var deployKeysListAllForProjectCmd = &golabCommand{
 	Parent: deployKeysCmd.Cmd,
 	Flags:  &deployKeysListAllForProjectFlags{},
 	Cmd: &cobra.Command{
-		Use:   "list",
+		Use:     "list",
 		Aliases: []string{"ls"},
-		Short: "List project deploy keys",
-		Long:  `Get a list of a project's deploy keys.`,
+		Short:   "List project deploy keys",
+		Long:    `Get a list of a project's deploy keys.`,
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*deployKeysListAllForProjectFlags)
 		keys, _, err := gitlabClient.DeployKeys.ListProjectDeployKeys(*flags.Id)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(keys)
+	},
+}
+
+// see https://docs.gitlab.com/ce/api/deploy_keys.html#single-deploy-key
+type deployKeysGetSingleFlags struct {
+	Id    *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	KeyId *int    `flag_name:"key_id" short:"k" type:"integer" required:"yes" description:"The ID of the deploy key"`
+}
+
+var deployKeysGetSingleCmd = &golabCommand{
+	Parent: deployKeysCmd.Cmd,
+	Flags:  &deployKeysGetSingleFlags{},
+	Cmd: &cobra.Command{
+		Use:   "get",
+		Short: "Get single deploy key",
+		Long:  `Get a single deploy key`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*deployKeysGetSingleFlags)
+		key, _, err := gitlabClient.DeployKeys.GetDeployKey(*flags.Id, *flags.KeyId)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(key)
 	},
 }
 
@@ -85,4 +109,5 @@ func init() {
 	deployKeysCmd.Init()
 	deployKeysListAllCmd.Init()
 	deployKeysListAllForProjectCmd.Init()
+	deployKeysGetSingleCmd.Init()
 }

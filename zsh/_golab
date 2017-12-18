@@ -18,23 +18,17 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      group-members)
-        _arguments '2: :(add delete edit get ls sync)'
-      ;;
-      labels)
-        _arguments '2: :(create delete edit list subscribe unsubscribe)'
-      ;;
-      project)
-        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
-      ;;
-      user)
-        _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
-      ;;
       branches)
         _arguments '2: :(create delete delete-merged get list protect unprotect)'
       ;;
+      deploy-keys)
+        _arguments '2: :(get list list-all)'
+      ;;
       group)
         _arguments '2: :(create delete get ls projects search transfer-project update)'
+      ;;
+      group-members)
+        _arguments '2: :(add delete edit get ls sync)'
       ;;
       merge-requests)
         _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
@@ -42,11 +36,17 @@ case $state in
       namespaces)
         _arguments '2: :(get ls search)'
       ;;
+      labels)
+        _arguments '2: :(create delete edit list subscribe unsubscribe)'
+      ;;
+      project)
+        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
+      ;;
       protected-branches)
         _arguments '2: :(get ls)'
       ;;
-      deploy-keys)
-        _arguments '2: :(list list-all)'
+      user)
+        _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
       *)
         _arguments '*: :_files'
@@ -55,6 +55,9 @@ case $state in
   ;;
   level3)
     case $words[3] in
+      hooks)
+        _arguments '3: :(add delete edit get ls)'
+      ;;
       emails)
         _arguments '3: :(add delete get ls)'
       ;;
@@ -66,9 +69,6 @@ case $state in
       ;;
       forks)
         _arguments '3: :(create delete)'
-      ;;
-      hooks)
-        _arguments '3: :(add delete edit get ls)'
       ;;
       *)
         _arguments '*: :_files'
