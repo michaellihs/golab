@@ -1,20 +1,21 @@
-## golab deploy-keys
+## golab deploy-keys list
 
-Deploy Keys API
+List project deploy keys
 
 ### Synopsis
 
 
-Manage deploy keys
+Get a list of a project's deploy keys.
 
 ```
-golab deploy-keys [flags]
+golab deploy-keys list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for deploy-keys
+  -h, --help        help for list
+  -i, --id string   (required) The ID or URL encoded path of a project
 ```
 
 ### Options inherited from parent commands
@@ -26,7 +27,5 @@ golab deploy-keys [flags]
 ```
 
 ### SEE ALSO
-* [golab](golab.md)	 - Gitlab CLI written in Go
-* [golab deploy-keys list](golab_deploy-keys_list.md)	 - List project deploy keys
-* [golab deploy-keys list-all](golab_deploy-keys_list-all.md)	 - List all deploy keys
+* [golab deploy-keys](golab_deploy-keys.md)	 - Deploy Keys API
 

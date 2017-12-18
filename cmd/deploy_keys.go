@@ -57,7 +57,32 @@ var deployKeysListAllCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/deploy_keys.html#list-project-deploy-keys
+type deployKeysListAllForProjectFlags struct {
+	Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"The ID or URL encoded path of a project"`
+}
+
+var deployKeysListAllForProjectCmd = &golabCommand{
+	Parent: deployKeysCmd.Cmd,
+	Flags:  &deployKeysListAllForProjectFlags{},
+	Cmd: &cobra.Command{
+		Use:   "list",
+		Aliases: []string{"ls"},
+		Short: "List project deploy keys",
+		Long:  `Get a list of a project's deploy keys.`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*deployKeysListAllForProjectFlags)
+		keys, _, err := gitlabClient.DeployKeys.ListProjectDeployKeys(*flags.Id)
+		if err != nil {
+		    return err
+		}
+		return OutputJson(keys)
+	},
+}
+
 func init() {
 	deployKeysCmd.Init()
 	deployKeysListAllCmd.Init()
+	deployKeysListAllForProjectCmd.Init()
 }
