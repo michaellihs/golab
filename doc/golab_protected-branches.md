@@ -30,4 +30,5 @@ golab protected-branches [flags]
 * [golab protected-branches get](golab_protected-branches_get.md)	 - Get a single protected branch or wildcard protected branch
 * [golab protected-branches ls](golab_protected-branches_ls.md)	 - List protected branches
 * [golab protected-branches protect-branch](golab_protected-branches_protect-branch.md)	 - Protect repository branches
+* [golab protected-branches unprotect-branch](golab_protected-branches_unprotect-branch.md)	 - Unprotect repository branches
 

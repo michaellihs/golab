@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"errors"
+
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
@@ -123,9 +124,32 @@ Access Levels:
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/protected_branches.html#unprotect-repository-branches
+type protectedBranchesUnprotectBranchFlags struct {
+	Id   *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"The name of the branch or wildcard"`
+}
+
+var protectedBranchesUnprotectBranchCmd = &golabCommand{
+	Parent: protectedBranchesCmd.Cmd,
+	Flags:  &protectedBranchesUnprotectBranchFlags{},
+	Cmd: &cobra.Command{
+		Use:     "unprotect-branch",
+		Aliases: []string{"unprotect"},
+		Short:   "Unprotect repository branches",
+		Long:    `Unprotects the given protected branch or wildcard protected branch`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*protectedBranchesUnprotectBranchFlags)
+		_, err := gitlabClient.ProtectedBranches.UnprotectRepositoryBranches(*flags.Id, *flags.Name)
+		return err
+	},
+}
+
 func init() {
 	protectedBranchesCmd.Init()
 	protectedBranchesListCmd.Init()
 	protectedBranchesGetCmd.Init()
 	protectedBranchesProtectRepositoryCmd.Init()
+	protectedBranchesUnprotectBranchCmd.Init()
 }
