@@ -23,11 +23,12 @@ package mapper
 import (
 	"errors"
 	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"time"
-	"strings"
-	"strconv"
 )
 
 type FlagMapper struct {
@@ -69,7 +70,7 @@ func (m FlagMapper) SetFlags(flags interface{}) {
 			case "*[]string":
 				m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
 			case "[]int":
-			    m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
+				m.cmd.PersistentFlags().StringArrayP(flagName, shortHand, nil, flagUsage(tag))
 			default:
 				panic("Unknown type " + f.Type().String())
 			}
@@ -298,11 +299,16 @@ func str2AccessLevel(s string) *gitlab.AccessLevelValue {
 	panic("Unknown access level: " + s)
 }
 
-func string2Time(s string) *time.Time {
+func string2TimeVal(s string) time.Time {
 	t, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		panic(err.Error())
 	}
+	return t
+}
+
+func string2Time(s string) *time.Time {
+	t := string2TimeVal(s)
 	return &t
 }
 
@@ -315,11 +321,12 @@ var funcs = map[string]interface{}{
 	"string2Labels":     string2Labels,
 	"string2visibility": str2Visibility,
 	"string2IsoTime":    string2IsoTime,
+	"string2TimeVal":    string2TimeVal,
 	"string2Time":       string2Time,
 	"str2AccessLevel":   str2AccessLevel,
 }
 
-func call(m map[string]interface{}, name string, params ... interface{}) (result []reflect.Value, err error) {
+func call(m map[string]interface{}, name string, params ...interface{}) (result []reflect.Value, err error) {
 	f := reflect.ValueOf(m[name])
 	if len(params) != f.Type().NumIn() {
 		err = errors.New("the number of params is not adapted")

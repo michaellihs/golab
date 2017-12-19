@@ -21,11 +21,13 @@
 package mapper
 
 import (
+	"bytes"
+	"io"
+	"os"
 	"reflect"
 	"strings"
-	"bytes"
-	"os"
-	"io"
+
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -67,11 +69,11 @@ var _ = Describe("FlagMapper", func() {
 		Flag1 *bool
 		Flag2 *string
 		Flag3 *int
-		Flag4 *string   // non matching with flags
+		Flag4 *string // non matching with flags
 	}
 
 	type testFlagsWithTransformation struct {
-		Flag1 *string   `flag_name:"visibility" type:"bool" required:"no" description:"first flag" transform:"string2visibility"`
+		Flag1 *string `flag_name:"visibility" type:"bool" required:"no" description:"first flag" transform:"string2visibility"`
 	}
 
 	type optsRequireTransformation struct {
@@ -79,7 +81,7 @@ var _ = Describe("FlagMapper", func() {
 	}
 
 	type testFlagsWithLabelsTransformation struct {
-		Labels *string   `flag_name:"labels" type:"string" required:"no" description:"labels" transform:"string2Labels"`
+		Labels *string `flag_name:"labels" type:"string" required:"no" description:"labels" transform:"string2Labels"`
 	}
 
 	type optsRequireLabelsTransformation struct {
@@ -87,7 +89,7 @@ var _ = Describe("FlagMapper", func() {
 	}
 
 	type testFlagsWithPropertyNotInOpts struct {
-		Id *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"id"`
+		Id   *string `flag_name:"id" short:"i" type:"string" required:"yes" description:"id"`
 		Name *string `flag_name:"name" short:"n" type:"string" required:"yes" description:"name"`
 	}
 
@@ -145,7 +147,7 @@ var _ = Describe("FlagMapper", func() {
 		var mapper = InitializedMapper(mockCmd, &testFlags{}, &testOpts{})
 
 		executeCommand(mockCmd, "mock", "--flag1", "true", "--flag2", "string", "--flag3", "4", "--flag4", "v1, v2, v3", "--flag5", "1,2,3,4")
-		_,_,err := mapper.AutoMap()
+		_, _, err := mapper.AutoMap()
 		flags := mapper.MappedFlags().(*testFlags)
 		opts := mapper.MappedOpts().(*testOpts)
 
@@ -169,10 +171,10 @@ var _ = Describe("FlagMapper", func() {
 		Expect(*opts.Flag3).To(Equal(4))
 		// TODO there seems to be bug in cobra, when parsing array flags
 		Expect(*opts.Flag4).Should(ConsistOf("v1, v2, v3"))
-		Expect(opts.Flag5).Should(ConsistOf(1,2,3,4))
+		Expect(opts.Flag5).Should(ConsistOf(1, 2, 3, 4))
 	})
 
-	It ("maps args to given flags struct as expected", func() {
+	It("maps args to given flags struct as expected", func() {
 		flags := &testFlags{}
 		opts := &testOpts{}
 		mockCmd := mockCmd()
@@ -188,7 +190,7 @@ var _ = Describe("FlagMapper", func() {
 		Expect(*flags.Flag4).Should(ConsistOf("v1, v2, v3"))
 	})
 
-	It ("maps nil flags as expected", func() {
+	It("maps nil flags as expected", func() {
 		cmd := mockCmd()
 		mapper := InitializedMapper(cmd, nil, nil)
 		opts, flags, err := mapper.AutoMap()
@@ -232,6 +234,27 @@ var _ = Describe("FlagMapper", func() {
 		mapper.AutoMap()
 
 		Expect(opts.Labels).Should(ConsistOf("label1", "label2", "label3"))
+	})
+
+	It("transforms string to time.Time value as expected", func() {
+		type str2timeValFlags struct {
+			Time *string `flag_name:"time" type:"string" required:"no" description:"time" transform:"string2TimeVal"`
+		}
+		type str2timeValOpts struct {
+			Time time.Time
+		}
+		flags := &str2timeValFlags{}
+		opts := &str2timeValOpts{}
+		cmd := mockCmd()
+		var mapper = InitializedMapper(cmd, flags, opts)
+
+		executeCommand(cmd, "mock", "--time", "2017-12-13")
+		mapper.AutoMap()
+
+		Expect(opts.Time).NotTo(BeNil())
+		Expect(opts.Time.Day()).To(Equal(13))
+		Expect(opts.Time.Month()).To(Equal(time.Month(12)))
+		Expect(opts.Time.Year()).To(Equal(2017))
 	})
 
 	It("silently ignores properties in flags that are not available in opts", func() {
@@ -278,23 +301,13 @@ var _ = Describe("FlagMapper", func() {
 		var mapper = InitializedMapper(mockCmd, flags, nil)
 
 		executeCommand(mockCmd, "mock", "-n", "name")
-		_,_,err := mapper.AutoMap()
+		_, _, err := mapper.AutoMap()
 
 		Expect(err).NotTo(BeNil())
 		Expect(err.Error()).To(Equal("required flag --flag1 was empty"))
 	})
 
 })
-
-
-
-
-
-
-
-
-
-
 
 // TODO put the following methods into a testhelper
 

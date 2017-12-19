@@ -44,8 +44,8 @@ var commitsCmd = &golabCommand{
 type commitsListFlags struct {
 	Id      *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
 	RefName *string `flag_name:"ref_name" short:"r" type:"string" required:"no" description:"The name of a repository branch or tag or if not given the default branch"`
-	Since   *string `flag_name:"since" short:"s" type:"string" required:"no" description:"Only commits after or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ"`
-	Until   *string `flag_name:"until" short:"u" type:"string" required:"no" description:"Only commits before or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ"`
+	Since   *string `flag_name:"since" transform:"string2TimeVal" short:"s" type:"string" required:"no" description:"Only commits after or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ"`
+	Until   *string `flag_name:"until" transform:"string2TimeVal" short:"u" type:"string" required:"no" description:"Only commits before or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ"`
 }
 
 var commitsListCmd = &golabCommand{

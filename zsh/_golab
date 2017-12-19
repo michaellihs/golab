@@ -18,21 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      deploy-keys)
-        _arguments '2: :(add delete enable get list list-all)'
-      ;;
-      labels)
-        _arguments '2: :(create delete edit list subscribe unsubscribe)'
-      ;;
-      project)
-        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
-      ;;
-      branches)
-        _arguments '2: :(create delete delete-merged get list protect unprotect)'
-      ;;
-      group)
-        _arguments '2: :(create delete get ls projects search transfer-project update)'
-      ;;
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
       ;;
@@ -42,14 +27,29 @@ case $state in
       namespaces)
         _arguments '2: :(get ls search)'
       ;;
-      protected-branches)
-        _arguments '2: :(get ls protect-branch unprotect-branch)'
+      project)
+        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
+      ;;
+      commits)
+        _arguments '2: :(list)'
+      ;;
+      deploy-keys)
+        _arguments '2: :(add delete enable get list list-all)'
+      ;;
+      group)
+        _arguments '2: :(create delete get ls projects search transfer-project update)'
       ;;
       user)
         _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
-      commits)
-        _arguments '2: :(list)'
+      branches)
+        _arguments '2: :(create delete delete-merged get list protect unprotect)'
+      ;;
+      labels)
+        _arguments '2: :(create delete edit list subscribe unsubscribe)'
+      ;;
+      protected-branches)
+        _arguments '2: :(get ls protect-branch unprotect-branch)'
       ;;
       *)
         _arguments '*: :_files'
