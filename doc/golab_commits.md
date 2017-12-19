@@ -27,4 +27,5 @@ golab commits [flags]
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
+* [golab commits list](golab_commits_list.md)	 - List repository commits
 

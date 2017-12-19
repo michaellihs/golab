@@ -24,6 +24,7 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 // see https://docs.gitlab.com/ce/api/commits.html#commits-api
@@ -39,6 +40,36 @@ var commitsCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/commits.html#list-repository-commits
+type commitsListFlags struct {
+	Id      *string `flag_name:"id" short:"i" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	RefName *string `flag_name:"ref_name" short:"r" type:"string" required:"no" description:"The name of a repository branch or tag or if not given the default branch"`
+	Since   *string `flag_name:"since" short:"s" type:"string" required:"no" description:"Only commits after or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ"`
+	Until   *string `flag_name:"until" short:"u" type:"string" required:"no" description:"Only commits before or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ"`
+}
+
+var commitsListCmd = &golabCommand{
+	Parent: commitsCmd.Cmd,
+	Flags:  &commitsListFlags{},
+	Opts:   &gitlab.ListCommitsOptions{},
+	Cmd: &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List repository commits",
+		Long:    `Get a list of repository commits in a project`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*commitsListFlags)
+		opts := cmd.Opts.(*gitlab.ListCommitsOptions)
+		c, _, err := gitlabClient.Commits.ListCommits(*flags.Id, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(c)
+	},
+}
+
 func init() {
 	commitsCmd.Init()
+	commitsListCmd.Init()
 }
