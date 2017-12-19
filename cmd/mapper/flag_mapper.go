@@ -27,6 +27,8 @@ import (
 	"strings"
 	"time"
 
+	"encoding/json"
+
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
@@ -317,13 +319,20 @@ func string2Labels(s string) gitlab.Labels {
 	return stringSlice
 }
 
+func json2CommitActions(s string) []*gitlab.CommitAction {
+	var v []*gitlab.CommitAction
+	json.Unmarshal([]byte(s), &v)
+	return v
+}
+
 var funcs = map[string]interface{}{
-	"string2Labels":     string2Labels,
-	"string2visibility": str2Visibility,
-	"string2IsoTime":    string2IsoTime,
-	"string2TimeVal":    string2TimeVal,
-	"string2Time":       string2Time,
-	"str2AccessLevel":   str2AccessLevel,
+	"string2Labels":      string2Labels,
+	"string2visibility":  str2Visibility,
+	"string2IsoTime":     string2IsoTime,
+	"string2TimeVal":     string2TimeVal,
+	"string2Time":        string2Time,
+	"str2AccessLevel":    str2AccessLevel,
+	"json2CommitActions": json2CommitActions,
 }
 
 func call(m map[string]interface{}, name string, params ...interface{}) (result []reflect.Value, err error) {

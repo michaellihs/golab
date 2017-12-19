@@ -257,6 +257,46 @@ var _ = Describe("FlagMapper", func() {
 		Expect(opts.Time.Year()).To(Equal(2017))
 	})
 
+	It("transforms JSON to commit actions as expected", func() {
+		type json2CommitActionsFlags struct {
+			Actions *string `flag_name:"actions" transform:"json2CommitActions" type:"array" required:"yes" description:"A JSON encoded array of action hashes to commit as a batch."`
+		}
+		type json2CommitActionsOpts struct {
+			Actions []*gitlab.CommitAction
+		}
+		json := `[
+			{
+			  "action": "create",
+			  "file_path": "foo/bar",
+			  "content": "some content"
+			},
+			{
+			  "action": "delete",
+			  "file_path": "foo/bar2"
+			},
+			{
+			  "action": "move",
+			  "file_path": "foo/bar3",
+			  "previous_path": "foo/bar4",
+			  "content": "some content"
+			},
+			{
+			  "action": "update",
+			  "file_path": "foo/bar5",
+			  "content": "new content"
+			}
+	  	]`
+		flags := &json2CommitActionsFlags{}
+		opts := &json2CommitActionsOpts{}
+		cmd := mockCmd()
+		var mapper = InitializedMapper(cmd, flags, opts)
+
+		executeCommand(cmd, "mock", "--actions", json)
+		mapper.AutoMap()
+
+		Expect(len(opts.Actions)).To(Equal(4))
+	})
+
 	It("silently ignores properties in flags that are not available in opts", func() {
 		flags := &testFlagsWithPropertyNotInOpts{}
 		opts := &testOptsWithMissingProperty{}
