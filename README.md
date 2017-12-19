@@ -62,6 +62,12 @@ Examples
    golab user ssh-keys add --key "`cat ~/.ssh/id_rsa.pub`" --title "my dsa key"
    ```
 
+* create commits from the command line
+
+   ``` bash
+   golab commits create --id 30 --actions "`cat cmd/fixtures/commit-actions.json`" --branch master --commit_message "committed with golab"
+   ```
+
 * query your json output with [jq](https://stedolan.github.io/jq/)
 
    ``` bash

@@ -27,5 +27,6 @@ golab commits [flags]
 
 ### SEE ALSO
 * [golab](golab.md)	 - Gitlab CLI written in Go
+* [golab commits create](golab_commits_create.md)	 - Create a commit with multiple files and actions
 * [golab commits list](golab_commits_list.md)	 - List repository commits
 

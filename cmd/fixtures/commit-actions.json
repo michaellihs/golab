@@ -1,0 +1,12 @@
+[
+  {
+    "action": "create",
+    "file_path": "foo/bar",
+    "content": "some content"
+  },
+  {
+    "action": "update",
+    "file_path": "README.md",
+    "content": "new content"
+  }
+]
