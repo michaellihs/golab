@@ -215,6 +215,23 @@ GroupAccess *string  `flag_name:"group_access" short:"a" type:"integer" transfor
 Remember: you only can use `*string` as field type, when you need a transformation of the value!
 
 
+### `json: Unmarshal(non-pointer []*gitlab.ProtectedBranch)`
+
+If you see `json: Unmarshal(non-pointer []*gitlab.ProtectedBranch)`, most likely you forgot to use the pointer of a return value in the `XyzService`, e.g.
+
+```` golang
+var p []*ProtectedBranch
+resp, err := s.client.Do(req, p)
+````
+
+instead of
+
+```` golang
+var p []*ProtectedBranch
+resp, err := s.client.Do(req, &p)
+````
+
+
 TODOs
 =====
 
