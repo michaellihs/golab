@@ -87,8 +87,45 @@ var protectedBranchesGetCmd = &golabCommand{
 	},
 }
 
+// see https://docs.gitlab.com/ce/api/protected_branches.html#protect-repository-branches
+type protectedBranchesProtectRepositoryFlags struct {
+	Id               *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project owned by the authenticated user"`
+	Name             *string `flag_name:"name" type:"string" required:"yes" description:"The name of the branch or wildcard"`
+	PushAccessLevel  *string `flag_name:"push_access_level" type:"string" transform:"str2AccessLevel" required:"no" description:"Access levels allowed to push (defaults: 40, master access level)"`
+	MergeAccessLevel *string `flag_name:"merge_access_level" type:"string" transform:"str2AccessLevel" required:"no" description:"Access levels allowed to merge (defaults: 40, master access level)"`
+}
+
+var protectedBranchesProtectRepositoryCmd = &golabCommand{
+	Parent: protectedBranchesCmd.Cmd,
+	Flags:  &protectedBranchesProtectRepositoryFlags{},
+	Opts:   &gitlab.ProtectRepositoryBranchesOptions{},
+	Cmd: &cobra.Command{
+		Use:     "protect-branch",
+		Aliases: []string{"protect"},
+		Short:   "Protect repository branches",
+		Long: `Protects a single repository branch or several project repository branches using a wildcard protected branch.
+
+Access Levels:
+
+0  => No access
+30 => Developer access
+40 => Master access
+`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*protectedBranchesProtectRepositoryFlags)
+		opts := cmd.Opts.(*gitlab.ProtectRepositoryBranchesOptions)
+		b, _, err := gitlabClient.ProtectedBranches.ProtectRepositoryBranches(*flags.Id, opts)
+		if err != nil {
+			return err
+		}
+		return OutputJson(b)
+	},
+}
+
 func init() {
 	protectedBranchesCmd.Init()
 	protectedBranchesListCmd.Init()
 	protectedBranchesGetCmd.Init()
+	protectedBranchesProtectRepositoryCmd.Init()
 }
