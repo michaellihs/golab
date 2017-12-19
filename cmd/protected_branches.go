@@ -23,6 +23,7 @@ package cmd
 import (
 	"errors"
 	"github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 // see https://docs.gitlab.com/ce/api/protected_branches.html#protected-branches-api
@@ -53,14 +54,12 @@ var protectedBranchesListCmd = &golabCommand{
 		Long:  `Gets a list of protected branches from a project.`,
 	},
 	Run: func(cmd golabCommand) error {
-		// TODO implement in go-gitlab
-		return errors.New("currently not implemented by go-gitlab")
-		//flags := cmd.Flags.(*protectedBranchesListFlags)
-		//branches, _, err := gitlabClient.Branches.ListProtectedBranches(*flags.Id)
-		//if err != nil {
-		//    return err
-		//}
-		//return OutputJson(branches)
+		flags := cmd.Flags.(*protectedBranchesListFlags)
+		branches, _, err := gitlabClient.ProtectedBranches.ListProtectedBranches(*flags.Id)
+		if err != nil {
+			return err
+		}
+		return OutputJson(branches)
 	},
 }
 
@@ -79,14 +78,12 @@ var protectedBranchesGetCmd = &golabCommand{
 		Long:  `Gets a single protected branch or wildcard protected branch.`,
 	},
 	Run: func(cmd golabCommand) error {
-		// TODO implement in go-gitlab
-		return errors.New("currently not implemented in go-gitlab")
-		//flags := cmd.Flags.(*protectedBranchesGetFlags)
-		//branch, _, err := gitlabClient.Branches.GetProtectedBranch(*flags.Id, *flags.Name)
-		//if err != nil {
-		//    return err
-		//}
-		//return OutputJson(branch)
+		flags := cmd.Flags.(*protectedBranchesGetFlags)
+		branch, _, err := gitlabClient.ProtectedBranches.GetProtectedBranch(*flags.Id, *flags.Name)
+		if err != nil {
+			return err
+		}
+		return OutputJson(branch)
 	},
 }
 
