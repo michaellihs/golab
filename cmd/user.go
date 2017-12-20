@@ -393,12 +393,13 @@ var userSshKeysDeleteCmd = &golabCommand{
 
 // see https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
 type userActivitiesFlags struct {
-	From *string `flag_name:"from" type:"string" required:"no" description:"Date string in the format YEAR-MONTH-DAY, e.g. 2016-03-11. Defaults to 6 months ago."`
+	From *string `flag_name:"from" transform:"string2IsoTime" type:"string" required:"no" description:"Date string in the format YEAR-MONTH-DAY, e.g. 2016-03-11. Defaults to 6 months ago."`
 }
 
 var userActivitiesCmd = &golabCommand{
 	Parent: userCmd,
 	Flags:  &userActivitiesFlags{},
+	Opts:   &gitlab.GetUserActivitiesOptions{},
 	Cmd: &cobra.Command{
 		Use:   "activities",
 		Short: "Get user activities (admin only)",
@@ -412,9 +413,8 @@ The activities that update the timestamp are:
 By default, it shows the activity for all users in the last 6 months, but this can be amended by using the from parameter.`,
 	},
 	Run: func(cmd golabCommand) error {
-		// TODO From flag currently not supported by go-gitlab
-		// flags := cmd.Flags.(*userActivitiesFlags)
-		userActivities, _, err := gitlabClient.Users.GetUserActivities()
+		opts := cmd.Opts.(*gitlab.GetUserActivitiesOptions)
+		userActivities, _, err := gitlabClient.Users.GetUserActivities(opts)
 		if err != nil {
 			return err
 		}
