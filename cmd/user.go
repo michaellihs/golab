@@ -24,12 +24,13 @@
 package cmd
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
+
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"strconv"
 )
 
 var email, password, username, state, expires, scopes, name string
@@ -102,6 +103,7 @@ var userLsCmd = &golabCommand{
 	Parent: userCmd,
 	Flags:  &listUsersFlags{},
 	Opts:   &gitlab.ListUsersOptions{},
+	Paged:  true,
 	Cmd: &cobra.Command{
 		Use:   "ls",
 		Short: "List users",
@@ -576,7 +578,7 @@ var userEmailsListCmd = &golabCommand{
 	Cmd: &cobra.Command{
 		Use:   "ls",
 		Short: "List emails",
-		Long:  `If no user_id is given: get a list of currently authenticated user's emails.
+		Long: `If no user_id is given: get a list of currently authenticated user's emails.
 If a user_id is given: Get a list of a specified user's emails. Available only for admin`,
 	},
 	Run: func(cmd golabCommand) error {
@@ -694,7 +696,7 @@ If a user_id is given: Deletes email owned by a specified user. Available only f
 
 // see https://docs.gitlab.com/ce/api/users.html#block-user
 type userBlockFlags struct {
-	UserId  *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"id or username of user to block"`
+	UserId *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"id or username of user to block"`
 }
 
 var userBlockCmd = &golabCommand{
@@ -717,7 +719,7 @@ var userBlockCmd = &golabCommand{
 
 // see https://docs.gitlab.com/ce/api/users.html#unblock-user
 type userUnblockFlags struct {
-	UserId  *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"id or username of user to unblock"`
+	UserId *string `flag_name:"user_id" short:"u" type:"string" required:"yes" description:"id or username of user to unblock"`
 }
 
 var userUnblockCmd = &golabCommand{
@@ -732,8 +734,8 @@ var userUnblockCmd = &golabCommand{
 		flags := cmd.Flags.(*userUnblockFlags)
 		userId, err := userIdFromFlag(*flags.UserId)
 		if err != nil {
-		return err
-	}
+			return err
+		}
 		return gitlabClient.Users.UnblockUser(userId)
 	},
 }

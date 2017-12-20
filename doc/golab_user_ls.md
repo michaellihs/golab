@@ -23,6 +23,8 @@ golab user ls [flags]
       --extern_uid string               (optional) Lookup users by external UID and provider (admin only)
       --external                        (optional) Search for users who are external (admin only)
   -h, --help                            help for ls
+      --page int                        (optional) Page of results to retrieve
+      --per_page int                    (optional) The number of results to include per page (max 100)
       --provider string                 (optional) Lookup users by external UID and provider (admin only)
       --search string                   (optional) Search for users by email or username (admin only)
       --username string                 (optional) Lookup users by username (admin only)
