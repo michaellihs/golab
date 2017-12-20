@@ -254,10 +254,10 @@
 			"revisionTime": "2017-11-22T10:28:28Z"
 		},
 		{
-			"checksumSHA1": "3lgEzrjzDrHYbGt9gCa69HJma38=",
+			"checksumSHA1": "D/KfoOyNmvnA0neamLfGB2HgEIg=",
 			"path": "github.com/xanzy/go-gitlab",
-			"revision": "69b2d4845582ee2ab4cfcdf34dfc707c663d24c5",
-			"revisionTime": "2017-12-15T07:56:28Z"
+			"revision": "b6b10eeb961ac24fbef1a1d4fa60c241a9448ec9",
+			"revisionTime": "2017-12-20T08:59:09Z"
 		},
 		{
 			"checksumSHA1": "Jcarmr4WdTvVAWBssHA33O6NaeI=",
