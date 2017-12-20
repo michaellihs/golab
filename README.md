@@ -65,7 +65,7 @@ Examples
 * create commits from the command line
 
    ``` bash
-   golab commits create --id 30 --actions "`cat cmd/fixtures/commit-actions.json`" --branch master --commit_message "committed with golab"
+   golab commits create --id 30 --actions "`cat cmd/fixtures/commit-actions.json`" --branch new-branch --start_branch master --commit_message "committed with golab"
    ```
 
 * query your json output with [jq](https://stedolan.github.io/jq/)

@@ -46,6 +46,7 @@ golab commits create [flags]
       --commit_message string   (required) Commit message
   -h, --help                    help for create
       --id string               (required) The ID or URL-encoded path of the project
+      --start_branch string     (optional) Name of the branch to start the new commit from
 ```
 
 ### Options inherited from parent commands

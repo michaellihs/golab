@@ -74,11 +74,10 @@ type commitsCreateFlags struct {
 	Id            *string `flag_name:"id" type:"integer/string" required:"yes" description:"The ID or URL-encoded path of the project"`
 	Branch        *string `flag_name:"branch" type:"string" required:"yes" description:"Name of the branch to commit into. To create a new branch, also provide start_branch."`
 	CommitMessage *string `flag_name:"commit_message" type:"string" required:"yes" description:"Commit message"`
+	StartBranch   *string `flag_name:"start_branch" type:"string" required:"no" description:"Name of the branch to start the new commit from"`
 	Actions       *string `flag_name:"actions" transform:"json2CommitActions" type:"array" required:"yes" description:"A JSON encoded array of action hashes to commit as a batch."`
 	AuthorEmail   *string `flag_name:"author_email" type:"string" required:"no" description:"Specify the commit author's email address"`
 	AuthorName    *string `flag_name:"author_name" type:"string" required:"no" description:"Specify the commit author's name"`
-	// TODO this field is currently not available in go-gitlab
-	// StartBranch   *string `flag_name:"start_branch" type:"string" required:"no" description:"Name of the branch to start the new commit from"`
 }
 
 var commitsCreateCmd = &golabCommand{

@@ -18,6 +18,18 @@ case $state in
   ;;
   level2)
     case $words[2] in
+      commits)
+        _arguments '2: :(create list)'
+      ;;
+      group)
+        _arguments '2: :(create delete get ls projects search transfer-project update)'
+      ;;
+      labels)
+        _arguments '2: :(create delete edit list subscribe unsubscribe)'
+      ;;
+      namespaces)
+        _arguments '2: :(get ls search)'
+      ;;
       user)
         _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
@@ -30,26 +42,14 @@ case $state in
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
       ;;
-      protected-branches)
-        _arguments '2: :(get ls protect-branch unprotect-branch)'
-      ;;
-      namespaces)
-        _arguments '2: :(get ls search)'
+      merge-requests)
+        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
       ;;
       project)
         _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
       ;;
-      commits)
-        _arguments '2: :(create list)'
-      ;;
-      group)
-        _arguments '2: :(create delete get ls projects search transfer-project update)'
-      ;;
-      labels)
-        _arguments '2: :(create delete edit list subscribe unsubscribe)'
-      ;;
-      merge-requests)
-        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
+      protected-branches)
+        _arguments '2: :(get ls protect-branch unprotect-branch)'
       ;;
       *)
         _arguments '*: :_files'
