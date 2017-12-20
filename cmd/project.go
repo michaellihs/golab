@@ -24,9 +24,9 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/michaellihs/golab/cmd/mapper"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
-	"github.com/michaellihs/golab/cmd/mapper"
 )
 
 var createOptsMapper, listOptsMapper, getOptsMapper, editOptsMapper, forkOptsMapper, shareOptsMapper, addHookOptsMapper, editHookOptsMapper, projectSearchOptsMapper, listForksOptsMapper mapper.FlagMapper
@@ -591,9 +591,9 @@ type projectSearchFlags struct {
 }
 
 var projectSearchCmd = &cobra.Command{
-	Use: "search",
+	Use:   "search",
 	Short: "Search for projects by name",
-	Long: `Search for projects by name which are accessible to the authenticated user. This endpoint can be accessed without authentication if the project is publicly accessible.`,
+	Long:  `Search for projects by name which are accessible to the authenticated user. This endpoint can be accessed without authentication if the project is publicly accessible.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("currently not implemented")
 		// TODO not implemented in go-gitlab so far
