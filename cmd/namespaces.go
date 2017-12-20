@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"errors"
+
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
@@ -32,7 +33,7 @@ var namespacesCmd = &golabCommand{
 	Cmd: &cobra.Command{
 		Use:   "namespaces",
 		Short: "Manage namespaces",
-		Long:  `Usernames and groupnames fall under a special category called namespaces.
+		Long: `Usernames and groupnames fall under a special category called namespaces.
 
 For users and groups supported API calls see the users and groups documentation respectively.
 
@@ -62,7 +63,7 @@ var namespacesListCmd = &golabCommand{
 		opts := cmd.Opts.(*gitlab.ListNamespacesOptions)
 		ns, _, err := gitlabClient.Namespaces.ListNamespaces(opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(ns)
 	},
@@ -85,7 +86,7 @@ var namespacesSearchCmd = &golabCommand{
 		flags := cmd.Flags.(*namespacesSearchFlags)
 		ns, _, err := gitlabClient.Namespaces.SearchNamespace(*flags.Search)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(ns)
 	},
@@ -105,14 +106,12 @@ var namespacesGetCmd = &golabCommand{
 		Long:  `Get a namespace by ID.`,
 	},
 	Run: func(cmd golabCommand) error {
-		return errors.New("currently not implemented")
-		// TODO currently not available in go-gitlab
-		//flags := cmd.Flags.(*namespacesGetFlags)
-		//ns, _, err := gitlabClient.Namespaces.GetById(*flags.Id)
-		//if err != nil {
-		//    return err
-		//}
-		//return OutputJson(ns)
+		flags := cmd.Flags.(*namespacesGetFlags)
+		ns, _, err := gitlabClient.Namespaces.GetNamespace(*flags.Id)
+		if err != nil {
+			return err
+		}
+		return OutputJson(ns)
 	},
 }
 

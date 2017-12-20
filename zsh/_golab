@@ -18,18 +18,6 @@ case $state in
   ;;
   level2)
     case $words[2] in
-      commits)
-        _arguments '2: :(create list)'
-      ;;
-      labels)
-        _arguments '2: :(create delete edit list subscribe unsubscribe)'
-      ;;
-      namespaces)
-        _arguments '2: :(get ls search)'
-      ;;
-      protected-branches)
-        _arguments '2: :(get ls protect-branch unprotect-branch)'
-      ;;
       user)
         _arguments '2: :(activities block create delete emails get impersonation-token ls modify ssh-keys unblock)'
       ;;
@@ -39,17 +27,29 @@ case $state in
       deploy-keys)
         _arguments '2: :(add delete enable get list list-all)'
       ;;
-      group)
-        _arguments '2: :(create delete get ls projects search transfer-project update)'
-      ;;
       group-members)
         _arguments '2: :(add delete edit get ls sync)'
       ;;
-      merge-requests)
-        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
+      protected-branches)
+        _arguments '2: :(get ls protect-branch unprotect-branch)'
+      ;;
+      namespaces)
+        _arguments '2: :(get ls search)'
       ;;
       project)
         _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
+      ;;
+      commits)
+        _arguments '2: :(create list)'
+      ;;
+      group)
+        _arguments '2: :(create delete get ls projects search transfer-project update)'
+      ;;
+      labels)
+        _arguments '2: :(create delete edit list subscribe unsubscribe)'
+      ;;
+      merge-requests)
+        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
       ;;
       *)
         _arguments '*: :_files'
@@ -58,12 +58,6 @@ case $state in
   ;;
   level3)
     case $words[3] in
-      impersonation-token)
-        _arguments '3: :(create get get-all revoke)'
-      ;;
-      ssh-keys)
-        _arguments '3: :(add delete get ls)'
-      ;;
       forks)
         _arguments '3: :(create delete)'
       ;;
@@ -71,6 +65,12 @@ case $state in
         _arguments '3: :(add delete edit get ls)'
       ;;
       emails)
+        _arguments '3: :(add delete get ls)'
+      ;;
+      impersonation-token)
+        _arguments '3: :(create get get-all revoke)'
+      ;;
+      ssh-keys)
         _arguments '3: :(add delete get ls)'
       ;;
       *)

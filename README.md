@@ -194,11 +194,15 @@ Therefore adapt the provided run command to the following:
 
     sudo docker run --detach \
         --hostname gitlab.example.com \
-        --publish 443:443 --publish 80:80 --publish 8022:22 \
+        --publish 443:443 --publish 8080:80 --publish 8022:22 \
         --name gitlab \
         --volume /tmp/gitlab/config:/etc/gitlab \
         --volume /tmp/gitlab/logs:/var/log/gitlab \
         gitlab/gitlab-ce:9.5.10-ce.0
+
+On my machine:
+
+    {bind  /Users/mimi/docker/gitlab/config /etc/gitlab   true rprivate} {bind  /Users/mimi/docker/gitlab/logs /var/log/gitlab   true rprivate} {bind  /Users/mimi/docker/gitlab/data /var/opt/gitlab   true rprivate}]
 
 Afterwards you can start the (existing) container with:
 
