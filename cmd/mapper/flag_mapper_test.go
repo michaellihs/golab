@@ -257,6 +257,27 @@ var _ = Describe("FlagMapper", func() {
 		Expect(opts.Time.Year()).To(Equal(2017))
 	})
 
+	It("transforms string to ISOTime as expected", func() {
+		type str2ISOTime struct {
+			Time *string `flag_name:"time" type:"string" required:"no" description:"time" transform:"string2IsoTime"`
+		}
+		type str2ISTOTime struct {
+			Time *gitlab.ISOTime
+		}
+		flags := &str2ISOTime{}
+		opts := &str2ISTOTime{}
+		cmd := mockCmd()
+		var mapper = InitializedMapper(cmd, flags, opts)
+
+		executeCommand(cmd, "mock", "--time", "2017-12-13")
+		mapper.AutoMap()
+
+		Expect(opts.Time).NotTo(BeNil())
+		s, err := opts.Time.MarshalJSON()
+		Expect(err).To(BeNil())
+		Expect(string(s)).To(Equal(`"2017-12-13"`))
+	})
+
 	It("transforms JSON to commit actions as expected", func() {
 		type json2CommitActionsFlags struct {
 			Actions *string `flag_name:"actions" transform:"json2CommitActions" type:"array" required:"yes" description:"A JSON encoded array of action hashes to commit as a batch."`

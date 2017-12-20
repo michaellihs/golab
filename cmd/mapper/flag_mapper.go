@@ -273,8 +273,7 @@ func str2Visibility(s string) *gitlab.VisibilityValue {
 }
 
 func string2IsoTime(s string) *gitlab.ISOTime {
-	iso8601 := "2006-01-02"
-	isotime, err := time.Parse(`"`+iso8601+`"`, string(s))
+	isotime, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		panic(err.Error())
 	}
