@@ -123,7 +123,7 @@ func OutputJson(object interface{}) error {
 }
 
 func initRootCommand() {
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "(optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "(optional) golab config file (default is ./.golab.yml and $HOME/.golab.yml)")
 	RootCmd.PersistentFlags().StringVar(&caFile, "ca-file", "", "(optional) provides a .pem file to be used in certificates pool for SSL connection")
 	RootCmd.PersistentFlags().StringVar(&caPath, "ca-path", "", "(optional) provides a directory with .pem certificates to be used for SSL connection")
 
@@ -139,11 +139,14 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	}
 
-	// TODO read config from --config flag
-	viper.SetConfigName(".golab") // name of config file (without extension)
-	viper.AddConfigPath(".")      // adding current directory as first search path
-	viper.AddConfigPath("$HOME")  // adding home directory as first search path
-	viper.AutomaticEnv()          // read in environment variables that match
+	if config, err := RootCmd.PersistentFlags().GetString("config"); err == nil && config != "" {
+		viper.SetConfigFile(config)
+	} else {
+		viper.SetConfigName(".golab") // name of config file (without extension)
+		viper.AddConfigPath(".")      // adding current directory as first search path
+		viper.AddConfigPath("$HOME")  // adding home directory as second search path
+	}
+	viper.AutomaticEnv() // read in environment variables that match
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println(err)
