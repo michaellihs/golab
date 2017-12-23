@@ -12,7 +12,7 @@ This application provides a Command Line Interface for Gitlab.
 ```
       --ca-file string   (optional) provides a .pem file to be used in certificates pool for SSL connection
       --ca-path string   (optional) provides a directory with .pem certificates to be used for SSL connection
-      --config string    (optional) CURRENTLY NOT SUPPORTED config file (default is ./.golab.yml and $HOME/.golab.yml)
+      --config string    (optional) golab config file (default is ./.golab.yml and $HOME/.golab.yml)
   -h, --help             help for golab
 ```
 
