@@ -56,7 +56,7 @@ var userGetCmd = &golabCommand{
 	Flags:  &userGetFlags{},
 	Cmd: &cobra.Command{
 		Use:   "get",
-		Short: "Single user.",
+		Short: "Get a single user",
 		Long:  `Get a single user. You can either provide --id or --username.`,
 	},
 	Run: func(cmd golabCommand) error {
@@ -82,6 +82,31 @@ func getIdOrUsername(flags *userGetFlags) (int, string) {
 		username = *flags.Username
 	}
 	return id, username
+}
+
+// see https://docs.gitlab.com/ce/api/users.html#for-admins
+type userGetByUsernameFlags struct {
+	Username *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username of the user to look up"`
+}
+
+var userGetByUsernameCmd = &golabCommand{
+	Parent: userCmd,
+	Flags:  &userGetByUsernameFlags{},
+	Cmd: &cobra.Command{
+		Use:     "get-by-username",
+		Aliases: []string{"by-username"},
+		Short:   "Lookup users by username",
+		Long:    `Lookup users by username`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*userGetByUsernameFlags)
+		users, _, err := gitlabClient.Users.GetUsersByUsername(*flags.Username)
+		if err != nil {
+			return err
+		}
+		return OutputJson(users)
+
+	},
 }
 
 // see https://docs.gitlab.com/ce/api/users.html#list-users
@@ -759,6 +784,7 @@ func getUserId(id int, username string) (int, error) {
 
 func init() {
 	userGetCmd.Init()
+	userGetByUsernameCmd.Init()
 	userLsCmd.Init()
 	userCreateCmd.Init()
 	userModifyCmd.Init()

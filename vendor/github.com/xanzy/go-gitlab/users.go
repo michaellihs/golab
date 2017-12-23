@@ -118,6 +118,27 @@ func (s *UsersService) GetUser(user int, options ...OptionFunc) (*User, *Respons
 	return usr, resp, err
 }
 
+// GetUserByUsername looks up users by username (for admins only).
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/users.html#for-admins
+func (s *UsersService) GetUsersByUsername(username string, options ...OptionFunc) ([]*User, *Response, error) {
+	u := fmt.Sprintf("users?username=%s", username)
+
+	req, err := s.client.NewRequest("GET", u, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var usr []*User
+	resp, err := s.client.Do(req, &usr)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return usr, resp, err
+}
+
 // CreateUserOptions represents the available CreateUser() options.
 //
 // GitLab API docs: https://docs.gitlab.com/ce/api/users.html#user-creation
@@ -720,7 +741,7 @@ type UserActivity struct {
 // GitLap API docs:
 // https://docs.gitlab.com/ce/api/users.html#get-user-activities-admin-only
 type GetUserActivitiesOptions struct {
-	From *ISOTime `url:"from" json:"from"`
+	From *ISOTime `url:"from,omitempty" json:"from,omitempty"`
 }
 
 // GetUserActivities retrieves user activities (admin only)
