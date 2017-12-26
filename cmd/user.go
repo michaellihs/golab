@@ -85,22 +85,27 @@ func getIdOrUsername(flags *userGetFlags) (int, string) {
 }
 
 // see https://docs.gitlab.com/ce/api/users.html#for-admins
-type userGetByUsernameFlags struct {
-	Username *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username of the user to look up"`
+type userGetAsAdminFlags struct {
+	Username     *string `flag_name:"username" short:"u" type:"string" required:"no" description:"Username of the user to look up"`
+	ExternalUID  *string `flag_name:"external_uid" type:"string" required:"no" description:"External UID of the user to look up (only together with provider)"`
+	Provider     *string `flag_name:"provider" type:"string" required:"no" description:"External provider of user to look up"`
+	External     *bool   `flag_name:"external" type:"bool" required:"no" description:"If set to true only external users will be returned"`
+	CratedBefore *string `flag_name:"created_before" transform:"string2Time" type:"string" required:"no" description:"Search users created before, e.g. 2001-01-02"`
+	CreatedAfter *string `flag_name:"created_after" transform:"string2Time" type:"string" required:"no" description:"Search users created after, e.g. 2001-01-02"`
 }
 
-var userGetByUsernameCmd = &golabCommand{
+var userGetAsAdminCmd = &golabCommand{
 	Parent: userCmd,
-	Flags:  &userGetByUsernameFlags{},
+	Flags:  &userGetAsAdminFlags{},
+	Opts:   &gitlab.GetUsersAsAdminOptions{},
 	Cmd: &cobra.Command{
-		Use:     "get-by-username",
-		Aliases: []string{"by-username"},
-		Short:   "Lookup users by username",
-		Long:    `Lookup users by username`,
+		Use:   "get-as-admin",
+		Short: "Lookup users by username",
+		Long:  `Lookup users by username`,
 	},
 	Run: func(cmd golabCommand) error {
-		flags := cmd.Flags.(*userGetByUsernameFlags)
-		users, _, err := gitlabClient.Users.GetUsersByUsername(*flags.Username)
+		opts := cmd.Opts.(*gitlab.GetUsersAsAdminOptions)
+		users, _, err := gitlabClient.Users.GetUsersAsAdmin(opts)
 		if err != nil {
 			return err
 		}
@@ -784,7 +789,7 @@ func getUserId(id int, username string) (int, error) {
 
 func init() {
 	userGetCmd.Init()
-	userGetByUsernameCmd.Init()
+	userGetAsAdminCmd.Init()
 	userLsCmd.Init()
 	userCreateCmd.Init()
 	userModifyCmd.Init()

@@ -118,14 +118,26 @@ func (s *UsersService) GetUser(user int, options ...OptionFunc) (*User, *Respons
 	return usr, resp, err
 }
 
-// GetUserByUsername looks up users by username (for admins only).
+// GetUsersAsAdminOptions represents the search options for GetUsersAsAdmin
 //
 // GitLab API docs:
 // https://docs.gitlab.com/ce/api/users.html#for-admins
-func (s *UsersService) GetUsersByUsername(username string, options ...OptionFunc) ([]*User, *Response, error) {
-	u := fmt.Sprintf("users?username=%s", username)
+type GetUsersAsAdminOptions struct {
+	Username     *string    `json:"username,omitempty" url:"username,omitempty"`
+	ExternalUID  *string    `json:"extern_uid,omitempty" url:"extern_uid,omitempty"`
+	Provider     *string    `json:"provider,omitempty" url:"provider,omitempty"`
+	External     *bool      `json:"external,omitempty" url:"external,omitempty"`
+	CratedBefore *time.Time `json:"created_before,omitempty" url:"created_before,omitempty"`
+	CreatedAfter *time.Time `json:"created_after,omitempty" url:"created_after,omitempty"`
+}
 
-	req, err := s.client.NewRequest("GET", u, nil, options)
+// GetUsersAsAdmin looks up users by multiple search options
+// (for admins only)
+//
+// GitLab API docs:
+// https://docs.gitlab.com/ce/api/users.html#for-admins
+func (s *UsersService) GetUsersAsAdmin(opt *GetUsersAsAdminOptions, options ...OptionFunc) ([]*User, *Response, error) {
+	req, err := s.client.NewRequest("GET", "users", opt, options)
 	if err != nil {
 		return nil, nil, err
 	}
