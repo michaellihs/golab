@@ -9,7 +9,7 @@ case $state in
   level1)
     case $words[1] in
       golab)
-        _arguments '1: :(branches commits deploy-keys gendoc group group-members help labels login merge-requests namespaces project protected-branches user zsh-completion)'
+        _arguments '1: :(branches commits deploy-keys gendoc group group-members help labels login merge-requests namespaces project protected-branches user version zsh-completion)'
       ;;
       *)
         _arguments '*: :_files'
@@ -18,6 +18,27 @@ case $state in
   ;;
   level2)
     case $words[2] in
+      namespaces)
+        _arguments '2: :(get ls search)'
+      ;;
+      group)
+        _arguments '2: :(create delete get ls projects search transfer-project update)'
+      ;;
+      labels)
+        _arguments '2: :(create delete edit list subscribe unsubscribe)'
+      ;;
+      deploy-keys)
+        _arguments '2: :(add delete enable get list list-all)'
+      ;;
+      group-members)
+        _arguments '2: :(add delete edit get ls sync)'
+      ;;
+      merge-requests)
+        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
+      ;;
+      project)
+        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
+      ;;
       protected-branches)
         _arguments '2: :(get ls protect-branch unprotect-branch)'
       ;;
@@ -30,27 +51,6 @@ case $state in
       commits)
         _arguments '2: :(create list)'
       ;;
-      deploy-keys)
-        _arguments '2: :(add delete enable get list list-all)'
-      ;;
-      labels)
-        _arguments '2: :(create delete edit list subscribe unsubscribe)'
-      ;;
-      namespaces)
-        _arguments '2: :(get ls search)'
-      ;;
-      group)
-        _arguments '2: :(create delete get ls projects search transfer-project update)'
-      ;;
-      group-members)
-        _arguments '2: :(add delete edit get ls sync)'
-      ;;
-      merge-requests)
-        _arguments '2: :(accept add-spent-time cancel-when-pipeline-succeeds create create-todo delete get get-changes get-commits get-diff-version get-diff-versions list-issues ls project-ls reset-spent-time reset-time-estimate set-time-estimate subscribe time-tracking-stats unsubscribe update)'
-      ;;
-      project)
-        _arguments '2: :(archive create delete edit fork forks get hooks housekeeping list-forks ls search share star unarchive unshare unstar upload-file)'
-      ;;
       *)
         _arguments '*: :_files'
       ;;
@@ -58,6 +58,12 @@ case $state in
   ;;
   level3)
     case $words[3] in
+      forks)
+        _arguments '3: :(create delete)'
+      ;;
+      hooks)
+        _arguments '3: :(add delete edit get ls)'
+      ;;
       emails)
         _arguments '3: :(add delete get ls)'
       ;;
@@ -66,12 +72,6 @@ case $state in
       ;;
       ssh-keys)
         _arguments '3: :(add delete get ls)'
-      ;;
-      forks)
-        _arguments '3: :(create delete)'
-      ;;
-      hooks)
-        _arguments '3: :(add delete edit get ls)'
       ;;
       *)
         _arguments '*: :_files'

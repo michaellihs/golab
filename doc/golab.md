@@ -30,5 +30,6 @@ This application provides a Command Line Interface for Gitlab.
 * [golab project](golab_project.md)	 - Manage projects
 * [golab protected-branches](golab_protected-branches.md)	 - Protected branches
 * [golab user](golab_user.md)	 - Manage Gitlab users
+* [golab version](golab_version.md)	 - Gitlab version
 * [golab zsh-completion](golab_zsh-completion.md)	 - Generate ZSH completion file
 
