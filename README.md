@@ -24,6 +24,7 @@ It allows you to run Gitlab administration tasks from your command line.
     - [Gitlab Docker Image](#gitlab-docker-image)
     - [Troubleshooting](#troubleshooting)
         - [`panic: trying to get string value of flag of type int`](#panic-trying-to-get-string-value-of-flag-of-type-int)
+        - [`json: Unmarshal(non-pointer []*gitlab.ProtectedBranch)`](#json-unmarshalnon-pointer-gitlabprotectedbranch)
 - [TODOs](#todos)
     - [Support multiple Targets](#support-multiple-targets)
     - [Support GPG keys in user command](#support-gpg-keys-in-user-command)
@@ -104,7 +105,7 @@ According to [this discussion](https://github.com/xanzy/go-gitlab/issues/267) th
 
 ### Login with Access Token
 
-First create a Gitlab [access token for your user](https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html) in Gitlab (most likely an admin user).
+First create a Gitlab [personal access token for your user](https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html) in Gitlab (most likely an admin user).
 
 Create a file `.golab.yml` in either `~/` or the directory you want to use golab with the following content:
 
