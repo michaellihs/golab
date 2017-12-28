@@ -29,9 +29,8 @@ import (
 	path2 "path"
 
 	"github.com/howeyc/gopass"
-	"github.com/spf13/cobra"
-	// TODO make an importable package out of it
 	. "github.com/michaellihs/gogpat/gogpat"
+	"github.com/spf13/cobra"
 )
 
 // loginCmd implements a user login with username and password
@@ -86,9 +85,15 @@ var loginCmd = &golabCommand{
 // available from the Gitlab API so we login to the Gitlab UI
 // and scrape the token from the generated HTML.
 type personalAccessTokenFlags struct {
-	Host     *string `flag_name:"host" short:"s" type:"string" required:"yes" description:"Hostname (http://gitlab.my-domain.com) of the gitlab server"`
-	Username *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username for the login"`
-	Password *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password for the login"`
+	Host         *string `flag_name:"host" short:"s" type:"string" required:"yes" description:"Hostname (http://gitlab.my-domain.com) of the gitlab server"`
+	Username     *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username for the login"`
+	Password     *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password for the login"`
+	API          *bool   `flag_name:"api" short:"a" type:"bool" required:"no" description:"Access the authenticated user's API (default: false)"`
+	ReadUser     *bool   `flag_name:"read_user" type:"bool" required:"no" description:"Read the authenticated user's personal information (default: false)"`
+	ReadRegistry *bool   `flag_name:"read_registry" type:"bool" required:"no" description:"Grant access to the docker registry (default: false)"`
+	Sudo         *bool   `flag_name:"sudo" type:"bool" required:"no" description:"Perform API actions as any user in the system (default: false)"`
+	Date         *string `flag_name:"expires" type:"string" required:"no" description:"Expiration date of token"`
+	TokenName    *string `flag_name:"token_name" type:"string" required:"no" description:"Name of token"`
 }
 
 var personalAccessTokenCmd = &golabCommand{
@@ -102,7 +107,7 @@ var personalAccessTokenCmd = &golabCommand{
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*personalAccessTokenFlags)
-		// TODO refactor: de-duplicate...
+
 		if *flags.Password == "" {
 			var err error
 			password, err = askForPassword()
@@ -111,18 +116,46 @@ var personalAccessTokenCmd = &golabCommand{
 			}
 			flags.Password = &password
 		}
-		// TODO get scope from flags
+
 		req := GitLabTokenRequest{
 			URL:      *flags.Host,
 			Username: *flags.Username,
 			Password: *flags.Password,
-			Scope:    Scope{API: true},
+			Scope:    Scope{},
 		}
+
+		if flags.API != nil {
+			req.Scope.API = *flags.API
+		}
+
+		if flags.ReadRegistry != nil {
+			req.Scope.ReadRegistry = *flags.ReadRegistry
+		}
+
+		if flags.ReadUser != nil {
+			req.Scope.ReadUser = *flags.ReadUser
+		}
+
+		if flags.Sudo != nil {
+			req.Scope.Sudo = *flags.Sudo
+		}
+
+		if flags.Date != nil {
+			req.Date = *flags.Date
+		}
+
+		if flags.TokenName != nil {
+			req.TokenName = *flags.TokenName
+		} else {
+			req.TokenName = "golab-generated"
+		}
+
 		token, err := CreateToken(req)
 		if err != nil {
 			return err
 		}
 		fmt.Println(token)
+
 		return nil
 	},
 }
