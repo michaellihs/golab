@@ -1,20 +1,20 @@
-## golab login
+## golab personal-access-token
 
-Login to Gitlab
+Create a personal access token
 
 ### Synopsis
 
 
-Login to Gitlab using username and password
+Create a personal access token for a user identified by username and password
 
 ```
-golab login [flags]
+golab personal-access-token [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help              help for login
+  -h, --help              help for personal-access-token
   -s, --host string       (required) Hostname (http://gitlab.my-domain.com) of the gitlab server
   -p, --password string   (optional) Password for the login
   -u, --username string   (required) Username for the login

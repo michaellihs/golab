@@ -24,40 +24,105 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"errors"
 
-	"github.com/spf13/cobra"
-    "github.com/howeyc/gopass"
-	"github.com/xanzy/go-gitlab"
-	"net/url"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	path2 "path"
+
+	"github.com/howeyc/gopass"
+	"github.com/spf13/cobra"
+	// TODO make an importable package out of it
+	. "github.com/michaellihs/gogpat/gogpat"
 )
 
-var host string
+// loginCmd implements a user login with username and password
+// that is not available in the Gitlab API. We use the
+// Gitlab UI and some hacks to scrape a personal access token
+// for a user identified by username and password.
+type loginFlags struct {
+	Host     *string `flag_name:"host" short:"s" type:"string" required:"yes" description:"Hostname (http://gitlab.my-domain.com) of the gitlab server"`
+	Username *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username for the login"`
+	Password *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password for the login"`
+}
 
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to a Gitlab server",
-	Long: `Log in to a Gitlab server with your username and password.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if host == "" {
-			return errors.New("required parameter `--host` or `-s` not given - exiting")
-		}
-		if username == "" {
-			return errors.New("required parameter `--user` or `-u` not given - exiting")
-		}
-		if password == "" {
+var loginCmd = &golabCommand{
+	Parent: RootCmd,
+	Flags:  &loginFlags{},
+	Cmd: &cobra.Command{
+		Use:   "login",
+		Short: "Login to Gitlab",
+		Long:  `Login to Gitlab using username and password`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*loginFlags)
+		if *flags.Password == "" {
 			var err error
 			password, err = askForPassword()
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
+			flags.Password = &password
 		}
-		token, err := getPrivateToken(host, username, password)
-		if err != nil { return err }
-		err = writeGolabConf(host, token)
-		if err != nil { return err}
-		fmt.Printf("** successfully logged in to %s\n", host)
+		req := GitLabTokenRequest{
+			URL:      *flags.Host,
+			Username: *flags.Username,
+			Password: *flags.Password,
+			Scope:    Scope{API: true},
+		}
+		token, err := CreateToken(req)
+		if err != nil {
+			return err
+		}
+		err = writeGolabConf(*flags.Host, token)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("** successfully logged in to %s\n", *flags.Host)
+		return nil
+	},
+}
+
+// personalAccessTokenCmd creates a personal access token for
+// a user identified by username and password. This is not
+// available from the Gitlab API so we login to the Gitlab UI
+// and scrape the token from the generated HTML.
+type personalAccessTokenFlags struct {
+	Host     *string `flag_name:"host" short:"s" type:"string" required:"yes" description:"Hostname (http://gitlab.my-domain.com) of the gitlab server"`
+	Username *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username for the login"`
+	Password *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password for the login"`
+}
+
+var personalAccessTokenCmd = &golabCommand{
+	Parent: RootCmd,
+	Flags:  &personalAccessTokenFlags{},
+	Cmd: &cobra.Command{
+		Use:     "personal-access-token",
+		Aliases: []string{"pat"},
+		Short:   "Create a personal access token",
+		Long:    `Create a personal access token for a user identified by username and password`,
+	},
+	Run: func(cmd golabCommand) error {
+		flags := cmd.Flags.(*personalAccessTokenFlags)
+		// TODO refactor: de-duplicate...
+		if *flags.Password == "" {
+			var err error
+			password, err = askForPassword()
+			if err != nil {
+				return err
+			}
+			flags.Password = &password
+		}
+		// TODO get scope from flags
+		req := GitLabTokenRequest{
+			URL:      *flags.Host,
+			Username: *flags.Username,
+			Password: *flags.Password,
+			Scope:    Scope{API: true},
+		}
+		token, err := CreateToken(req)
+		if err != nil {
+			return err
+		}
+		fmt.Println(token)
 		return nil
 	},
 }
@@ -80,39 +145,7 @@ func askForPassword() (string, error) {
 	return strings.TrimSpace(string(pass)), err
 }
 
-func getPrivateToken(host string, username string, password string) (string, error) {
-	opts := &gitlab.GetSessionOptions{
-		Login: &username,
-		Password: &password,
-	}
-	loginClient, err := getLoginClient(host)
-	if err != nil { return "", err }
-	session, _, err := loginClient.Session.GetSession(opts)
-	if err != nil {
-		return "", err
-	}
-	return session.PrivateToken, nil
-}
-
-func getLoginClient(host string) (*gitlab.Client, error) {
-	baseUrl, err := url.Parse(host)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("could not parse given host '%s': %s", baseUrl, err))
-	}
-
-	client, err := initHttpClient()
-	if err != nil {
-		return nil, err
-	}
-
-	loginClient := gitlab.NewClient(client, viper.GetString("token"))
-	loginClient.SetBaseURL(baseUrl.String() + "/api/v4")
-	return loginClient, nil
-}
-
 func init() {
-	loginCmd.PersistentFlags().StringVarP(&host, "host", "s", "", "(required) URL to Gitlab server eg. http://gitlab.org")
-	loginCmd.PersistentFlags().StringVarP(&username, "user", "u", "", "(required) username")
-	loginCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "(optional) password, if not given, you'll be prompted interactively")
-	RootCmd.AddCommand(loginCmd)
+	loginCmd.Init()
+	personalAccessTokenCmd.Init()
 }

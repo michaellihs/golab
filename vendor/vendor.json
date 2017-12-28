@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "pz9cCs6Xdo285ssZF5dEfvHTFbo=",
+			"path": "github.com/anaskhan96/soup",
+			"revision": "df81beb8204e429c6e021f1000aabf728561ee56",
+			"revisionTime": "2017-12-18T20:31:25Z"
+		},
+		{
 			"checksumSHA1": "mEPx03tDisj6nvPDxzIeb1gt4xg=",
 			"path": "github.com/armon/consul-api",
 			"revision": "dcfedd50ed5334f96adee43fc88518a4f095e15c",
@@ -159,10 +165,16 @@
 			"revisionTime": "2017-01-13T09:48:12Z"
 		},
 		{
-			"checksumSHA1": "Y/YI/gbCo/EqfCRihQdpFZ5I7H0=",
+			"checksumSHA1": "McopQku8uoFjdtmPDhHCgYTganU=",
 			"path": "github.com/michaellihs/gogpat",
-			"revision": "c4ab5d5cb788f9ac44484807b21700854dc18bdf",
-			"revisionTime": "2017-12-27T23:28:13Z"
+			"revision": "f2c5781a67ace4e05ccd847b09bd288e24bc5b52",
+			"revisionTime": "2017-12-28T18:55:17Z"
+		},
+		{
+			"checksumSHA1": "okedBl4YTOPfConO4hcUO62DzzI=",
+			"path": "github.com/michaellihs/gogpat/gitlab",
+			"revision": "f2c5781a67ace4e05ccd847b09bd288e24bc5b52",
+			"revisionTime": "2017-12-28T18:55:17Z"
 		},
 		{
 			"checksumSHA1": "V/quM7+em2ByJbWBLOsEwnY3j/Q=",
@@ -201,6 +213,12 @@
 			"path": "github.com/shurcooL/sanitized_anchor_name",
 			"revision": "a65d4d2de4d5f7c74868dfa9b202a3c8be315aaa",
 			"revisionTime": "2016-09-04T16:08:59Z"
+		},
+		{
+			"checksumSHA1": "ySaT8G3I3y4MmnoXOYAAX0rC+p8=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "d682213848ed68c0a260ca37d6dd5ace8423f5ba",
+			"revisionTime": "2017-12-05T20:32:29Z"
 		},
 		{
 			"checksumSHA1": "lBehULzb2/kIK3wZ0gz2yNmHq9s=",
@@ -258,6 +276,12 @@
 			"path": "github.com/ugorji/go/codec",
 			"revision": "84cb69a8af8316eed8cf4a3c9368a56977850062",
 			"revisionTime": "2017-11-22T10:28:28Z"
+		},
+		{
+			"checksumSHA1": "QptO0AepiRNzesHimvUfeXmJp/c=",
+			"path": "github.com/urfave/cli",
+			"revision": "39908eb08fee7c10d842622a114a5c133fb0a3c6",
+			"revisionTime": "2017-12-12T16:34:29Z"
 		},
 		{
 			"checksumSHA1": "D/KfoOyNmvnA0neamLfGB2HgEIg=",
@@ -342,6 +366,18 @@
 			"path": "golang.org/x/crypto/ssh/terminal",
 			"revision": "b080dc9a8c480b08e698fb1219160d598526310f",
 			"revisionTime": "2017-11-22T09:46:40Z"
+		},
+		{
+			"checksumSHA1": "2t6c6F2y4b/PEV04TOHpQxh/xLc=",
+			"path": "golang.org/x/net/html",
+			"revision": "d866cfc389cec985d6fda2859936a575a55a3ab6",
+			"revisionTime": "2017-12-11T20:45:21Z"
+		},
+		{
+			"checksumSHA1": "uMRr2bnIJS+9Xm0FqMBYUTzaSGs=",
+			"path": "golang.org/x/net/html/atom",
+			"revision": "d866cfc389cec985d6fda2859936a575a55a3ab6",
+			"revisionTime": "2017-12-11T20:45:21Z"
 		},
 		{
 			"checksumSHA1": "J8jpuwFY0KFR0hG2pgYGPkePB/Y=",

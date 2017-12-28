@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	. "github.com/michaellihs/gogpat/gitlab"
+
 	logrus "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
