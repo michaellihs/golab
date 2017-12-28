@@ -159,6 +159,12 @@
 			"revisionTime": "2017-01-13T09:48:12Z"
 		},
 		{
+			"checksumSHA1": "Y/YI/gbCo/EqfCRihQdpFZ5I7H0=",
+			"path": "github.com/michaellihs/gogpat",
+			"revision": "c4ab5d5cb788f9ac44484807b21700854dc18bdf",
+			"revisionTime": "2017-12-27T23:28:13Z"
+		},
+		{
 			"checksumSHA1": "V/quM7+em2ByJbWBLOsEwnY3j/Q=",
 			"path": "github.com/mitchellh/go-homedir",
 			"revision": "b8bc1bf767474819792c23f32d8286a45736f1c6",
