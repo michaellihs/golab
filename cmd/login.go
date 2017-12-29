@@ -39,7 +39,7 @@ import (
 // for a user identified by username and password.
 type loginFlags struct {
 	Host     *string `flag_name:"host" short:"s" type:"string" required:"yes" description:"Hostname (http://gitlab.my-domain.com) of the gitlab server"`
-	Username *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username for the login"`
+	User     *string `flag_name:"user" short:"u" type:"string" required:"yes" description:"Username for the login"`
 	Password *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password for the login"`
 }
 
@@ -63,7 +63,7 @@ var loginCmd = &golabCommand{
 		}
 		req := GitLabTokenRequest{
 			URL:      *flags.Host,
-			Username: *flags.Username,
+			Username: *flags.User,
 			Password: *flags.Password,
 			Scope:    Scope{API: true},
 		}
@@ -71,6 +71,7 @@ var loginCmd = &golabCommand{
 		if err != nil {
 			return err
 		}
+		// TODO add path to write config to
 		err = writeGolabConf(*flags.Host, token)
 		if err != nil {
 			return err
@@ -86,7 +87,7 @@ var loginCmd = &golabCommand{
 // and scrape the token from the generated HTML.
 type personalAccessTokenFlags struct {
 	Host         *string `flag_name:"host" short:"s" type:"string" required:"yes" description:"Hostname (http://gitlab.my-domain.com) of the gitlab server"`
-	Username     *string `flag_name:"username" short:"u" type:"string" required:"yes" description:"Username for the login"`
+	User         *string `flag_name:"user" short:"u" type:"string" required:"yes" description:"Username for the login"`
 	Password     *string `flag_name:"password" short:"p" type:"string" required:"no" description:"Password for the login"`
 	API          *bool   `flag_name:"api" short:"a" type:"bool" required:"no" description:"Access the authenticated user's API (default: false)"`
 	ReadUser     *bool   `flag_name:"read_user" type:"bool" required:"no" description:"Read the authenticated user's personal information (default: false)"`
@@ -119,7 +120,7 @@ var personalAccessTokenCmd = &golabCommand{
 
 		req := GitLabTokenRequest{
 			URL:      *flags.Host,
-			Username: *flags.Username,
+			Username: *flags.User,
 			Password: *flags.Password,
 			Scope:    Scope{},
 		}

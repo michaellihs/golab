@@ -17,7 +17,7 @@ golab login [flags]
   -h, --help              help for login
   -s, --host string       (required) Hostname (http://gitlab.my-domain.com) of the gitlab server
   -p, --password string   (optional) Password for the login
-  -u, --username string   (required) Username for the login
+  -u, --user string       (required) Username for the login
 ```
 
 ### Options inherited from parent commands

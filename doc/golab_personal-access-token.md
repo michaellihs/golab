@@ -23,7 +23,7 @@ golab personal-access-token [flags]
       --read_user           (optional) Read the authenticated user's personal information (default: false)
       --sudo                (optional) Perform API actions as any user in the system (default: false)
       --token_name string   (optional) Name of token
-  -u, --username string     (required) Username for the login
+  -u, --user string         (required) Username for the login
 ```
 
 ### Options inherited from parent commands
