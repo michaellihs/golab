@@ -53,7 +53,8 @@ var loginCmd = &golabCommand{
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*loginFlags)
-		if *flags.Password == "" {
+		fmt.Println(*flags.User)
+		if flags.Password == nil {
 			var err error
 			password, err = askForPassword()
 			if err != nil {
