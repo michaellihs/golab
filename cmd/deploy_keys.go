@@ -21,8 +21,11 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"errors"
+
+	. "github.com/michaellihs/golab/cmd/helpers"
+
+	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -131,7 +134,7 @@ If the deploy key already exists in another project, it will be joined to curren
 		opts := cmd.Opts.(*gitlab.AddDeployKeyOptions)
 		key, _, err := gitlabClient.DeployKeys.AddDeployKey(*flags.Id, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(key)
 	},
@@ -146,7 +149,7 @@ type deplyKeysDeleteFlags struct {
 var deplyKeysDeleteCmd = &golabCommand{
 	Parent: deployKeysCmd.Cmd,
 	Flags:  &deplyKeysDeleteFlags{},
-	Cmd:    &cobra.Command{
+	Cmd: &cobra.Command{
 		Use:     "delete",
 		Aliases: []string{"rm"},
 		Short:   "Delete deploy key",
@@ -168,7 +171,7 @@ type deployKeysEnableFlags struct {
 var deployKeysEnableCmd = &golabCommand{
 	Parent: deployKeysCmd.Cmd,
 	Flags:  &deployKeysEnableFlags{},
-	Cmd:    &cobra.Command{
+	Cmd: &cobra.Command{
 		Use:     "enable",
 		Aliases: []string{"e"},
 		Short:   "Enable a deploy key",
@@ -178,7 +181,7 @@ var deployKeysEnableCmd = &golabCommand{
 		flags := cmd.Flags.(*deployKeysEnableFlags)
 		key, _, err := gitlabClient.DeployKeys.EnableDeployKey(*flags.Id, *flags.KeyId)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(key)
 	},

@@ -24,6 +24,8 @@ import (
 	"errors"
 	"strconv"
 
+	. "github.com/michaellihs/golab/cmd/helpers"
+
 	"github.com/michaellihs/golab/cmd/mapper"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"

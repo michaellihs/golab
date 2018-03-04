@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -51,15 +50,6 @@ func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		os.Exit(-1)
 	}
-}
-
-func OutputJson(object interface{}) error {
-	result, err := json.MarshalIndent(object, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(result))
-	return nil
 }
 
 func initRootCommand() {

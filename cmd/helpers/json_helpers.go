@@ -1,4 +1,4 @@
-// Copyright © 2017 Michael Lihs
+// Copyright © 2018 Michael Lihs
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,32 +18,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cmd
+package helpers
 
 import (
-	. "github.com/michaellihs/golab/cmd/helpers"
-
-	"github.com/spf13/cobra"
+	"encoding/json"
+	"fmt"
 )
 
-// see https://docs.gitlab.com/ce/api/version.html
-var versionCmd = &golabCommand{
-	Parent: RootCmd,
-	Cmd: &cobra.Command{
-		Use:     "version",
-		Aliases: []string{"v"},
-		Short:   "Gitlab version",
-		Long:    `Retrieve version information for this GitLab instance. Responds 200 OK for authenticated users.`,
-	},
-	Run: func(cmd golabCommand) error {
-		version, _, err := gitlabClient.Version.GetVersion()
-		if err != nil {
-			return err
-		}
-		return OutputJson(version)
-	},
-}
-
-func init() {
-	versionCmd.Init()
+func OutputJson(object interface{}) error {
+	result, err := json.MarshalIndent(object, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(result))
+	return nil
 }

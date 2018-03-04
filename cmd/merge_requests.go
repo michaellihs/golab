@@ -23,6 +23,8 @@ package cmd
 import (
 	"errors"
 
+	. "github.com/michaellihs/golab/cmd/helpers"
+
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
@@ -488,11 +490,11 @@ var mergeRequestGetSingleDiffVersionCmd = &golabCommand{
 		Short: "Get a single merge request diff version",
 		Long:  `Get a single merge request diff version.`,
 	},
-	Run: func (cmd golabCommand) error{
+	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*mergeRequestsGetSingleDiffVersionFlags)
 		version, _, err := gitlabClient.MergeRequests.GetSingleMergeRequestDiffVersion(*flags.Id, *flags.MergeRequestIid, *flags.VersionId)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(version)
 	},
@@ -519,7 +521,7 @@ var mergeRequestsSetTimeEstimateCmd = &golabCommand{
 		opts := cmd.Opts.(*gitlab.SetTimeEstimateOptions)
 		timeStats, _, err := gitlabClient.MergeRequests.SetTimeEstimate(*flags.Id, *flags.MergeRequestIid, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(timeStats)
 	},
@@ -541,9 +543,9 @@ var mergeRequestsResetTimeEstimateCmd = &golabCommand{
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*mergeRequestResetTimeEstimateFlags)
-		timeStats, _,  err := gitlabClient.MergeRequests.ResetTimeEstimate(*flags.Id, *flags.MergeRequestIid)
+		timeStats, _, err := gitlabClient.MergeRequests.ResetTimeEstimate(*flags.Id, *flags.MergeRequestIid)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(timeStats)
 	},
@@ -570,7 +572,7 @@ var mergeRequestsAddSpentTimeCmd = &golabCommand{
 		opts := cmd.Opts.(*gitlab.AddSpentTimeOptions)
 		timeStats, _, err := gitlabClient.MergeRequests.AddSpentTime(*flags.Id, *flags.MergeRequestIid, opts)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(timeStats)
 	},
@@ -594,7 +596,7 @@ var mergeRequestsResetSpentTimeCmd = &golabCommand{
 		flags := cmd.Flags.(*mergeRequestsResetSpentTimeFlags)
 		timeStats, _, err := gitlabClient.MergeRequests.ResetSpentTime(*flags.Id, *flags.MergeRequestIid)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(timeStats)
 	},
@@ -618,7 +620,7 @@ var mergeRequestsGetTimeTrackingStatsCmd = &golabCommand{
 		flags := cmd.Flags.(*mergeRequestsGetTimeTrackingStatsFlags)
 		stats, _, err := gitlabClient.MergeRequests.GetTimeSpent(*flags.Id, *flags.MergeRequestIid)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(stats)
 	},

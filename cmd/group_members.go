@@ -23,6 +23,8 @@ package cmd
 import (
 	"errors"
 
+	. "github.com/michaellihs/golab/cmd/helpers"
+
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
@@ -34,18 +36,18 @@ var expiresAt string
 var remove bool
 
 var groupMembersCmd = &cobra.Command{
-	Use: "group-members",
+	Use:   "group-members",
 	Short: "Access group members",
-	Long: `Show members and access level of groups`,
+	Long:  `Show members and access level of groups`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return errors.New("check usage of `group-members` with `golab group-members -h`")
 	},
 }
 
 var groupMembersLsCmd = &cobra.Command{
-	Use: "ls",
+	Use:   "ls",
 	Short: "List all members of a group",
-	Long: `Gets a list of groupmembers viewable by the authenticated user`,
+	Long:  `Gets a list of groupmembers viewable by the authenticated user`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id`not given - exiting")
@@ -54,15 +56,17 @@ var groupMembersLsCmd = &cobra.Command{
 			ListOptions: gitlab.ListOptions{Page: 1, PerPage: 1000},
 		}
 		members, _, err := gitlabClient.Groups.ListGroupMembers(id, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(members)
 	},
 }
 
 var groupMemberGetCmd = &cobra.Command{
-	Use: "get",
+	Use:   "get",
 	Short: "Get a member of a group",
-	Long: `Get a member of a group`,
+	Long:  `Get a member of a group`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id`not given - exiting")
@@ -79,7 +83,7 @@ var groupMemberGetCmd = &cobra.Command{
 }
 
 var groupMemberAddCmd = &cobra.Command{
-	Use: "add",
+	Use:   "add",
 	Short: "Add a member to a group",
 	Long: `Add a member to a group
 
@@ -108,13 +112,15 @@ var groupMemberAddCmd = &cobra.Command{
 			opts.ExpiresAt = &expiresAt
 		}
 		member, _, err := gitlabClient.GroupMembers.AddGroupMember(id, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(member)
 	},
 }
 
 var groupMemberEditCmd = &cobra.Command{
-	Use: "edit",
+	Use:   "edit",
 	Short: "Edit a member of a group or project",
 	Long: `Updates a member of a group or project.
 
@@ -142,15 +148,17 @@ var groupMemberEditCmd = &cobra.Command{
 			opts.ExpiresAt = &expiresAt
 		}
 		member, _, err := gitlabClient.GroupMembers.EditGroupMember(id, userId, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(member)
 	},
 }
 
 var groupMemberDeleteCmd = &cobra.Command{
-	Use: "delete",
+	Use:   "delete",
 	Short: "Remove a member from a group or project",
-	Long: `Removes a user from a group or project.`,
+	Long:  `Removes a user from a group or project.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if id == 0 {
 			return errors.New("required parameter `-i` or `--id` not given - exiting")
@@ -164,7 +172,7 @@ var groupMemberDeleteCmd = &cobra.Command{
 }
 
 var groupMemberSyncCmd = &cobra.Command{
-	Use: "sync",
+	Use:   "sync",
 	Short: "Synchronizes members of 2 groups",
 	Long: `Synchronizes the members of 2 groups, by either
 
@@ -186,28 +194,36 @@ var groupMemberSyncCmd = &cobra.Command{
 
 		if remove {
 			err := removeTargetMembers(target, source, opts)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 		}
 
 		members, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		return OutputJson(members)
 	},
 }
 
 func createNonExistingTargetUsers(source int, target int, opts *gitlab.ListGroupMembersOptions) error {
 	sourceMembers, _, err := gitlabClient.Groups.ListGroupMembers(source, opts)
-	if err != nil { return err }
-	for _, sourceMember := range sourceMembers  {
+	if err != nil {
+		return err
+	}
+	for _, sourceMember := range sourceMembers {
 		_, resp, err := gitlabClient.GroupMembers.GetGroupMember(target, sourceMember.ID)
-		if resp.StatusCode == 404 {   // 404 means "Not Found" --> does not exist yet
+		if resp.StatusCode == 404 { // 404 means "Not Found" --> does not exist yet
 			newMemberOpts := &gitlab.AddGroupMemberOptions{
-				UserID: &sourceMember.ID,
+				UserID:      &sourceMember.ID,
 				AccessLevel: &sourceMember.AccessLevel,
 			}
 			if sourceMember.ExpiresAt != nil {
 				expires, err := isoTime2String(sourceMember.ExpiresAt)
-				if err != nil { return err }
+				if err != nil {
+					return err
+				}
 				newMemberOpts.ExpiresAt = &expires
 			}
 			gitlabClient.GroupMembers.AddGroupMember(target, newMemberOpts)
@@ -220,12 +236,16 @@ func createNonExistingTargetUsers(source int, target int, opts *gitlab.ListGroup
 
 func removeTargetMembers(target int, source int, opts *gitlab.ListGroupMembersOptions) error {
 	targetMembers, _, err := gitlabClient.Groups.ListGroupMembers(target, opts)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	for _, targetMember := range targetMembers {
 		_, resp, err := gitlabClient.GroupMembers.GetGroupMember(source, targetMember.ID)
 		if resp.StatusCode == 404 {
 			_, err := gitlabClient.GroupMembers.RemoveGroupMember(target, targetMember.ID)
-			if err != nil { return err }
+			if err != nil {
+				return err
+			}
 		} else if err != nil {
 			return err
 		}
@@ -235,12 +255,18 @@ func removeTargetMembers(target int, source int, opts *gitlab.ListGroupMembersOp
 
 func int2AccessLevel(accessLevel int) *gitlab.AccessLevelValue {
 	switch accessLevel {
-	case 10: return gitlab.AccessLevel(gitlab.GuestPermissions)
-	case 20: return gitlab.AccessLevel(gitlab.ReporterPermissions)
-	case 30: return gitlab.AccessLevel(gitlab.DeveloperPermissions)
-	case 40: return gitlab.AccessLevel(gitlab.MasterPermissions)
-	case 50: return gitlab.AccessLevel(gitlab.OwnerPermission)
-	default: panic("Unrecognized value for AccessLevel")
+	case 10:
+		return gitlab.AccessLevel(gitlab.GuestPermissions)
+	case 20:
+		return gitlab.AccessLevel(gitlab.ReporterPermissions)
+	case 30:
+		return gitlab.AccessLevel(gitlab.DeveloperPermissions)
+	case 40:
+		return gitlab.AccessLevel(gitlab.MasterPermissions)
+	case 50:
+		return gitlab.AccessLevel(gitlab.OwnerPermission)
+	default:
+		panic("Unrecognized value for AccessLevel")
 	}
 }
 
@@ -261,7 +287,7 @@ func initGroupMembersLsCmd() {
 
 func initGroupMembersGetCmd() {
 	groupMemberGetCmd.PersistentFlags().IntVarP(&id, "id", "i", 0, "(required) id of group to get member from")
-	groupMemberGetCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0,"(required) id of user to get group member infos")
+	groupMemberGetCmd.PersistentFlags().IntVarP(&userId, "user_id", "u", 0, "(required) id of user to get group member infos")
 	groupMembersCmd.AddCommand(groupMemberGetCmd)
 }
 

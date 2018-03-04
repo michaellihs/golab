@@ -21,8 +21,11 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"errors"
+
+	. "github.com/michaellihs/golab/cmd/helpers"
+
+	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -172,7 +175,7 @@ var labelsSubsribeCmd = &golabCommand{
 		flags := cmd.Flags.(*labelsSubscribeFlags)
 		l, _, err := gitlabClient.Labels.SubscribeToLabel(*flags.Id, *flags.LabelId)
 		if err != nil {
-		    return err
+			return err
 		}
 		return OutputJson(l)
 	},
@@ -194,7 +197,7 @@ var labelsUnsubscribeCmd = &golabCommand{
 	},
 	Run: func(cmd golabCommand) error {
 		flags := cmd.Flags.(*labelsUnsubscribeFlags)
-		_, err  := gitlabClient.Labels.UnsubscribeFromLabel(*flags.Id, *flags.LabelId)
+		_, err := gitlabClient.Labels.UnsubscribeFromLabel(*flags.Id, *flags.LabelId)
 		return err
 	},
 }
