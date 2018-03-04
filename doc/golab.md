@@ -27,6 +27,7 @@ This application provides a Command Line Interface for Gitlab.
 * [golab login](golab_login.md)	 - Login to Gitlab
 * [golab merge-requests](golab_merge-requests.md)	 - Manage Merge Requests
 * [golab namespaces](golab_namespaces.md)	 - Manage namespaces
+* [golab open](golab_open.md)	 - Open Gitlab for project
 * [golab personal-access-token](golab_personal-access-token.md)	 - Create a personal access token
 * [golab project](golab_project.md)	 - Manage projects
 * [golab protected-branches](golab_protected-branches.md)	 - Protected branches
