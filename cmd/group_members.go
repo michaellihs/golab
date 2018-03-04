@@ -220,7 +220,7 @@ func createNonExistingTargetUsers(source int, target int, opts *gitlab.ListGroup
 				AccessLevel: &sourceMember.AccessLevel,
 			}
 			if sourceMember.ExpiresAt != nil {
-				expires, err := isoTime2String(sourceMember.ExpiresAt)
+				expires, err := IsoTime2String(sourceMember.ExpiresAt)
 				if err != nil {
 					return err
 				}

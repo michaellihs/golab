@@ -126,8 +126,3 @@ func initHttpClient() (*http.Client, error) {
 	//}
 	//return &http.Client{Transport: tr}, nil
 }
-
-func isoTime2String(time *gitlab.ISOTime) (string, error) {
-	bytes, err := time.MarshalJSON()
-	return string(bytes), err
-}
