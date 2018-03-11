@@ -20,6 +20,7 @@ This application provides a Command Line Interface for Gitlab.
 * [golab branches](golab_branches.md)	 - Branches
 * [golab commits](golab_commits.md)	 - Manage Commits
 * [golab deploy-keys](golab_deploy-keys.md)	 - Deploy Keys API
+* [golab environments](golab_environments.md)	 - Manage environments
 * [golab gendoc](golab_gendoc.md)	 - Render the Markdown Documentation for golab
 * [golab group](golab_group.md)	 - Manage Gitlab Groups
 * [golab group-members](golab_group-members.md)	 - Access group members
