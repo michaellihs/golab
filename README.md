@@ -1,4 +1,5 @@
 Gitlab CLI written in Go [![Build Status](https://travis-ci.org/michaellihs/golab.svg?branch=master "Travis CI status")](https://travis-ci.org/michaellihs/golab)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmichaellihs%2Fgolab.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmichaellihs%2Fgolab?ref=badge_shield)
 ======================== 
 
 This project provides a Command Line Interface (CLI) for Gitlab written in Go. The project uses the [go-gitlab client](https://github.com/xanzy/go-gitlab) for the communication with Gitlab.
@@ -294,3 +295,7 @@ Further Resources
 * [GoMock (Go Mocking Library)](https://github.com/golang/mock)
 * [go-gitlab (Go Gitlab Library)](https://github.com/xanzy/go-gitlab)
 * [govendor on Heroku](https://devcenter.heroku.com/articles/go-dependencies-via-govendor)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmichaellihs%2Fgolab.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmichaellihs%2Fgolab?ref=badge_large)
